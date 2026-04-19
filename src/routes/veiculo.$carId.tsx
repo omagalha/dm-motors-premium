@@ -72,7 +72,7 @@ function VehiclePage() {
 
   const tag = tagStyles[car.tag];
 
-  const whatsappMessage = `Olá! Tenho interesse no *${car.name} ${car.year}* — ${formatPrice(car.price)}, ${formatKm(car.km)}.\n\nPode me passar mais informações?`;
+  const whatsappMessage = `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`;
 
   const specs = [
     { icon: Calendar, label: "Ano", value: String(car.year) },
@@ -222,7 +222,7 @@ function VehiclePage() {
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {car.brand} · {car.year}
               </p>
-              <h1 className="mt-1 text-3xl font-black uppercase leading-tight text-foreground md:text-4xl">
+              <h1 className="mt-2 text-4xl font-black uppercase leading-[0.95] tracking-tight text-foreground sm:text-5xl md:text-6xl">
                 {car.name}
               </h1>
 
@@ -265,7 +265,7 @@ function VehiclePage() {
                   className="animate-pulse-whatsapp flex w-full items-center justify-center gap-2 rounded-full bg-whatsapp py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card transition hover:brightness-110"
                 >
                   <MessageCircle className="h-5 w-5 fill-current" strokeWidth={0} />
-                  Quero esse carro no WhatsApp
+                  📲 Chamar no WhatsApp
                 </a>
                 <a
                   href="tel:+5532999264848"
@@ -368,29 +368,29 @@ function VehiclePage() {
         </div>
       </section>
 
-      {/* Mobile sticky CTA */}
-      <div className="sticky bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[11px] font-semibold uppercase text-muted-foreground">
-              {car.name}
-            </p>
-            <p className="text-lg font-black text-primary">{formatPrice(car.price)}</p>
-          </div>
-          <a
-            href={whatsappLink(whatsappMessage)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex shrink-0 items-center gap-2 rounded-full bg-whatsapp px-5 py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground shadow-card"
-          >
-            <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
-            WhatsApp
-          </a>
-        </div>
-      </div>
-
       <Footer />
-      <FloatingWhatsApp />
+
+      {/* Spacer to prevent content being hidden behind fixed CTA on mobile */}
+      <div className="h-24 lg:hidden" aria-hidden="true" />
+
+      {/* Fixed full-width WhatsApp CTA (mobile, iFood-style) */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 px-4 py-3 backdrop-blur lg:hidden">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="truncate text-[11px] font-semibold uppercase text-muted-foreground">
+            {car.name}
+          </p>
+          <p className="text-base font-black text-primary">{formatPrice(car.price)}</p>
+        </div>
+        <a
+          href={whatsappLink(whatsappMessage)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="animate-pulse-whatsapp flex w-full items-center justify-center gap-2 rounded-full bg-whatsapp py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card"
+        >
+          <MessageCircle className="h-5 w-5 fill-current" strokeWidth={0} />
+          📲 Chamar no WhatsApp
+        </a>
+      </div>
     </div>
   );
 }
