@@ -1,9 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { formatKm, formatPrice, type Car, type Category, type Fuel, type Transmission } from "@/data/cars";
+import { formatKm, formatPrice, type Car, type CarStatus, type Category, type Fuel, type Transmission } from "@/data/cars";
 import { addCar, deleteCar, resetCars, updateCar, useCars, type CarInput } from "@/data/carsStore";
-import { Pencil, Plus, Trash2, X, Upload, RotateCcw } from "lucide-react";
+import { getCarInsights } from "@/data/insights";
+import { Pencil, Plus, Trash2, X, Upload, RotateCcw, Eye, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+
+const statusMeta: Record<CarStatus, { label: string; dot: string; pill: string }> = {
+  disponivel: {
+    label: "Disponível",
+    dot: "bg-whatsapp shadow-[0_0_0_3px_oklch(0.68_0.18_145/0.25)]",
+    pill: "bg-whatsapp/15 text-whatsapp",
+  },
+  reservado: {
+    label: "Reservado",
+    dot: "bg-amber-400 shadow-[0_0_0_3px_oklch(0.85_0.18_85/0.25)]",
+    pill: "bg-amber-400/15 text-amber-400",
+  },
+  vendido: {
+    label: "Vendido",
+    dot: "bg-muted-foreground/70 shadow-[0_0_0_3px_oklch(0.72_0.01_20/0.2)]",
+    pill: "bg-muted text-muted-foreground",
+  },
+};
 
 export const Route = createFileRoute("/admin/veiculos")({
   head: () => ({
