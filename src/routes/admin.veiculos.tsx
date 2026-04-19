@@ -78,6 +78,11 @@ function AdminVeiculos() {
       km: String(car.km),
       year: String(car.year),
       transmission: car.transmission,
+      fuel: car.fuel,
+      category: car.category === "Picape" ? "SUV" : car.category,
+      color: car.color === "—" ? "" : car.color,
+      description: car.description ?? "",
+      features: car.features?.join(", ") ?? "",
       image: car.image,
     });
     setOpen(true);
