@@ -196,11 +196,8 @@ function VehiclePage() {
               <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                 Sobre este veículo
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {car.name} {car.year} em estado impecável. Veículo revisado pela equipe técnica
-                da DM Motors, com todas as manutenções em dia e procedência garantida. Ideal
-                para quem busca qualidade, conforto e economia. Aceitamos seu carro na troca e
-                facilitamos o financiamento nas melhores condições do mercado.
+              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                {description}
               </p>
             </div>
 
