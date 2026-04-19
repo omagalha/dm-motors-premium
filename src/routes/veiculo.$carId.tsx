@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 import { allCars, formatKm, formatPrice, type Car, type CarTag } from "@/data/cars";
-import { getCarById } from "@/data/carsStore";
+import { getCarById, useCars } from "@/data/carsStore";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   MessageCircle,
@@ -68,7 +68,10 @@ const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
 };
 
 function VehiclePage() {
-  const { car } = Route.useLoaderData() as { car: Car };
+  const { car: loaderCar } = Route.useLoaderData() as { car: Car };
+  // Reativo: ouve mudanças do carsStore (admin) e mostra dados sempre atualizados
+  const cars = useCars();
+  const car = cars.find((c) => c.id === loaderCar.id) ?? loaderCar;
   // Build a small gallery (placeholder: same image repeated — easy to swap later)
   const gallery = [car.image, car.image, car.image, car.image];
   const [activeImage, setActiveImage] = useState(0);
