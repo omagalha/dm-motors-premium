@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
@@ -26,8 +26,16 @@ import {
   BadgePercent,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import suvBanner from "@/assets/suv-banner.jpg";
+
+interface EstoqueSearch {
+  cat?: Category | "Todos";
+}
 
 export const Route = createFileRoute("/estoque")({
+  validateSearch: (search: Record<string, unknown>): EstoqueSearch => ({
+    cat: typeof search.cat === "string" ? (search.cat as Category | "Todos") : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Estoque de carros — DM Motors Imports" },
@@ -61,12 +69,19 @@ type SortKey = "destaque" | "menor-preco" | "maior-preco" | "menor-km" | "novos"
 
 function EstoquePage() {
   const allCars = useCars();
+  const { cat } = Route.useSearch();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<(typeof categories)[number]>("Todos");
+  const [category, setCategory] = useState<(typeof categories)[number]>(cat ?? "Todos");
   const [transmission, setTransmission] = useState<(typeof transmissions)[number]>("Todos");
   const [maxPrice, setMaxPrice] = useState<number>(200000);
   const [sort, setSort] = useState<SortKey>("destaque");
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // Sync category from URL when it changes
+  useEffect(() => {
+    if (cat && cat !== category) setCategory(cat);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cat]);
 
   const filtered = useMemo(() => {
     const list = allCars.filter((car) => {
@@ -111,30 +126,69 @@ function EstoquePage() {
     setSort("destaque");
   };
 
+  const isSuv = category === "SUV";
+  const activeFilterCount =
+    (category !== "Todos" ? 1 : 0) +
+    (transmission !== "Todos" ? 1 : 0) +
+    (maxPrice !== 200000 ? 1 : 0);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Page header */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-hero py-10 md:py-14">
-        <div className="pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-red opacity-50 blur-2xl" />
-        <div className="relative mx-auto max-w-7xl px-5">
-          <nav className="mb-3 text-xs text-muted-foreground">
-            <Link to="/" className="hover:text-foreground">Home</Link>
-            <span className="mx-2">/</span>
-            <span className="text-foreground">Estoque</span>
-          </nav>
-          <h1 className="text-4xl font-black uppercase text-foreground md:text-6xl">
-            Estoque <span className="text-primary">completo</span>
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground md:text-base">
-            {allCars.length} veículos disponíveis com procedência garantida e financiamento
-            facilitado.
-          </p>
-        </div>
-      </section>
+      {/* SUV category banner */}
+      {isSuv && (
+        <section className="relative overflow-hidden border-b border-border">
+          <img
+            src={suvBanner}
+            alt="SUVs disponíveis"
+            width={1920}
+            height={640}
+            className="absolute inset-0 h-full w-full object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30" />
+          <div className="relative mx-auto max-w-7xl px-5 py-14 md:py-20">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+              Categoria
+            </span>
+            <h1 className="mt-3 text-5xl font-black uppercase leading-[0.95] tracking-tight text-foreground md:text-7xl">
+              SUVs <span className="text-primary">disponíveis</span>
+            </h1>
+            <p className="mt-3 max-w-md text-sm text-muted-foreground md:text-base">
+              Robustez, espaço e tecnologia. Selecionamos os melhores SUVs com procedência e preço competitivo.
+            </p>
+          </div>
+        </section>
+      )}
 
-      {/* Search bar */}
+      {/* Page header — big red count */}
+      {!isSuv && (
+        <section className="relative overflow-hidden border-b border-border bg-gradient-hero py-10 md:py-14">
+          <div className="pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-red opacity-50 blur-2xl" />
+          <div className="relative mx-auto max-w-7xl px-5">
+            <nav className="mb-3 text-xs text-muted-foreground">
+              <Link to="/" className="hover:text-foreground">Home</Link>
+              <span className="mx-2">/</span>
+              <span className="text-foreground">Estoque</span>
+            </nav>
+            <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+              <span className="text-[7rem] font-black leading-[0.85] text-primary drop-shadow-[0_0_30px_oklch(0.62_0.24_25/0.4)] tabular-nums md:text-[9rem]">
+                {allCars.length}
+              </span>
+              <div className="pb-2">
+                <h1 className="text-3xl font-black uppercase leading-tight text-foreground md:text-5xl">
+                  veículos<br />no estoque
+                </h1>
+                <p className="mt-2 max-w-md text-xs text-muted-foreground md:text-sm">
+                  Procedência garantida e financiamento facilitado.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Search + filter button bar */}
       <section className="sticky top-[68px] z-30 border-b border-border bg-background/90 backdrop-blur-lg">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3">
           <div className="relative flex-1">
@@ -149,9 +203,15 @@ function EstoquePage() {
           </div>
           <button
             onClick={() => setFiltersOpen(true)}
-            className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary lg:hidden"
+            className="relative flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
           >
-            <SlidersHorizontal className="h-4 w-4" /> Filtros
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtrar
+            {activeFilterCount > 0 && (
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-black text-primary-foreground">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
           <select
             value={sort}
@@ -168,145 +228,131 @@ function EstoquePage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
-          {/* Sidebar filters (desktop) */}
-          <aside className="hidden lg:block">
-            <FilterPanel
-              category={category}
-              setCategory={setCategory}
-              transmission={transmission}
-              setTransmission={setTransmission}
-              maxPrice={maxPrice}
-              setMaxPrice={setMaxPrice}
-              onReset={reset}
-            />
-          </aside>
-
-          {/* Results */}
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-bold text-foreground">{filtered.length}</span>{" "}
-                {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}
-              </p>
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground focus:border-primary focus:outline-none md:hidden"
-              >
-                <option value="destaque">Destaques</option>
-                <option value="menor-preco">Menor preço</option>
-                <option value="maior-preco">Maior preço</option>
-                <option value="menor-km">Menor KM</option>
-                <option value="novos">Mais novos</option>
-              </select>
-            </div>
-
-            {filtered.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
-                <p className="text-base font-semibold text-foreground">
-                  Nenhum veículo encontrado com esses filtros.
-                </p>
-                <button
-                  onClick={reset}
-                  className="mt-4 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase text-primary-foreground"
-                >
-                  Limpar filtros
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((car, i) => {
-                  const style = tagStyles[car.tag as CarTag];
-                  return (
-                    <motion.article
-                      key={car.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3) }}
-                      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-primary/50 hover:shadow-red"
-                    >
-                      <Link
-                        to="/veiculo/$carId"
-                        params={{ carId: car.id }}
-                        className="relative block aspect-[4/3] overflow-hidden bg-muted"
-                      >
-                        <img
-                          src={car.image}
-                          alt={car.name}
-                          width={1024}
-                          height={768}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                        />
-                        <span
-                          className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${style.bg}`}
-                        >
-                          {style.icon}
-                          {car.tag}
-                        </span>
-                      </Link>
-
-                      <div className="flex flex-1 flex-col p-4">
-                        <Link
-                          to="/veiculo/$carId"
-                          params={{ carId: car.id }}
-                          className="text-base font-bold uppercase tracking-tight text-foreground transition hover:text-primary"
-                        >
-                          {car.name}
-                        </Link>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          {car.brand} · {car.color}
-                        </div>
-
-                        <p className="mt-3 text-2xl font-black text-primary">
-                          {formatPrice(car.price)}
-                        </p>
-
-                        <ul className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
-                          <li className="flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-primary" /> {car.year}
-                          </li>
-                          <li className="flex items-center gap-1.5">
-                            <Gauge className="h-3.5 w-3.5 text-primary" /> {formatKm(car.km)}
-                          </li>
-                          <li className="flex items-center gap-1.5">
-                            <Settings2 className="h-3.5 w-3.5 text-primary" /> {car.transmission}
-                          </li>
-                          <li className="flex items-center gap-1.5">
-                            <FuelIcon className="h-3.5 w-3.5 text-primary" /> {car.fuel}
-                          </li>
-                        </ul>
-
-                        <a
-                          href={whatsappLink(
-                            `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`
-                          )}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-5 flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
-                        >
-                          <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
-                          📲 Chamar no WhatsApp
-                        </a>
-                      </div>
-                    </motion.article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            <span className="text-2xl font-black tabular-nums text-primary">{filtered.length}</span>{" "}
+            {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}
+          </p>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground focus:border-primary focus:outline-none md:hidden"
+          >
+            <option value="destaque">Destaques</option>
+            <option value="menor-preco">Menor preço</option>
+            <option value="maior-preco">Maior preço</option>
+            <option value="menor-km">Menor KM</option>
+            <option value="novos">Mais novos</option>
+          </select>
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+            <p className="text-base font-semibold text-foreground">
+              Nenhum veículo encontrado com esses filtros.
+            </p>
+            <button
+              onClick={reset}
+              className="mt-4 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase text-primary-foreground"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filtered.map((car, i) => {
+              const style = tagStyles[car.tag as CarTag];
+              return (
+                <motion.article
+                  key={car.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3) }}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-primary/50 hover:shadow-red"
+                >
+                  <Link
+                    to="/veiculo/$carId"
+                    params={{ carId: car.id }}
+                    className="relative block aspect-[4/3] overflow-hidden bg-muted"
+                  >
+                    <img
+                      src={car.image}
+                      alt={car.name}
+                      width={1024}
+                      height={768}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
+                    <span
+                      className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${style.bg}`}
+                    >
+                      {style.icon}
+                      {car.tag}
+                    </span>
+                  </Link>
+
+                  <div className="flex flex-1 flex-col p-4">
+                    <Link
+                      to="/veiculo/$carId"
+                      params={{ carId: car.id }}
+                      className="text-sm font-semibold uppercase tracking-tight text-muted-foreground transition hover:text-primary"
+                    >
+                      {car.name}
+                    </Link>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                      {car.brand} · {car.color}
+                    </div>
+
+                    <p className="mt-2 text-3xl font-black tabular-nums text-primary">
+                      {formatPrice(car.price)}
+                    </p>
+
+                    <ul className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] text-foreground">
+                      <li className="flex items-center gap-1.5">
+                        <span aria-hidden>📅</span>
+                        <span className="tabular-nums">{car.year}</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span aria-hidden>🔢</span>
+                        <span className="tabular-nums">{formatKm(car.km)}</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span aria-hidden>⚙️</span>
+                        <span>{car.transmission}</span>
+                      </li>
+                      <li className="flex items-center gap-1.5">
+                        <span aria-hidden>⛽</span>
+                        <span>{car.fuel}</span>
+                      </li>
+                    </ul>
+
+                    <a
+                      href={whatsappLink(
+                        `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-5 flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
+                    >
+                      <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
+                      📲 Chamar no WhatsApp
+                    </a>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {/* Mobile filters drawer */}
+      {/* Filters drawer (all breakpoints) */}
       {filtersOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog">
+        <div className="fixed inset-0 z-50" role="dialog">
           <div
             className="absolute inset-0 bg-black/70"
             onClick={() => setFiltersOpen(false)}
           />
-          <div className="absolute inset-y-0 right-0 w-[85%] max-w-sm overflow-y-auto bg-background p-5 shadow-card">
+          <div className="absolute inset-y-0 right-0 w-[88%] max-w-sm overflow-y-auto bg-background p-5 shadow-card">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-lg font-black uppercase">Filtros</h3>
               <button
