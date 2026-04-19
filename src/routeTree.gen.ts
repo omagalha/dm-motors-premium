@@ -9,17 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PainelRouteImport } from './routes/painel'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as VeiculoCarIdRouteImport } from './routes/veiculo.$carId'
+import { Route as AdminVeiculosRouteImport } from './routes/admin.veiculos'
+import { Route as AdminInsightsRouteImport } from './routes/admin.insights'
 
-const PainelRoute = PainelRouteImport.update({
-  id: '/painel',
-  path: '/painel',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EstoqueRoute = EstoqueRouteImport.update({
   id: '/estoque',
   path: '/estoque',
@@ -35,59 +32,92 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const VeiculoCarIdRoute = VeiculoCarIdRouteImport.update({
   id: '/veiculo/$carId',
   path: '/veiculo/$carId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVeiculosRoute = AdminVeiculosRouteImport.update({
+  id: '/veiculos',
+  path: '/veiculos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInsightsRoute = AdminInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/estoque': typeof EstoqueRoute
-  '/painel': typeof PainelRoute
+  '/admin/insights': typeof AdminInsightsRoute
+  '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/estoque': typeof EstoqueRoute
-  '/painel': typeof PainelRoute
+  '/admin/insights': typeof AdminInsightsRoute
+  '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/estoque': typeof EstoqueRoute
-  '/painel': typeof PainelRoute
+  '/admin/insights': typeof AdminInsightsRoute
+  '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/estoque' | '/painel' | '/veiculo/$carId'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/estoque'
+    | '/admin/insights'
+    | '/admin/veiculos'
+    | '/veiculo/$carId'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/estoque' | '/painel' | '/veiculo/$carId'
-  id: '__root__' | '/' | '/admin' | '/estoque' | '/painel' | '/veiculo/$carId'
+  to:
+    | '/'
+    | '/estoque'
+    | '/admin/insights'
+    | '/admin/veiculos'
+    | '/veiculo/$carId'
+    | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/estoque'
+    | '/admin/insights'
+    | '/admin/veiculos'
+    | '/veiculo/$carId'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   EstoqueRoute: typeof EstoqueRoute
-  PainelRoute: typeof PainelRoute
   VeiculoCarIdRoute: typeof VeiculoCarIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/painel': {
-      id: '/painel'
-      path: '/painel'
-      fullPath: '/painel'
-      preLoaderRoute: typeof PainelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/estoque': {
       id: '/estoque'
       path: '/estoque'
@@ -109,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/veiculo/$carId': {
       id: '/veiculo/$carId'
       path: '/veiculo/$carId'
@@ -116,14 +153,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VeiculoCarIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/veiculos': {
+      id: '/admin/veiculos'
+      path: '/veiculos'
+      fullPath: '/admin/veiculos'
+      preLoaderRoute: typeof AdminVeiculosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/insights': {
+      id: '/admin/insights'
+      path: '/insights'
+      fullPath: '/admin/insights'
+      preLoaderRoute: typeof AdminInsightsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminInsightsRoute: typeof AdminInsightsRoute
+  AdminVeiculosRoute: typeof AdminVeiculosRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminInsightsRoute: AdminInsightsRoute,
+  AdminVeiculosRoute: AdminVeiculosRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   EstoqueRoute: EstoqueRoute,
-  PainelRoute: PainelRoute,
   VeiculoCarIdRoute: VeiculoCarIdRoute,
 }
 export const routeTree = rootRouteImport
