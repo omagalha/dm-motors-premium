@@ -379,6 +379,63 @@ function AdminVeiculos() {
                 </Field>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Combustível">
+                  <select
+                    value={form.fuel}
+                    onChange={(e) => setForm({ ...form, fuel: e.target.value as Fuel })}
+                    className="adm-input"
+                  >
+                    {fuels.map((f) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Categoria">
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+                    className="adm-input"
+                  >
+                    {categories.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Cor">
+                <input
+                  type="text"
+                  value={form.color}
+                  onChange={(e) => setForm({ ...form, color: e.target.value })}
+                  placeholder="Ex: Branco Cristal"
+                  className="adm-input"
+                  maxLength={40}
+                />
+              </Field>
+
+              <Field label="Descrição do veículo">
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Descreva o estado, histórico, manutenções e diferenciais do veículo…"
+                  className="adm-input min-h-[110px] resize-y"
+                  rows={5}
+                  maxLength={1500}
+                />
+              </Field>
+
+              <Field label="Itens e opcionais (separados por vírgula)">
+                <textarea
+                  value={form.features}
+                  onChange={(e) => setForm({ ...form, features: e.target.value })}
+                  placeholder="Ex: Ar-condicionado, Câmera de ré, Multimídia, Rodas de liga leve"
+                  className="adm-input min-h-[80px] resize-y"
+                  rows={3}
+                />
+              </Field>
+
               <Field label="Imagem">
                 <div className="space-y-3">
                   {form.image && (
