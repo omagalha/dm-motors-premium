@@ -7,10 +7,10 @@ export function Header() {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { label: "Home", to: "/" as const },
-    { label: "Estoque", to: "/estoque" as const },
-    { label: "SUV", to: "/estoque" as const },
-    { label: "Contato", to: "/" as const },
+    { label: "Home", to: "/" as const, search: undefined },
+    { label: "Estoque", to: "/estoque" as const, search: undefined },
+    { label: "SUV", to: "/estoque" as const, search: { cat: "SUV" } as const },
+    { label: "Contato", to: "/" as const, search: undefined },
   ];
 
   return (
@@ -32,6 +32,7 @@ export function Header() {
             <Link
               key={l.label}
               to={l.to}
+              search={l.search as never}
               className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
               activeProps={{ className: "text-foreground font-semibold" }}
             >
@@ -56,6 +57,7 @@ export function Header() {
               <Link
                 key={l.label}
                 to={l.to}
+                search={l.search as never}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
               >

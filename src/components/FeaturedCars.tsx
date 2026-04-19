@@ -69,20 +69,20 @@ export function FeaturedCars() {
                     {style.icon}
                     {car.tag}
                   </span>
-                  <span className="absolute right-3 top-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-bold text-foreground backdrop-blur">
-                    {formatPrice(car.price)}
-                  </span>
                 </Link>
 
                 <div className="p-4">
                   <Link
                     to="/veiculo/$carId"
                     params={{ carId: car.id }}
-                    className="text-lg font-bold uppercase tracking-tight text-foreground transition hover:text-primary"
+                    className="text-sm font-semibold uppercase tracking-tight text-muted-foreground transition hover:text-primary"
                   >
-                    {car.name} <span className="text-muted-foreground">{car.year}</span>
+                    {car.name} <span className="opacity-70">{car.year}</span>
                   </Link>
-                  <p className="mt-1 text-xs text-muted-foreground">{formatKm(car.km)}</p>
+                  <p className="mt-2 text-3xl font-black tabular-nums text-primary">
+                    {formatPrice(car.price)}
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium text-muted-foreground">{formatKm(car.km)}</p>
 
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {car.highlights.map((h) => (
