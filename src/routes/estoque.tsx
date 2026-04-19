@@ -4,13 +4,13 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 import {
-  allCars,
   formatKm,
   formatPrice,
   type Category,
   type Transmission,
   type CarTag,
 } from "@/data/cars";
+import { useCars } from "@/data/carsStore";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   MessageCircle,
