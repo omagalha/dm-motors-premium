@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 import { allCars, formatKm, formatPrice, type Car, type CarTag } from "@/data/cars";
-import { getCarById } from "@/data/carsStore";
+import { getCarById, useCars } from "@/data/carsStore";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   MessageCircle,
@@ -35,6 +35,9 @@ export const Route = createFileRoute("/veiculo/$carId")({
     if (!car) throw notFound();
     return { car };
   },
+  // Sempre re-executa o loader ao montar (lê localStorage atualizado pelo admin)
+  staleTime: 0,
+  shouldReload: () => true,
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [{ title: "Veículo — DM Motors Imports" }] };
     const { car } = loaderData;
@@ -65,7 +68,10 @@ const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
 };
 
 function VehiclePage() {
-  const { car } = Route.useLoaderData() as { car: Car };
+  const { car: loaderCar } = Route.useLoaderData() as { car: Car };
+  // Reativo: ouve mudanças do carsStore (admin) e mostra dados sempre atualizados
+  const cars = useCars();
+  const car = cars.find((c) => c.id === loaderCar.id) ?? loaderCar;
   // Build a small gallery (placeholder: same image repeated — easy to swap later)
   const gallery = [car.image, car.image, car.image, car.image];
   const [activeImage, setActiveImage] = useState(0);
@@ -83,22 +89,12 @@ function VehiclePage() {
     { icon: CarIcon, label: "Categoria", value: car.category },
   ];
 
-  const defaultFeatures = [
-    "Ar-condicionado",
-    "Direção elétrica",
-    "Vidros e travas elétricas",
-    "Multimídia com Bluetooth",
-    "Computador de bordo",
-    "Airbag duplo",
-    "Freios ABS",
-    "Sensor de estacionamento",
-    "Câmera de ré",
-    "Rodas de liga leve",
-  ];
-  const features = car.features && car.features.length ? car.features : defaultFeatures;
-  const description =
-    car.description?.trim() ||
-    `${car.name} ${car.year} em estado impecável. Veículo revisado pela equipe técnica da DM Motors, com todas as manutenções em dia e procedência garantida. Ideal para quem busca qualidade, conforto e economia. Aceitamos seu carro na troca e facilitamos o financiamento nas melhores condições do mercado.`;
+  // Normaliza features: aceita array já parseado ou strings com vírgula/quebra de linha
+  const features = (car.features ?? [])
+    .flatMap((f) => String(f).split(/[,\n]/))
+    .map((f) => f.trim())
+    .filter(Boolean);
+  const description = car.description?.trim() ?? "";
 
   const related = allCars.filter((c) => c.id !== car.id).slice(0, 3);
 
@@ -192,29 +188,33 @@ function VehiclePage() {
             </div>
 
             {/* Description */}
-            <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
-                Sobre este veículo
-              </h2>
-              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {description}
-              </p>
-            </div>
+            {description && (
+              <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
+                  Sobre este veículo
+                </h2>
+                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                  {description}
+                </p>
+              </div>
+            )}
 
             {/* Features */}
-            <div className="mt-6 rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
-                Itens e opcionais
-              </h2>
-              <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                    <Check className="h-4 w-4 shrink-0 text-primary" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {features.length > 0 && (
+              <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
+                  Itens e opcionais
+                </h2>
+                <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-foreground">
+                      <Check className="h-4 w-4 shrink-0 text-primary" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
