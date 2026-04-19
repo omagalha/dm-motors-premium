@@ -1,4 +1,5 @@
 import heroCar from "@/assets/hero-car.jpg";
+import dmLogo from "@/assets/dm-motors-logo.png";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
@@ -10,6 +11,14 @@ export function Hero() {
       <div className="pointer-events-none absolute -right-20 top-1/2 h-[500px] w-[500px] -translate-y-1/2 rounded-full bg-gradient-red opacity-70 blur-2xl md:opacity-90" />
       <div className="pointer-events-none absolute left-1/3 top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
 
+      {/* Decorative background logo */}
+      <img
+        src={dmLogo}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-10 bottom-0 hidden w-[520px] opacity-[0.04] md:block"
+      />
+
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-16 pt-12 md:grid-cols-2 md:gap-6 md:pb-24 md:pt-20">
         {/* Copy */}
         <motion.div
@@ -18,6 +27,12 @@ export function Hero() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="relative z-10"
         >
+          <img
+            src={dmLogo}
+            alt="DM Motors Imports"
+            className="mb-5 h-16 w-auto drop-shadow-[0_0_24px_oklch(0.62_0.24_25/0.45)] sm:h-20"
+          />
+
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
             Estoque renovado toda semana
