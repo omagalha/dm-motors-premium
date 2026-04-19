@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as EstoqueRouteImport } from './routes/estoque'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VeiculoCarIdRouteImport } from './routes/veiculo.$carId'
 
@@ -22,6 +23,11 @@ const PainelRoute = PainelRouteImport.update({
 const EstoqueRoute = EstoqueRouteImport.update({
   id: '/estoque',
   path: '/estoque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,12 +43,14 @@ const VeiculoCarIdRoute = VeiculoCarIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/estoque': typeof EstoqueRoute
   '/painel': typeof PainelRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/estoque': typeof EstoqueRoute
   '/painel': typeof PainelRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/estoque': typeof EstoqueRoute
   '/painel': typeof PainelRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/estoque' | '/painel' | '/veiculo/$carId'
+  fullPaths: '/' | '/admin' | '/estoque' | '/painel' | '/veiculo/$carId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/estoque' | '/painel' | '/veiculo/$carId'
-  id: '__root__' | '/' | '/estoque' | '/painel' | '/veiculo/$carId'
+  to: '/' | '/admin' | '/estoque' | '/painel' | '/veiculo/$carId'
+  id: '__root__' | '/' | '/admin' | '/estoque' | '/painel' | '/veiculo/$carId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   EstoqueRoute: typeof EstoqueRoute
   PainelRoute: typeof PainelRoute
   VeiculoCarIdRoute: typeof VeiculoCarIdRoute
@@ -85,6 +95,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EstoqueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   EstoqueRoute: EstoqueRoute,
   PainelRoute: PainelRoute,
   VeiculoCarIdRoute: VeiculoCarIdRoute,
@@ -111,3 +129,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
