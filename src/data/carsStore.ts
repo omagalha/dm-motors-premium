@@ -2,7 +2,7 @@
 // This lets the admin panel work without a backend. Data lives in the browser
 // of whoever opens the panel.
 
-import { allCars as seedCars, type Car, type CarTag, type Transmission, type Category, type Fuel } from "./cars";
+import { allCars as seedCars, type Car, type CarTag, type Transmission, type Category, type Fuel, type CarStatus } from "./cars";
 
 const STORAGE_KEY = "dm-motors:cars:v1";
 
@@ -22,6 +22,7 @@ export type CarInput = {
   highlights?: string[];
   description?: string;
   features?: string[];
+  status?: CarStatus;
 };
 
 function isBrowser() {
@@ -87,6 +88,7 @@ export function addCar(input: CarInput): Car {
     highlights: input.highlights ?? ["Revisado", "IPVA pago", "Aceita troca"],
     description: input.description,
     features: input.features,
+    status: input.status ?? "disponivel",
   };
   list.unshift(car);
   writeState(list);
