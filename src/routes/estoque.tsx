@@ -280,14 +280,14 @@ function EstoquePage() {
 
                         <a
                           href={whatsappLink(
-                            `Olá! Tenho interesse no ${car.name} ${car.year} (${formatPrice(car.price)}).`
+                            `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`
                           )}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-5 flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-xs font-bold uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
+                          className="mt-5 flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
                         >
                           <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
-                          Chamar no WhatsApp
+                          📲 Chamar no WhatsApp
                         </a>
                       </div>
                     </motion.article>

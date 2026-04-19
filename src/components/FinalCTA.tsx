@@ -28,7 +28,7 @@ export function FinalCTA() {
         </p>
 
         <div className="mt-8 flex justify-center">
-          <WhatsAppButton size="lg" label="Falar com a DM Motors agora" />
+          <WhatsAppButton size="lg" label="📲 Chamar no WhatsApp agora" />
         </div>
 
         <p className="mt-5 text-xs text-muted-foreground">
