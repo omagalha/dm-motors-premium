@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allCars, formatPrice } from "@/data/cars";
 import { getCarInsights } from "@/data/insights";
-import { Eye, MessageCircle } from "lucide-react";
+import { Eye, MessageCircle, Flame, Car as CarIcon } from "lucide-react";
 
 export const Route = createFileRoute("/admin/insights")({
   head: () => ({
@@ -19,6 +19,18 @@ function AdminInsights() {
     (a, b) => (carInsights[b.id]?.views ?? 0) - (carInsights[a.id]?.views ?? 0),
   );
 
+  const topViews = ranked[0] ? carInsights[ranked[0].id].views : 1;
+  const totals = ranked.reduce(
+    (acc, car) => {
+      const ins = carInsights[car.id];
+      return {
+        views: acc.views + (ins?.views ?? 0),
+        whatsapp: acc.whatsapp + (ins?.whatsappClicks ?? 0),
+      };
+    },
+    { views: 0, whatsapp: 0 },
+  );
+
   return (
     <div className="space-y-6">
       <header>
@@ -29,89 +41,115 @@ function AdminInsights() {
           Insights por veículo
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Ordenado por veículos mais vistos · {ranked.length} veículos
+          Ordenado por veículos mais vistos
         </p>
       </header>
 
-      {/* Desktop table */}
-      <section className="hidden overflow-hidden rounded-2xl border border-border bg-card shadow-card md:block">
-        <table className="w-full text-sm">
-          <thead className="bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-6 py-3 text-left font-semibold">Veículo</th>
-              <th className="px-6 py-3 text-right font-semibold">Preço</th>
-              <th className="px-6 py-3 text-right font-semibold">
-                <span className="inline-flex items-center gap-1.5">
-                  <Eye className="h-3.5 w-3.5" /> Visualizações
-                </span>
-              </th>
-              <th className="px-6 py-3 text-right font-semibold">
-                <span className="inline-flex items-center gap-1.5">
-                  <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                </span>
-              </th>
-              <th className="px-6 py-3 text-right font-semibold">Conversão</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ranked.map((car) => {
-              const ins = carInsights[car.id];
-              const conv = ins.views ? (ins.whatsappClicks / ins.views) * 100 : 0;
-              return (
-                <tr key={car.id} className="border-t border-border transition hover:bg-secondary/30">
-                  <td className="px-6 py-4">
-                    <Link to="/veiculo/$carId" params={{ carId: car.id }} className="flex items-center gap-3">
-                      <img src={car.image} alt={car.name} className="h-12 w-16 rounded-md object-cover" />
-                      <div>
-                        <p className="font-semibold text-foreground">{car.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {car.year} · {car.km.toLocaleString("pt-BR")} km
-                        </p>
-                      </div>
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 text-right font-semibold text-foreground">
-                    {formatPrice(car.price)}
-                  </td>
-                  <td className="px-6 py-4 text-right tabular-nums text-foreground">
-                    {ins.views.toLocaleString("pt-BR")}
-                  </td>
-                  <td className="px-6 py-4 text-right tabular-nums">
-                    <span className="font-semibold text-whatsapp">{ins.whatsappClicks}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right tabular-nums text-muted-foreground">
-                    {conv.toFixed(1)}%
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      {/* Totals */}
+      <section className="grid grid-cols-3 gap-3 sm:gap-4">
+        <TotalCard
+          label="Views"
+          value={totals.views}
+          icon={<Eye className="h-4 w-4" />}
+          accent="text-primary"
+          ring="bg-primary/15"
+        />
+        <TotalCard
+          label="Mensagens"
+          value={totals.whatsapp}
+          icon={<MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />}
+          accent="text-whatsapp"
+          ring="bg-whatsapp/15"
+        />
+        <TotalCard
+          label="Veículos"
+          value={ranked.length}
+          icon={<CarIcon className="h-4 w-4" />}
+          accent="text-foreground"
+          ring="bg-foreground/10"
+        />
       </section>
 
-      {/* Mobile cards */}
-      <ul className="space-y-3 md:hidden">
-        {ranked.map((car) => {
+      {/* Ranking list */}
+      <ul className="space-y-3">
+        {ranked.map((car, idx) => {
           const ins = carInsights[car.id];
+          const pct = topViews ? Math.round((ins.views / topViews) * 100) : 0;
+          const isFirst = idx === 0;
+          const rank = idx + 1;
           return (
-            <li key={car.id} className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-              <Link to="/veiculo/$carId" params={{ carId: car.id }} className="flex gap-3 p-3">
-                <img src={car.image} alt={car.name} className="h-16 w-20 flex-shrink-0 rounded-md object-cover" />
+            <li
+              key={car.id}
+              className={`overflow-hidden rounded-2xl border bg-card shadow-card transition hover:border-primary/40 ${
+                isFirst ? "border-primary/60 shadow-red" : "border-border"
+              }`}
+            >
+              <Link
+                to="/veiculo/$carId"
+                params={{ carId: car.id }}
+                className="flex items-center gap-3 p-3 sm:gap-5 sm:p-4"
+              >
+                {/* Rank number */}
+                <div
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl font-black tabular-nums sm:h-16 sm:w-16 sm:text-3xl ${
+                    isFirst
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-muted-foreground"
+                  }`}
+                >
+                  #{rank}
+                </div>
+
+                {/* Image */}
+                <img
+                  src={car.image}
+                  alt={car.name}
+                  className="h-16 w-20 shrink-0 rounded-md object-cover sm:h-20 sm:w-28"
+                />
+
+                {/* Info + progress */}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-foreground">{car.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {car.year} · {formatPrice(car.price)}
-                  </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-bold text-foreground sm:text-base">
+                          {car.name}
+                        </p>
+                        {isFirst && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary">
+                            <Flame className="h-3 w-3" /> Mais visto
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground sm:text-xs">
+                        {car.year} · {formatPrice(car.price)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+
                   <div className="mt-2 flex items-center gap-4 text-xs">
-                    <span className="inline-flex items-center gap-1 text-foreground">
-                      <Eye className="h-3.5 w-3.5 text-primary" />
-                      <span className="font-semibold tabular-nums">
+                    <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                      <Eye className="h-3.5 w-3.5" />
+                      <span className="tabular-nums">
                         {ins.views.toLocaleString("pt-BR")}
                       </span>
+                      <span className="text-muted-foreground font-medium hidden sm:inline">views</span>
                     </span>
-                    <span className="inline-flex items-center gap-1 text-foreground">
-                      <MessageCircle className="h-3.5 w-3.5 text-whatsapp" />
-                      <span className="font-semibold tabular-nums">{ins.whatsappClicks}</span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-whatsapp">
+                      <MessageCircle className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
+                      <span className="tabular-nums">{ins.whatsappClicks}</span>
+                      <span className="text-muted-foreground font-medium hidden sm:inline">msgs</span>
+                    </span>
+                    <span className="ml-auto text-[10px] font-bold tabular-nums text-muted-foreground">
+                      {pct}%
                     </span>
                   </div>
                 </div>
@@ -120,6 +158,30 @@ function AdminInsights() {
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+interface TotalCardProps {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  accent: string;
+  ring: string;
+}
+
+function TotalCard({ label, value, icon, accent, ring }: TotalCardProps) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
+      <div className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${ring} ${accent}`}>
+        {icon}
+      </div>
+      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+        {label}
+      </p>
+      <p className={`mt-1 text-2xl font-black tabular-nums leading-none sm:text-3xl ${accent}`}>
+        {value.toLocaleString("pt-BR")}
+      </p>
     </div>
   );
 }

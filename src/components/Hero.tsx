@@ -4,6 +4,15 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 
+const quickFilters = [
+  { icon: <Search className="h-3.5 w-3.5" />, label: "Até R$ 50 mil", active: false },
+  { label: "Até R$ 80 mil", active: false },
+  { label: "SUV", active: true },
+  { label: "Automático", active: false },
+  { label: "Baixa KM", active: false },
+  { label: "0 km a 5 anos", active: false },
+];
+
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-hero">
@@ -23,7 +32,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative mx-auto flex max-w-3xl flex-col items-center px-5 pb-16 pt-16 text-center md:pb-24 md:pt-24">
+      <div className="relative mx-auto flex max-w-3xl flex-col items-center px-5 pb-14 pt-14 text-center md:pb-24 md:pt-24">
         <motion.img
           src={dmLogo}
           alt="DM Motors Imports"
@@ -44,15 +53,11 @@ export function Hero() {
             Estoque renovado toda semana
           </span>
 
-          <h1 className="mt-5 text-4xl font-black uppercase leading-[0.95] tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Oportunidades <span className="text-stroke">de verdade</span>
+          <h1 className="mt-6 text-5xl font-black uppercase leading-[0.92] tracking-tight text-foreground sm:text-6xl md:text-7xl">
+            Seu próximo carro
             <br />
-            <span className="text-primary">todos os dias</span>
+            <span className="text-primary">começa aqui.</span>
           </h1>
-
-          <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Carros com procedência, revisados e com preço diferenciado.
-          </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -84,20 +89,17 @@ export function Hero() {
       {/* Quick filter pills */}
       <div className="relative mx-auto max-w-7xl px-5 pb-10">
         <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Filtros rápidos:
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            Filtros:
           </span>
-          {[
-            { icon: <Search className="h-3.5 w-3.5" />, label: "Até R$ 50 mil" },
-            { label: "Até R$ 80 mil" },
-            { label: "SUV" },
-            { label: "Automático" },
-            { label: "Baixa KM" },
-            { label: "0 km a 5 anos" },
-          ].map((f, i) => (
+          {quickFilters.map((f, i) => (
             <button
               key={i}
-              className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-primary/10 hover:text-primary"
+              className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                f.active
+                  ? "border-primary bg-primary/15 text-primary shadow-[0_0_0_1px_oklch(0.62_0.24_25/0.5)]"
+                  : "border-border/60 bg-card/60 text-muted-foreground hover:border-primary/60 hover:bg-primary/10 hover:text-primary"
+              }`}
             >
               {f.icon}
               {f.label}
