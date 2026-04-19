@@ -1,26 +1,45 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Header } from "@/components/Header";
+import { Hero } from "@/components/Hero";
+import { FeaturedCars } from "@/components/FeaturedCars";
+import { Differentials } from "@/components/Differentials";
+import { FinalCTA } from "@/components/FinalCTA";
+import { Footer } from "@/components/Footer";
+import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "DM Motors Imports — Carros com procedência e preço diferenciado" },
+      {
+        name: "description",
+        content:
+          "Concessionária DM Motors Imports: oportunidades de verdade todos os dias. Veículos revisados, financiamento fácil e atendimento direto no WhatsApp.",
+      },
+      { property: "og:title", content: "DM Motors Imports — Oportunidades todos os dias" },
+      {
+        property: "og:description",
+        content:
+          "Carros impecáveis, com procedência e preço diferenciado. Fale agora no WhatsApp.",
+      },
+      { property: "og:type", content: "website" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <Hero />
+        <FeaturedCars />
+        <Differentials />
+        <FinalCTA />
+      </main>
+      <Footer />
+      <FloatingWhatsApp />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
