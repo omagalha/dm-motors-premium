@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import dmLogo from "@/assets/dm-motors-logo.png";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -15,9 +16,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-        <Link to="/" className="flex items-baseline gap-1.5">
-          <span className="text-3xl font-black tracking-tighter text-primary">DM</span>
-          <span className="text-2xl font-black tracking-tight text-foreground">MOTORS</span>
+        <Link to="/" className="flex items-center gap-2" aria-label="DM Motors Imports — Home">
+          <img
+            src={dmLogo}
+            alt="DM Motors Imports"
+            className="h-8 w-auto sm:h-10 md:h-12 drop-shadow-[0_0_12px_oklch(0.62_0.24_25/0.35)]"
+          />
           <span className="hidden text-[10px] font-semibold tracking-[0.3em] text-muted-foreground sm:inline">
             IMPORTS
           </span>
