@@ -68,6 +68,7 @@ const emptyForm: FormState = {
 
 function AdminVeiculos() {
   const cars = useCars();
+  const insights = getCarInsights();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -221,79 +222,136 @@ function AdminVeiculos() {
         <table className="w-full text-sm">
           <thead className="bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
-              <th className="px-6 py-3 text-left font-semibold">Veículo</th>
-              <th className="px-6 py-3 text-right font-semibold">Ano</th>
-              <th className="px-6 py-3 text-right font-semibold">KM</th>
-              <th className="px-6 py-3 text-left font-semibold">Câmbio</th>
-              <th className="px-6 py-3 text-right font-semibold">Preço</th>
-              <th className="px-6 py-3 text-right font-semibold">Ações</th>
+              <th className="px-4 py-3 text-left font-semibold">Veículo</th>
+              <th className="px-4 py-3 text-left font-semibold">Status</th>
+              <th className="px-4 py-3 text-right font-semibold">Ano</th>
+              <th className="px-4 py-3 text-right font-semibold">KM</th>
+              <th className="px-4 py-3 text-right font-semibold">Métricas</th>
+              <th className="px-4 py-3 text-right font-semibold">Preço</th>
+              <th className="px-4 py-3 text-right font-semibold">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {cars.map((car) => (
-              <tr key={car.id} className="border-t border-border transition hover:bg-secondary/30">
-                <td className="px-6 py-3">
-                  <div className="flex items-center gap-3">
-                    <img src={car.image} alt={car.name} className="h-12 w-16 rounded-md object-cover" />
-                    <span className="font-semibold text-foreground">{car.name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-3 text-right tabular-nums text-foreground">{car.year}</td>
-                <td className="px-6 py-3 text-right tabular-nums text-muted-foreground">{formatKm(car.km)}</td>
-                <td className="px-6 py-3 text-foreground">{car.transmission}</td>
-                <td className="px-6 py-3 text-right font-bold text-foreground">{formatPrice(car.price)}</td>
-                <td className="px-6 py-3">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => openEdit(car)}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
-                    >
-                      <Pencil className="h-3.5 w-3.5" /> Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(car)}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Excluir
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {cars.map((car) => {
+              const status = statusMeta[car.status ?? "disponivel"];
+              const ins = insights[car.id];
+              return (
+                <tr key={car.id} className="border-t border-border transition hover:bg-secondary/30">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <img src={car.image} alt={car.name} className="h-12 w-16 rounded-md object-cover" />
+                        <span
+                          aria-label={status.label}
+                          title={status.label}
+                          className={`absolute -right-1 -top-1 h-3 w-3 rounded-full ring-2 ring-card ${status.dot}`}
+                        />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">{car.name}</p>
+                        <p className="text-xs text-muted-foreground">{car.transmission} · {car.fuel}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${status.pill}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+                      {status.label}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums text-foreground">{car.year}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatKm(car.km)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-3 text-xs">
+                      <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                        <Eye className="h-3.5 w-3.5" />
+                        <span className="tabular-nums">{ins?.views.toLocaleString("pt-BR") ?? 0}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-whatsapp">
+                        <MessageCircle className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
+                        <span className="tabular-nums">{ins?.whatsappClicks ?? 0}</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right font-bold text-foreground">{formatPrice(car.price)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => openEdit(car)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Editar
+                      </button>
+                      <button
+                        onClick={() => handleDelete(car)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Excluir
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </section>
 
       {/* Mobile cards */}
       <ul className="space-y-3 md:hidden">
-        {cars.map((car) => (
-          <li key={car.id} className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
-            <div className="flex gap-3 p-3">
-              <img src={car.image} alt={car.name} className="h-20 w-24 flex-shrink-0 rounded-md object-cover" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-foreground">{car.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {car.year} · {formatKm(car.km)} · {car.transmission}
-                </p>
-                <p className="mt-1 text-base font-black text-foreground">{formatPrice(car.price)}</p>
+        {cars.map((car) => {
+          const status = statusMeta[car.status ?? "disponivel"];
+          const ins = insights[car.id];
+          return (
+            <li key={car.id} className="overflow-hidden rounded-xl border border-border bg-card shadow-card">
+              <div className="flex gap-3 p-3">
+                <div className="relative shrink-0">
+                  <img src={car.image} alt={car.name} className="h-20 w-24 rounded-md object-cover" />
+                  <span
+                    aria-label={status.label}
+                    className={`absolute -right-1 -top-1 h-3 w-3 rounded-full ring-2 ring-card ${status.dot}`}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="truncate font-semibold text-foreground">{car.name}</p>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${status.pill}`}>
+                      {status.label}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {car.year} · {formatKm(car.km)} · {car.transmission}
+                  </p>
+                  <p className="mt-1 text-base font-black text-foreground">{formatPrice(car.price)}</p>
+                  <div className="mt-2 flex items-center gap-3 text-[11px]">
+                    <span className="inline-flex items-center gap-1 font-semibold text-primary">
+                      <Eye className="h-3 w-3" />
+                      <span className="tabular-nums">{ins?.views.toLocaleString("pt-BR") ?? 0}</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-whatsapp">
+                      <MessageCircle className="h-3 w-3 fill-current" strokeWidth={0} />
+                      <span className="tabular-nums">{ins?.whatsappClicks ?? 0}</span>
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex border-t border-border">
-              <button
-                onClick={() => openEdit(car)}
-                className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wider text-foreground transition hover:bg-secondary/50"
-              >
-                <Pencil className="h-4 w-4" /> Editar
-              </button>
-              <button
-                onClick={() => handleDelete(car)}
-                className="flex flex-1 items-center justify-center gap-1.5 border-l border-border py-3 text-xs font-bold uppercase tracking-wider text-destructive transition hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" /> Excluir
-              </button>
-            </div>
-          </li>
-        ))}
+              <div className="flex border-t border-border">
+                <button
+                  onClick={() => openEdit(car)}
+                  className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wider text-foreground transition hover:bg-secondary/50"
+                >
+                  <Pencil className="h-4 w-4" /> Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(car)}
+                  className="flex flex-1 items-center justify-center gap-1.5 border-l border-border py-3 text-xs font-bold uppercase tracking-wider text-destructive transition hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" /> Excluir
+                </button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       {cars.length === 0 && (
