@@ -11,6 +11,7 @@ export type CarTag = "OPORTUNIDADE" | "BAIXA KM" | "VENDE RÁPIDO" | "ZERO ENTRA
 export type Transmission = "Automático" | "Manual";
 export type Category = "Hatch" | "Sedan" | "SUV" | "Picape";
 export type Fuel = "Flex" | "Diesel" | "Gasolina";
+export type CarStatus = "disponivel" | "reservado" | "vendido";
 
 export interface Car {
   id: string;
@@ -28,6 +29,7 @@ export interface Car {
   highlights: string[];
   description?: string;
   features?: string[];
+  status?: CarStatus;
 }
 
 export const allCars: Car[] = [
