@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { formatKm, formatPrice, type Car, type Transmission } from "@/data/cars";
+import { formatKm, formatPrice, type Car, type Category, type Fuel, type Transmission } from "@/data/cars";
 import { addCar, deleteCar, resetCars, updateCar, useCars, type CarInput } from "@/data/carsStore";
 import { Pencil, Plus, Trash2, X, Upload, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +16,8 @@ export const Route = createFileRoute("/admin/veiculos")({
 });
 
 const transmissions: Transmission[] = ["Automático", "Manual"];
+const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel"];
+const categories: Category[] = ["Hatch", "Sedan", "SUV"];
 
 interface FormState {
   name: string;
@@ -23,6 +25,11 @@ interface FormState {
   km: string;
   year: string;
   transmission: Transmission;
+  fuel: Fuel;
+  category: Category;
+  color: string;
+  description: string;
+  features: string; // comma-separated
   image: string;
 }
 
@@ -32,6 +39,11 @@ const emptyForm: FormState = {
   km: "",
   year: String(new Date().getFullYear()),
   transmission: "Automático",
+  fuel: "Flex",
+  category: "Hatch",
+  color: "",
+  description: "",
+  features: "",
   image: "",
 };
 
@@ -66,6 +78,11 @@ function AdminVeiculos() {
       km: String(car.km),
       year: String(car.year),
       transmission: car.transmission,
+      fuel: car.fuel,
+      category: car.category === "Picape" ? "SUV" : car.category,
+      color: car.color === "—" ? "" : car.color,
+      description: car.description ?? "",
+      features: car.features?.join(", ") ?? "",
       image: car.image,
     });
     setOpen(true);
@@ -104,6 +121,10 @@ function AdminVeiculos() {
     if (!form.image) return toast.error("Adicione uma imagem.");
 
     const brand = name.split(" ")[0] || "Outros";
+    const features = form.features
+      .split(",")
+      .map((f) => f.trim())
+      .filter(Boolean);
     const payload: CarInput = {
       name,
       brand,
@@ -111,11 +132,13 @@ function AdminVeiculos() {
       km,
       price,
       transmission: form.transmission,
-      category: "Hatch",
-      fuel: "Flex",
-      color: "—",
+      category: form.category,
+      fuel: form.fuel,
+      color: form.color.trim() || "—",
       tag: "OPORTUNIDADE",
       image: form.image,
+      description: form.description.trim() || undefined,
+      features: features.length ? features : undefined,
     };
 
     if (editingId) {
@@ -355,6 +378,63 @@ function AdminVeiculos() {
                   </select>
                 </Field>
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Combustível">
+                  <select
+                    value={form.fuel}
+                    onChange={(e) => setForm({ ...form, fuel: e.target.value as Fuel })}
+                    className="adm-input"
+                  >
+                    {fuels.map((f) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Categoria">
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+                    className="adm-input"
+                  >
+                    {categories.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Cor">
+                <input
+                  type="text"
+                  value={form.color}
+                  onChange={(e) => setForm({ ...form, color: e.target.value })}
+                  placeholder="Ex: Branco Cristal"
+                  className="adm-input"
+                  maxLength={40}
+                />
+              </Field>
+
+              <Field label="Descrição do veículo">
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Descreva o estado, histórico, manutenções e diferenciais do veículo…"
+                  className="adm-input min-h-[110px] resize-y"
+                  rows={5}
+                  maxLength={1500}
+                />
+              </Field>
+
+              <Field label="Itens e opcionais (separados por vírgula)">
+                <textarea
+                  value={form.features}
+                  onChange={(e) => setForm({ ...form, features: e.target.value })}
+                  placeholder="Ex: Ar-condicionado, Câmera de ré, Multimídia, Rodas de liga leve"
+                  className="adm-input min-h-[80px] resize-y"
+                  rows={3}
+                />
+              </Field>
 
               <Field label="Imagem">
                 <div className="space-y-3">

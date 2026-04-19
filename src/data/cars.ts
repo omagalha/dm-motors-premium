@@ -26,6 +26,8 @@ export interface Car {
   fuel: Fuel;
   color: string;
   highlights: string[];
+  description?: string;
+  features?: string[];
 }
 
 export const allCars: Car[] = [

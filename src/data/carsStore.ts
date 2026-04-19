@@ -20,6 +20,8 @@ export type CarInput = {
   tag: CarTag;
   image: string; // URL or data URL
   highlights?: string[];
+  description?: string;
+  features?: string[];
 };
 
 function isBrowser() {
@@ -83,6 +85,8 @@ export function addCar(input: CarInput): Car {
     tag: input.tag,
     image: input.image,
     highlights: input.highlights ?? ["Revisado", "IPVA pago", "Aceita troca"],
+    description: input.description,
+    features: input.features,
   };
   list.unshift(car);
   writeState(list);
