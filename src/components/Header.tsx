@@ -6,11 +6,11 @@ export function Header() {
   const [open, setOpen] = useState(false);
 
   const links = [
-    { label: "Home", to: "/" },
-    { label: "Estoque", to: "/" },
-    { label: "SUV", to: "/" },
-    { label: "Financiamento", to: "/" },
-    { label: "Contato", to: "/" },
+    { label: "Home", to: "/" as const },
+    { label: "Estoque", to: "/estoque" as const },
+    { label: "SUV", to: "/estoque" as const },
+    { label: "Financiamento", to: "/" as const },
+    { label: "Contato", to: "/" as const },
   ];
 
   return (
@@ -26,13 +26,14 @@ export function Header() {
 
         <nav className="hidden items-center gap-8 md:flex">
           {links.map((l) => (
-            <a
+            <Link
               key={l.label}
-              href="#"
+              to={l.to}
               className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+              activeProps={{ className: "text-foreground font-semibold" }}
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -49,14 +50,14 @@ export function Header() {
         <nav className="border-t border-border bg-background md:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-1 px-5 py-3">
             {links.map((l) => (
-              <a
+              <Link
                 key={l.label}
-                href="#"
+                to={l.to}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
           </div>
         </nav>
