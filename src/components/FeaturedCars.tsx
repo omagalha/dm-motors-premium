@@ -50,7 +50,11 @@ export function FeaturedCars() {
                 whileHover={{ y: -6 }}
                 className="group overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-primary/50 hover:shadow-red"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                <Link
+                  to="/veiculo/$carId"
+                  params={{ carId: car.id }}
+                  className="relative block aspect-[4/3] overflow-hidden bg-muted"
+                >
                   <img
                     src={car.image}
                     alt={car.name}
@@ -68,12 +72,16 @@ export function FeaturedCars() {
                   <span className="absolute right-3 top-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-bold text-foreground backdrop-blur">
                     {formatPrice(car.price)}
                   </span>
-                </div>
+                </Link>
 
                 <div className="p-4">
-                  <h3 className="text-lg font-bold uppercase tracking-tight text-foreground">
+                  <Link
+                    to="/veiculo/$carId"
+                    params={{ carId: car.id }}
+                    className="text-lg font-bold uppercase tracking-tight text-foreground transition hover:text-primary"
+                  >
                     {car.name} <span className="text-muted-foreground">{car.year}</span>
-                  </h3>
+                  </Link>
                   <p className="mt-1 text-xs text-muted-foreground">{formatKm(car.km)}</p>
 
                   <ul className="mt-3 flex flex-wrap gap-1.5">
