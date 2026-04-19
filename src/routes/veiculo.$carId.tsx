@@ -182,29 +182,33 @@ function VehiclePage() {
             </div>
 
             {/* Description */}
-            <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
-                Sobre este veículo
-              </h2>
-              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                {description}
-              </p>
-            </div>
+            {description && (
+              <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
+                  Sobre este veículo
+                </h2>
+                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                  {description}
+                </p>
+              </div>
+            )}
 
             {/* Features */}
-            <div className="mt-6 rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
-                Itens e opcionais
-              </h2>
-              <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                    <Check className="h-4 w-4 shrink-0 text-primary" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {features.length > 0 && (
+              <div className="mt-6 rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
+                  Itens e opcionais
+                </h2>
+                <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-foreground">
+                      <Check className="h-4 w-4 shrink-0 text-primary" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
