@@ -10,6 +10,7 @@ export function Header() {
     { label: "Estoque", to: "/estoque" as const },
     { label: "SUV", to: "/estoque" as const },
     { label: "Financiamento", to: "/" as const },
+    { label: "Painel", to: "/painel" as const },
     { label: "Contato", to: "/" as const },
   ];
 
