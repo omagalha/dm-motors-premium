@@ -60,6 +60,7 @@ const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
 type SortKey = "destaque" | "menor-preco" | "maior-preco" | "menor-km" | "novos";
 
 function EstoquePage() {
+  const allCars = useCars();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<(typeof categories)[number]>("Todos");
   const [transmission, setTransmission] = useState<(typeof transmissions)[number]>("Todos");
@@ -100,7 +101,7 @@ function EstoquePage() {
         break;
     }
     return sorted;
-  }, [search, category, transmission, maxPrice, sort]);
+  }, [allCars, search, category, transmission, maxPrice, sort]);
 
   const reset = () => {
     setSearch("");
@@ -216,7 +217,7 @@ function EstoquePage() {
             ) : (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((car, i) => {
-                  const style = tagStyles[car.tag];
+                  const style = tagStyles[car.tag as CarTag];
                   return (
                     <motion.article
                       key={car.id}
