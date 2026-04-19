@@ -225,7 +225,11 @@ function EstoquePage() {
                       transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3) }}
                       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-primary/50 hover:shadow-red"
                     >
-                      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                      <Link
+                        to="/veiculo/$carId"
+                        params={{ carId: car.id }}
+                        className="relative block aspect-[4/3] overflow-hidden bg-muted"
+                      >
                         <img
                           src={car.image}
                           alt={car.name}
@@ -240,7 +244,7 @@ function EstoquePage() {
                           {style.icon}
                           {car.tag}
                         </span>
-                      </div>
+                      </Link>
 
                       <div className="flex flex-1 flex-col p-4">
                         <h3 className="text-base font-bold uppercase tracking-tight text-foreground">
