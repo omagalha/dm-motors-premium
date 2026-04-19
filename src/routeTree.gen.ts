@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VeiculoCarIdRouteImport } from './routes/veiculo.$carId'
 
 const EstoqueRoute = EstoqueRouteImport.update({
   id: '/estoque',
@@ -22,31 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VeiculoCarIdRoute = VeiculoCarIdRouteImport.update({
+  id: '/veiculo/$carId',
+  path: '/veiculo/$carId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
+  '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
+  '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
+  '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/estoque'
+  fullPaths: '/' | '/estoque' | '/veiculo/$carId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/estoque'
-  id: '__root__' | '/' | '/estoque'
+  to: '/' | '/estoque' | '/veiculo/$carId'
+  id: '__root__' | '/' | '/estoque' | '/veiculo/$carId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EstoqueRoute: typeof EstoqueRoute
+  VeiculoCarIdRoute: typeof VeiculoCarIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,13 +75,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/veiculo/$carId': {
+      id: '/veiculo/$carId'
+      path: '/veiculo/$carId'
+      fullPath: '/veiculo/$carId'
+      preLoaderRoute: typeof VeiculoCarIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EstoqueRoute: EstoqueRoute,
+  VeiculoCarIdRoute: VeiculoCarIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
