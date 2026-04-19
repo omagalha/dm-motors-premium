@@ -97,13 +97,15 @@ export function FeaturedCars() {
 
                   <div className="mt-4 flex gap-2">
                     <a
-                      href={whatsappLink(`Olá! Tenho interesse no ${car.name} ${car.year}.`)}
+                      href={whatsappLink(
+                        `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-whatsapp px-3 py-2.5 text-xs font-bold uppercase text-whatsapp-foreground transition hover:brightness-110"
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-whatsapp px-3 py-2.5 text-xs font-black uppercase text-whatsapp-foreground transition hover:brightness-110"
                     >
                       <MessageCircle className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
-                      Quero esse
+                      📲 WhatsApp
                     </a>
                     <button className="flex items-center justify-center rounded-lg border border-border px-3 py-2.5 text-foreground transition hover:border-primary hover:text-primary">
                       <Eye className="h-4 w-4" />
