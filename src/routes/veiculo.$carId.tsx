@@ -35,6 +35,9 @@ export const Route = createFileRoute("/veiculo/$carId")({
     if (!car) throw notFound();
     return { car };
   },
+  // Sempre re-executa o loader ao montar (lê localStorage atualizado pelo admin)
+  staleTime: 0,
+  shouldReload: () => true,
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [{ title: "Veículo — DM Motors Imports" }] };
     const { car } = loaderData;
