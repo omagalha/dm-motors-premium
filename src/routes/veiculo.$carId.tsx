@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 import { allCars, formatKm, formatPrice, type Car, type CarTag } from "@/data/cars";
+import { getCarById, getCars } from "@/data/carsStore";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   MessageCircle,
@@ -30,7 +31,7 @@ import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/veiculo/$carId")({
   loader: ({ params }) => {
-    const car = allCars.find((c) => c.id === params.carId);
+    const car = getCarById(params.carId) ?? allCars.find((c) => c.id === params.carId);
     if (!car) throw notFound();
     return { car };
   },
