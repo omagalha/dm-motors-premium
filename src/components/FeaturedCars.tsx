@@ -1,7 +1,8 @@
-import { featuredCars, type CarTag } from "@/data/cars";
+import { allCars, formatKm, formatPrice, type CarTag } from "@/data/cars";
 import { whatsappLink } from "@/lib/whatsapp";
 import { MessageCircle, Eye, Flame, Gauge, Zap, BadgePercent } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 
 const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
   OPORTUNIDADE: { bg: "bg-primary text-primary-foreground", icon: <Flame className="h-3 w-3" /> },
@@ -11,6 +12,8 @@ const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
 };
 
 export function FeaturedCars() {
+  const cars = allCars.slice(0, 4);
+
   return (
     <section id="estoque" className="relative bg-background py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-5">
@@ -26,16 +29,16 @@ export function FeaturedCars() {
               Carros selecionados a dedo, com preço abaixo do mercado e prontos para entrega.
             </p>
           </div>
-          <a
-            href="#"
+          <Link
+            to="/estoque"
             className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
           >
-            <Eye className="h-4 w-4" /> Buscar no estoque
-          </a>
+            <Eye className="h-4 w-4" /> Ver estoque completo
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredCars.map((car, i) => {
+          {cars.map((car, i) => {
             const style = tagStyles[car.tag];
             return (
               <motion.article
@@ -63,7 +66,7 @@ export function FeaturedCars() {
                     {car.tag}
                   </span>
                   <span className="absolute right-3 top-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-bold text-foreground backdrop-blur">
-                    {car.price}
+                    {formatPrice(car.price)}
                   </span>
                 </div>
 
@@ -71,7 +74,7 @@ export function FeaturedCars() {
                   <h3 className="text-lg font-bold uppercase tracking-tight text-foreground">
                     {car.name} <span className="text-muted-foreground">{car.year}</span>
                   </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{car.km}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{formatKm(car.km)}</p>
 
                   <ul className="mt-3 flex flex-wrap gap-1.5">
                     {car.highlights.map((h) => (
