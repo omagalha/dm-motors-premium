@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PainelRouteImport } from './routes/painel'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VeiculoCarIdRouteImport } from './routes/veiculo.$carId'
 
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EstoqueRoute = EstoqueRouteImport.update({
   id: '/estoque',
   path: '/estoque',
@@ -32,35 +38,46 @@ const VeiculoCarIdRoute = VeiculoCarIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
+  '/painel': typeof PainelRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
+  '/painel': typeof PainelRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
+  '/painel': typeof PainelRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/estoque' | '/veiculo/$carId'
+  fullPaths: '/' | '/estoque' | '/painel' | '/veiculo/$carId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/estoque' | '/veiculo/$carId'
-  id: '__root__' | '/' | '/estoque' | '/veiculo/$carId'
+  to: '/' | '/estoque' | '/painel' | '/veiculo/$carId'
+  id: '__root__' | '/' | '/estoque' | '/painel' | '/veiculo/$carId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EstoqueRoute: typeof EstoqueRoute
+  PainelRoute: typeof PainelRoute
   VeiculoCarIdRoute: typeof VeiculoCarIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/estoque': {
       id: '/estoque'
       path: '/estoque'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EstoqueRoute: EstoqueRoute,
+  PainelRoute: PainelRoute,
   VeiculoCarIdRoute: VeiculoCarIdRoute,
 }
 export const routeTree = rootRouteImport
