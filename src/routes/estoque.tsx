@@ -247,9 +247,13 @@ function EstoquePage() {
                       </Link>
 
                       <div className="flex flex-1 flex-col p-4">
-                        <h3 className="text-base font-bold uppercase tracking-tight text-foreground">
+                        <Link
+                          to="/veiculo/$carId"
+                          params={{ carId: car.id }}
+                          className="text-base font-bold uppercase tracking-tight text-foreground transition hover:text-primary"
+                        >
                           {car.name}
-                        </h3>
+                        </Link>
                         <div className="mt-1 text-xs text-muted-foreground">
                           {car.brand} · {car.color}
                         </div>
