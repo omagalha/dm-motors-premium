@@ -20,6 +20,8 @@ export type CarInput = {
   tag: CarTag;
   image: string; // URL or data URL
   highlights?: string[];
+  description?: string;
+  features?: string[];
 };
 
 function isBrowser() {
