@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { formatKm, formatPrice, type Car, type Transmission } from "@/data/cars";
+import { formatKm, formatPrice, type Car, type Category, type Fuel, type Transmission } from "@/data/cars";
 import { addCar, deleteCar, resetCars, updateCar, useCars, type CarInput } from "@/data/carsStore";
 import { Pencil, Plus, Trash2, X, Upload, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +16,8 @@ export const Route = createFileRoute("/admin/veiculos")({
 });
 
 const transmissions: Transmission[] = ["Automático", "Manual"];
+const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel"];
+const categories: Category[] = ["Hatch", "Sedan", "SUV"];
 
 interface FormState {
   name: string;
@@ -23,6 +25,11 @@ interface FormState {
   km: string;
   year: string;
   transmission: Transmission;
+  fuel: Fuel;
+  category: Category;
+  color: string;
+  description: string;
+  features: string; // comma-separated
   image: string;
 }
 
@@ -32,6 +39,11 @@ const emptyForm: FormState = {
   km: "",
   year: String(new Date().getFullYear()),
   transmission: "Automático",
+  fuel: "Flex",
+  category: "Hatch",
+  color: "",
+  description: "",
+  features: "",
   image: "",
 };
 
