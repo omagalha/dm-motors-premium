@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
-import { allCars, formatKm, formatPrice, type CarTag } from "@/data/cars";
+import { allCars, formatKm, formatPrice, type Car, type CarTag } from "@/data/cars";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   MessageCircle,
@@ -64,7 +64,7 @@ const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
 };
 
 function VehiclePage() {
-  const { car } = Route.useLoaderData();
+  const { car } = Route.useLoaderData() as { car: Car };
   // Build a small gallery (placeholder: same image repeated — easy to swap later)
   const gallery = [car.image, car.image, car.image, car.image];
   const [activeImage, setActiveImage] = useState(0);
