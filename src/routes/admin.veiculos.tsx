@@ -121,6 +121,10 @@ function AdminVeiculos() {
     if (!form.image) return toast.error("Adicione uma imagem.");
 
     const brand = name.split(" ")[0] || "Outros";
+    const features = form.features
+      .split(",")
+      .map((f) => f.trim())
+      .filter(Boolean);
     const payload: CarInput = {
       name,
       brand,
@@ -128,11 +132,13 @@ function AdminVeiculos() {
       km,
       price,
       transmission: form.transmission,
-      category: "Hatch",
-      fuel: "Flex",
-      color: "—",
+      category: form.category,
+      fuel: form.fuel,
+      color: form.color.trim() || "—",
       tag: "OPORTUNIDADE",
       image: form.image,
+      description: form.description.trim() || undefined,
+      features: features.length ? features : undefined,
     };
 
     if (editingId) {
