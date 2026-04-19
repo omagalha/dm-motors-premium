@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 import { allCars, formatPrice } from "@/data/cars";
 import { getCarInsights, getLast7DaysActivity, getTotals } from "@/data/insights";
-import { Eye, MessageCircle, TrendingUp, Users } from "lucide-react";
+import { Eye, MessageCircle, TrendingUp, Users, Trophy, Flame } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -35,10 +35,14 @@ function PainelPage() {
   const activity = getLast7DaysActivity();
   const carInsights = getCarInsights();
 
-  // Sort cars by views (best performers first)
+  // Sort cars by WhatsApp clicks (best converters first) for "most clicked"
   const ranked = [...allCars].sort(
     (a, b) => (carInsights[b.id]?.views ?? 0) - (carInsights[a.id]?.views ?? 0),
   );
+  const topClicked = [...allCars].sort(
+    (a, b) => (carInsights[b.id]?.whatsappClicks ?? 0) - (carInsights[a.id]?.whatsappClicks ?? 0),
+  )[0];
+  const topInsight = topClicked ? carInsights[topClicked.id] : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,6 +90,52 @@ function PainelPage() {
             accent="bg-foreground/10 text-foreground"
           />
         </section>
+
+        {/* Most clicked car of the week */}
+        {topClicked && topInsight && (
+          <section className="mt-6 overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card p-5 shadow-card md:p-6">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center">
+              <div className="relative shrink-0">
+                <img
+                  src={topClicked.image}
+                  alt={topClicked.name}
+                  className="h-32 w-full rounded-xl object-cover md:h-28 md:w-44"
+                />
+                <span className="absolute -left-2 -top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary-foreground shadow-red">
+                  <Trophy className="h-3 w-3" /> Top da semana
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary">
+                  <Flame className="h-3.5 w-3.5" /> Veículo mais clicado da semana
+                </p>
+                <h2 className="mt-1 text-2xl font-black uppercase tracking-tight text-foreground md:text-3xl">
+                  {topClicked.name}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {topClicked.year} · {formatPrice(topClicked.price)}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-whatsapp/15 px-3 py-1.5 font-bold text-whatsapp">
+                    <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
+                    {topInsight.whatsappClicks} cliques no WhatsApp
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1.5 font-bold text-primary">
+                    <Eye className="h-4 w-4" />
+                    {topInsight.views.toLocaleString("pt-BR")} visualizações
+                  </span>
+                </div>
+              </div>
+              <Link
+                to="/veiculo/$carId"
+                params={{ carId: topClicked.id }}
+                className="shrink-0 rounded-full bg-primary px-5 py-3 text-center text-xs font-black uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110"
+              >
+                Ver veículo
+              </Link>
+            </div>
+          </section>
+        )}
 
         {/* Activity chart */}
         <section className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-card md:p-6">

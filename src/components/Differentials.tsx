@@ -1,4 +1,4 @@
-import { ShieldCheck, Wrench, Banknote, RefreshCw } from "lucide-react";
+import { ShieldCheck, Wrench, Banknote, RefreshCw, Star, Users, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 
 const items = [
@@ -30,6 +30,54 @@ export function Differentials() {
       <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-5">
+        {/* Social proof strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="mb-12 grid grid-cols-1 gap-4 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6 sm:grid-cols-3 md:p-8"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary">
+              <Users className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-2xl font-black tabular-nums text-foreground md:text-3xl">+500</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Clientes satisfeitos
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary">
+              <Trophy className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-2xl font-black tabular-nums text-foreground md:text-3xl">+800</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Veículos vendidos
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
+              <Star className="h-6 w-6 fill-current" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1 text-amber-400">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-current" />
+                ))}
+                <span className="ml-1 text-lg font-black text-foreground">4,9</span>
+              </div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Avaliação dos clientes
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         <div className="mb-12 text-center">
           <span className="text-xs font-bold uppercase tracking-widest text-primary">
             Por que comprar com a gente

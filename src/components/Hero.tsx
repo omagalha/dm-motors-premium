@@ -45,7 +45,7 @@ export function Hero() {
             >
               Ver estoque
             </a>
-            <WhatsAppButton size="lg" label="Chamar no WhatsApp" />
+            <WhatsAppButton size="lg" label="📲 Chamar no WhatsApp" />
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
