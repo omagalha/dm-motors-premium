@@ -83,22 +83,12 @@ function VehiclePage() {
     { icon: CarIcon, label: "Categoria", value: car.category },
   ];
 
-  const defaultFeatures = [
-    "Ar-condicionado",
-    "Direção elétrica",
-    "Vidros e travas elétricas",
-    "Multimídia com Bluetooth",
-    "Computador de bordo",
-    "Airbag duplo",
-    "Freios ABS",
-    "Sensor de estacionamento",
-    "Câmera de ré",
-    "Rodas de liga leve",
-  ];
-  const features = car.features && car.features.length ? car.features : defaultFeatures;
-  const description =
-    car.description?.trim() ||
-    `${car.name} ${car.year} em estado impecável. Veículo revisado pela equipe técnica da DM Motors, com todas as manutenções em dia e procedência garantida. Ideal para quem busca qualidade, conforto e economia. Aceitamos seu carro na troca e facilitamos o financiamento nas melhores condições do mercado.`;
+  // Normaliza features: aceita array já parseado ou strings com vírgula/quebra de linha
+  const features = (car.features ?? [])
+    .flatMap((f) => String(f).split(/[,\n]/))
+    .map((f) => f.trim())
+    .filter(Boolean);
+  const description = car.description?.trim() ?? "";
 
   const related = allCars.filter((c) => c.id !== car.id).slice(0, 3);
 
