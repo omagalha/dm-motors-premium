@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 import { allCars, formatKm, formatPrice, type Car, type CarTag } from "@/data/cars";
-import { getCarById, getCars } from "@/data/carsStore";
+import { getCarById } from "@/data/carsStore";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   MessageCircle,
