@@ -105,11 +105,16 @@ export function FeaturedCars() {
                       className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-whatsapp px-3 py-2.5 text-xs font-black uppercase text-whatsapp-foreground transition hover:brightness-110"
                     >
                       <MessageCircle className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
-                      📲 WhatsApp
+                      Chamar no WhatsApp
                     </a>
-                    <button className="flex items-center justify-center rounded-lg border border-border px-3 py-2.5 text-foreground transition hover:border-primary hover:text-primary">
+                    <Link
+                      to="/veiculo/$carId"
+                      params={{ carId: car.id }}
+                      aria-label="Ver detalhes"
+                      className="flex items-center justify-center rounded-lg border border-border px-3 py-2.5 text-foreground transition hover:border-primary hover:text-primary"
+                    >
                       <Eye className="h-4 w-4" />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </motion.article>
