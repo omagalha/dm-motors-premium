@@ -1,44 +1,51 @@
-// Domain types for the vehicle catalog.
-// These shapes are the contract between the API/backend and the UI.
-// Backed today by a localStorage store + the static seed in data/cars.ts,
-// and tomorrow by the Node.js + MongoDB API behind VITE_API_URL.
+// Official vehicle contract shared by the frontend and the backend.
+// The goal is to keep one canonical shape and avoid guessing sales-critical data
+// in the UI layer.
 
-export type CarTag = "OPORTUNIDADE" | "BAIXA KM" | "VENDE RÁPIDO" | "ZERO ENTRADA";
-export type Transmission = "Automático" | "Manual";
-export type Category = "Hatch" | "Sedan" | "SUV" | "Picape";
-export type Fuel = "Flex" | "Diesel" | "Gasolina";
-export type CarStatus = "disponivel" | "reservado" | "vendido";
+export type Transmission = "Automático" | "Manual" | "Nao informado";
+export type Category = "Hatch" | "Sedan" | "SUV" | "Picape" | "Nao informado";
+export type Fuel = "Flex" | "Diesel" | "Gasolina" | "Nao informado";
+export type VehicleStatus = "disponivel" | "reservado" | "vendido";
 
 export interface Vehicle {
+  // Identidade
   id: string;
-  // tenantId?: string; // ← multi-tenant hook (Phase 2). Backend will scope by this.
   name: string;
   brand: string;
-  year: number;
-  km: number;
+  model: string;
+
+  // Comercial
   price: number;
-  tag: CarTag;
-  image: string;
-  transmission: Transmission;
-  category: Category;
+  badge: string;
+  isFeatured: boolean;
+  active: boolean;
+
+  // Tecnica
+  year: number;
+  mileage: number;
   fuel: Fuel;
+  transmission: Transmission;
   color: string;
-  highlights: string[];
-  description?: string;
-  features?: string[];
-  status?: CarStatus;
+
+  // Apresentacao
+  description: string;
+  images: string[];
+  features: string[];
+  category: Category;
+  city: string;
+  status: VehicleStatus;
+  whatsappNumber: string;
+  tags: string[];
+
+  // Operacao
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Input shape for create/update operations.
-// `id` is assigned by the backend (or the local store) on create.
-// `highlights` is optional because the local store falls back to a sensible default.
-export type VehicleInput = Omit<Vehicle, "id" | "highlights"> & {
-  id?: string;
-  highlights?: string[];
-};
+export type VehicleInput = Omit<Vehicle, "id" | "createdAt" | "updatedAt">;
 
-// Filters that the inventory page sends to the service. Even if filtering happens
-// client-side today, the same shape will be forwarded as querystring to the API.
+export type VehicleUpdateInput = Partial<VehicleInput>;
+
 export interface VehicleFilters {
   search?: string;
   category?: Category | "Todos";

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { allCars, formatPrice } from "@/data/cars";
+import { formatPrice } from "@/data/cars";
 import { useCars } from "@/data/carsStore";
 import { getCarInsights, getLast7DaysActivity, getTotals } from "@/data/insights";
+import { getVehiclePrimaryImage } from "@/lib/vehicles";
 import { Eye, MessageCircle, TrendingUp, Users, Trophy, Flame, Car as CarIcon, ArrowUpRight } from "lucide-react";
 import {
   Area,
@@ -29,9 +30,9 @@ function AdminOverview() {
   const cars = useCars();
   const totals = getTotals();
   const activity = getLast7DaysActivity();
-  const carInsights = getCarInsights();
+  const carInsights = getCarInsights(cars);
 
-  const topClicked = [...allCars].sort(
+  const topClicked = [...cars].sort(
     (a, b) =>
       (carInsights[b.id]?.whatsappClicks ?? 0) - (carInsights[a.id]?.whatsappClicks ?? 0),
   )[0];
@@ -104,7 +105,7 @@ function AdminOverview() {
           <div className="flex flex-col gap-5 md:flex-row md:items-center">
             <div className="relative shrink-0">
               <img
-                src={topClicked.image}
+                src={getVehiclePrimaryImage(topClicked)}
                 alt={topClicked.name}
                 className="h-32 w-full rounded-xl object-cover md:h-28 md:w-44"
               />

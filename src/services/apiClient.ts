@@ -1,7 +1,5 @@
 // Thin fetch wrapper around the backend API.
 // Configure the base URL via the VITE_API_URL environment variable.
-// Example for local development: VITE_API_URL=http://localhost:3000
-//
 // When VITE_API_URL is not defined, the helpers below behave as if the backend
 // were unreachable, and callers should fall back to local data.
 

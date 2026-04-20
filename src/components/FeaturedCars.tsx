@@ -1,18 +1,35 @@
-import { allCars, formatKm, formatPrice, type CarTag } from "@/data/cars";
+import { formatKm, formatPrice } from "@/data/cars";
+import { useCars } from "@/data/carsStore";
+import {
+  getVehicleBadgeStyle,
+  getVehiclePrimaryImage,
+  getVehicleWhatsappNumber,
+} from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
-import { MessageCircle, Eye, Flame, Gauge, Zap, BadgePercent } from "lucide-react";
+import {
+  MessageCircle,
+  Eye,
+  Flame,
+  Gauge,
+  Zap,
+  BadgePercent,
+  Tag,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 
-const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
-  OPORTUNIDADE: { bg: "bg-primary text-primary-foreground", icon: <Flame className="h-3 w-3" /> },
-  "BAIXA KM": { bg: "bg-whatsapp text-whatsapp-foreground", icon: <Gauge className="h-3 w-3" /> },
-  "VENDE RÁPIDO": { bg: "bg-amber-500 text-black", icon: <Zap className="h-3 w-3" /> },
-  "ZERO ENTRADA": { bg: "bg-blue-500 text-white", icon: <BadgePercent className="h-3 w-3" /> },
-};
+function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["icon"] }) {
+  if (icon === "flame") return <Flame className="h-3 w-3" />;
+  if (icon === "gauge") return <Gauge className="h-3 w-3" />;
+  if (icon === "zap") return <Zap className="h-3 w-3" />;
+  if (icon === "badge-percent") return <BadgePercent className="h-3 w-3" />;
+  return <Tag className="h-3 w-3" />;
+}
 
 export function FeaturedCars() {
-  const cars = allCars.slice(0, 4);
+  const cars = useCars().filter((car) => car.active && car.isFeatured).slice(0, 4);
+
+  if (!cars.length) return null;
 
   return (
     <section id="estoque" className="relative bg-background py-16 md:py-24">
@@ -26,7 +43,7 @@ export function FeaturedCars() {
               Oportunidades<br className="md:hidden" /> da semana
             </h2>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Carros selecionados a dedo, com preço abaixo do mercado e prontos para entrega.
+              Carros selecionados a dedo, com preco abaixo do mercado e prontos para entrega.
             </p>
           </div>
           <Link
@@ -38,15 +55,16 @@ export function FeaturedCars() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {cars.map((car, i) => {
-            const style = tagStyles[car.tag];
+          {cars.map((car, index) => {
+            const badgeStyle = getVehicleBadgeStyle(car.badge);
+            const primaryImage = getVehiclePrimaryImage(car);
             return (
               <motion.article
                 key={car.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
+                transition={{ duration: 0.5, delay: index * 0.08 }}
                 whileHover={{ y: -6 }}
                 className="group overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-primary/50 hover:shadow-red"
               >
@@ -56,19 +74,21 @@ export function FeaturedCars() {
                   className="relative block aspect-[4/3] overflow-hidden bg-muted"
                 >
                   <img
-                    src={car.image}
+                    src={primaryImage}
                     alt={car.name}
                     width={1024}
                     height={768}
                     loading="lazy"
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                   />
-                  <span
-                    className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${style.bg}`}
-                  >
-                    {style.icon}
-                    {car.tag}
-                  </span>
+                  {car.badge && (
+                    <span
+                      className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
+                    >
+                      <BadgeIcon icon={badgeStyle.icon} />
+                      {car.badge}
+                    </span>
+                  )}
                 </Link>
 
                 <div className="p-4">
@@ -82,15 +102,17 @@ export function FeaturedCars() {
                   <p className="mt-2 text-3xl font-black tabular-nums text-primary">
                     {formatPrice(car.price)}
                   </p>
-                  <p className="mt-1 text-[11px] font-medium text-muted-foreground">{formatKm(car.km)}</p>
+                  <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                    {formatKm(car.mileage)}
+                  </p>
 
                   <ul className="mt-3 flex flex-wrap gap-1.5">
-                    {car.highlights.map((h) => (
+                    {car.tags.slice(0, 3).map((tag) => (
                       <li
-                        key={h}
+                        key={tag}
                         className="rounded-md bg-secondary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
                       >
-                        {h}
+                        {tag}
                       </li>
                     ))}
                   </ul>
@@ -98,7 +120,8 @@ export function FeaturedCars() {
                   <div className="mt-4 flex gap-2">
                     <a
                       href={whatsappLink(
-                        `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`
+                        `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`,
+                        getVehicleWhatsappNumber(car)
                       )}
                       target="_blank"
                       rel="noopener noreferrer"

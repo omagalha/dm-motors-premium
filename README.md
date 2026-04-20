@@ -84,6 +84,22 @@ Este sistema não é apenas um site.
 
 ---
 
+## Variaveis de ambiente
+
+### Frontend
+Copie `.env.example` para `.env` e ajuste:
+
+`VITE_API_URL=http://localhost:3000`
+
+### Backend
+Copie `backend/.env.example` para `backend/.env` e ajuste:
+
+- `PORT`
+- `MONGO_URI`
+- `FRONTEND_URL`
+
+---
+
 ## 📱 Foco
 
 - Mobile-first

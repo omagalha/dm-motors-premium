@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { allCars, formatPrice } from "@/data/cars";
+import { formatPrice } from "@/data/cars";
+import { useCars } from "@/data/carsStore";
 import { getCarInsights } from "@/data/insights";
+import { getVehiclePrimaryImage } from "@/lib/vehicles";
 import { Eye, MessageCircle, Flame, Car as CarIcon } from "lucide-react";
 
 export const Route = createFileRoute("/admin/insights")({
@@ -14,8 +16,9 @@ export const Route = createFileRoute("/admin/insights")({
 });
 
 function AdminInsights() {
-  const carInsights = getCarInsights();
-  const ranked = [...allCars].sort(
+  const cars = useCars();
+  const carInsights = getCarInsights(cars);
+  const ranked = [...cars].sort(
     (a, b) => (carInsights[b.id]?.views ?? 0) - (carInsights[a.id]?.views ?? 0),
   );
 
@@ -102,7 +105,7 @@ function AdminInsights() {
 
                 {/* Image */}
                 <img
-                  src={car.image}
+                  src={getVehiclePrimaryImage(car)}
                   alt={car.name}
                   className="h-16 w-20 shrink-0 rounded-md object-cover sm:h-20 sm:w-28"
                 />

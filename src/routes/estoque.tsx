@@ -3,27 +3,24 @@ import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
-import {
-  formatKm,
-  formatPrice,
-  type Category,
-  type Transmission,
-  type CarTag,
-} from "@/data/cars";
+import { formatKm, formatPrice, type Category, type Transmission } from "@/data/cars";
 import { useCars } from "@/data/carsStore";
+import {
+  getVehicleBadgeStyle,
+  getVehiclePrimaryImage,
+  getVehicleWhatsappNumber,
+} from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
 import {
   MessageCircle,
   Search,
   SlidersHorizontal,
   X,
-  Calendar,
-  Gauge,
-  Fuel as FuelIcon,
-  Settings2,
   Flame,
+  Gauge,
   Zap,
   BadgePercent,
+  Tag,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import suvBanner from "@/assets/suv-banner.jpg";
@@ -38,17 +35,16 @@ export const Route = createFileRoute("/estoque")({
   }),
   head: () => ({
     meta: [
-      { title: "Estoque de carros — DM Motors Imports" },
+      { title: "Estoque de carros - DM Motors Imports" },
       {
         name: "description",
         content:
-          "Veja todos os veículos disponíveis na DM Motors Imports. Hatch, Sedan, SUV e Picape com procedência, preço e financiamento facilitado.",
+          "Veja todos os veiculos disponiveis na DM Motors Imports. Hatch, Sedan, SUV e Picape com procedencia, preco e financiamento facilitado.",
       },
       { property: "og:title", content: "Estoque DM Motors Imports" },
       {
         property: "og:description",
-        content:
-          "Marketplace de carros com procedência. Filtre por preço, marca, câmbio e mais.",
+        content: "Marketplace de carros com procedencia. Filtre por preco, marca, cambio e mais.",
       },
     ],
   }),
@@ -58,17 +54,18 @@ export const Route = createFileRoute("/estoque")({
 const categories: ("Todos" | Category)[] = ["Todos", "Hatch", "Sedan", "SUV", "Picape"];
 const transmissions: ("Todos" | Transmission)[] = ["Todos", "Automático", "Manual"];
 
-const tagStyles: Record<CarTag, { bg: string; icon: React.ReactNode }> = {
-  OPORTUNIDADE: { bg: "bg-primary text-primary-foreground", icon: <Flame className="h-3 w-3" /> },
-  "BAIXA KM": { bg: "bg-whatsapp text-whatsapp-foreground", icon: <Gauge className="h-3 w-3" /> },
-  "VENDE RÁPIDO": { bg: "bg-amber-500 text-black", icon: <Zap className="h-3 w-3" /> },
-  "ZERO ENTRADA": { bg: "bg-blue-500 text-white", icon: <BadgePercent className="h-3 w-3" /> },
-};
-
 type SortKey = "destaque" | "menor-preco" | "maior-preco" | "menor-km" | "novos";
 
+function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["icon"] }) {
+  if (icon === "flame") return <Flame className="h-3 w-3" />;
+  if (icon === "gauge") return <Gauge className="h-3 w-3" />;
+  if (icon === "zap") return <Zap className="h-3 w-3" />;
+  if (icon === "badge-percent") return <BadgePercent className="h-3 w-3" />;
+  return <Tag className="h-3 w-3" />;
+}
+
 function EstoquePage() {
-  const allCars = useCars();
+  const allCars = useCars().filter((car) => car.active);
   const { cat } = Route.useSearch();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<(typeof categories)[number]>(cat ?? "Todos");
@@ -77,26 +74,30 @@ function EstoquePage() {
   const [sort, setSort] = useState<SortKey>("destaque");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Sync category from URL when it changes
   useEffect(() => {
     if (cat && cat !== category) setCategory(cat);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cat]);
+  }, [cat, category]);
 
   const filtered = useMemo(() => {
     const list = allCars.filter((car) => {
       if (category !== "Todos" && car.category !== category) return false;
       if (transmission !== "Todos" && car.transmission !== transmission) return false;
       if (car.price > maxPrice) return false;
+
       if (search.trim()) {
-        const q = search.toLowerCase();
+        const query = search.toLowerCase();
         if (
-          !car.name.toLowerCase().includes(q) &&
-          !car.brand.toLowerCase().includes(q) &&
-          !car.color.toLowerCase().includes(q)
-        )
+          !car.name.toLowerCase().includes(query) &&
+          !car.brand.toLowerCase().includes(query) &&
+          !car.model.toLowerCase().includes(query) &&
+          !car.color.toLowerCase().includes(query) &&
+          !car.city.toLowerCase().includes(query) &&
+          !car.tags.some((tag) => tag.toLowerCase().includes(query))
+        ) {
           return false;
+        }
       }
+
       return true;
     });
 
@@ -109,10 +110,13 @@ function EstoquePage() {
         sorted.sort((a, b) => b.price - a.price);
         break;
       case "menor-km":
-        sorted.sort((a, b) => a.km - b.km);
+        sorted.sort((a, b) => a.mileage - b.mileage);
         break;
       case "novos":
         sorted.sort((a, b) => b.year - a.year);
+        break;
+      default:
+        sorted.sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured));
         break;
     }
     return sorted;
@@ -136,12 +140,11 @@ function EstoquePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* SUV category banner */}
       {isSuv && (
         <section className="relative overflow-hidden border-b border-border">
           <img
             src={suvBanner}
-            alt="SUVs disponíveis"
+            alt="SUVs disponiveis"
             width={1920}
             height={640}
             className="absolute inset-0 h-full w-full object-cover opacity-60"
@@ -152,22 +155,23 @@ function EstoquePage() {
               Categoria
             </span>
             <h1 className="mt-3 text-5xl font-black uppercase leading-[0.95] tracking-tight text-foreground md:text-7xl">
-              SUVs <span className="text-primary">disponíveis</span>
+              SUVs <span className="text-primary">disponiveis</span>
             </h1>
             <p className="mt-3 max-w-md text-sm text-muted-foreground md:text-base">
-              Robustez, espaço e tecnologia. Selecionamos os melhores SUVs com procedência e preço competitivo.
+              Robustez, espaco e tecnologia. Selecionamos os melhores SUVs com procedencia e preco competitivo.
             </p>
           </div>
         </section>
       )}
 
-      {/* Page header — big red count */}
       {!isSuv && (
         <section className="relative overflow-hidden border-b border-border bg-gradient-hero py-10 md:py-14">
           <div className="pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-red opacity-50 blur-2xl" />
           <div className="relative mx-auto max-w-7xl px-5">
             <nav className="mb-3 text-xs text-muted-foreground">
-              <Link to="/" className="hover:text-foreground">Home</Link>
+              <Link to="/" className="hover:text-foreground">
+                Home
+              </Link>
               <span className="mx-2">/</span>
               <span className="text-foreground">Estoque</span>
             </nav>
@@ -177,10 +181,12 @@ function EstoquePage() {
               </span>
               <div className="pb-2">
                 <h1 className="text-3xl font-black uppercase leading-tight text-foreground md:text-5xl">
-                  veículos<br />no estoque
+                  veiculos
+                  <br />
+                  no estoque
                 </h1>
                 <p className="mt-2 max-w-md text-xs text-muted-foreground md:text-sm">
-                  Procedência garantida e financiamento facilitado.
+                  Procedencia garantida e financiamento facilitado.
                 </p>
               </div>
             </div>
@@ -188,7 +194,6 @@ function EstoquePage() {
         </section>
       )}
 
-      {/* Search + filter button bar */}
       <section className="sticky top-[68px] z-30 border-b border-border bg-background/90 backdrop-blur-lg">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3">
           <div className="relative flex-1">
@@ -196,8 +201,8 @@ function EstoquePage() {
             <input
               type="search"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por marca, modelo ou cor..."
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por marca, modelo, cidade ou cor..."
               className="w-full rounded-full border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
             />
           </div>
@@ -215,12 +220,12 @@ function EstoquePage() {
           </button>
           <select
             value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
+            onChange={(event) => setSort(event.target.value as SortKey)}
             className="hidden rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground focus:border-primary focus:outline-none md:block"
           >
             <option value="destaque">Destaques</option>
-            <option value="menor-preco">Menor preço</option>
-            <option value="maior-preco">Maior preço</option>
+            <option value="menor-preco">Menor preco</option>
+            <option value="maior-preco">Maior preco</option>
             <option value="menor-km">Menor KM</option>
             <option value="novos">Mais novos</option>
           </select>
@@ -231,14 +236,14 @@ function EstoquePage() {
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             <span className="text-2xl font-black tabular-nums text-primary">{filtered.length}</span>{" "}
-            {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}
+            {filtered.length === 1 ? "veiculo encontrado" : "veiculos encontrados"}
           </p>
         </div>
 
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
             <p className="text-base font-semibold text-foreground">
-              Nenhum veículo encontrado com esses filtros.
+              Nenhum veiculo encontrado com esses filtros.
             </p>
             <button
               onClick={reset}
@@ -249,14 +254,15 @@ function EstoquePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filtered.map((car, i) => {
-              const style = tagStyles[car.tag as CarTag];
+            {filtered.map((car, index) => {
+              const badgeStyle = getVehicleBadgeStyle(car.badge);
+              const primaryImage = getVehiclePrimaryImage(car);
               return (
                 <motion.article
                   key={car.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.3) }}
+                  transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.3) }}
                   className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-primary/50 hover:shadow-red"
                 >
                   <Link
@@ -265,19 +271,21 @@ function EstoquePage() {
                     className="relative block aspect-[4/3] overflow-hidden bg-muted"
                   >
                     <img
-                      src={car.image}
+                      src={primaryImage}
                       alt={car.name}
                       width={1024}
                       height={768}
                       loading="lazy"
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     />
-                    <span
-                      className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${style.bg}`}
-                    >
-                      {style.icon}
-                      {car.tag}
-                    </span>
+                    {car.badge && (
+                      <span
+                        className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
+                      >
+                        <BadgeIcon icon={badgeStyle.icon} />
+                        {car.badge}
+                      </span>
+                    )}
                   </Link>
 
                   <div className="flex flex-1 flex-col p-4">
@@ -289,7 +297,7 @@ function EstoquePage() {
                       {car.name}
                     </Link>
                     <div className="mt-0.5 text-[11px] text-muted-foreground">
-                      {car.brand} · {car.color}
+                      {car.brand} - {car.color}
                     </div>
 
                     <p className="mt-2 text-3xl font-black tabular-nums text-primary">
@@ -303,7 +311,7 @@ function EstoquePage() {
                       </li>
                       <li className="flex items-center gap-1.5">
                         <span aria-hidden>🔢</span>
-                        <span className="tabular-nums">{formatKm(car.km)}</span>
+                        <span className="tabular-nums">{formatKm(car.mileage)}</span>
                       </li>
                       <li className="flex items-center gap-1.5">
                         <span aria-hidden>⚙️</span>
@@ -317,7 +325,8 @@ function EstoquePage() {
 
                     <a
                       href={whatsappLink(
-                        `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`
+                        `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`,
+                        getVehicleWhatsappNumber(car)
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -334,13 +343,9 @@ function EstoquePage() {
         )}
       </section>
 
-      {/* Filters drawer (all breakpoints) */}
       {filtersOpen && (
         <div className="fixed inset-0 z-50" role="dialog">
-          <div
-            className="absolute inset-0 bg-black/70"
-            onClick={() => setFiltersOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/70" onClick={() => setFiltersOpen(false)} />
           <div className="absolute inset-y-0 right-0 w-[88%] max-w-sm overflow-y-auto bg-background p-5 shadow-card">
             <div className="mb-5 flex items-center justify-between">
               <h3 className="text-lg font-black uppercase">Filtros</h3>
@@ -379,11 +384,11 @@ function EstoquePage() {
 
 interface FilterPanelProps {
   category: (typeof categories)[number];
-  setCategory: (v: (typeof categories)[number]) => void;
+  setCategory: (value: (typeof categories)[number]) => void;
   transmission: (typeof transmissions)[number];
-  setTransmission: (v: (typeof transmissions)[number]) => void;
+  setTransmission: (value: (typeof transmissions)[number]) => void;
   maxPrice: number;
-  setMaxPrice: (v: number) => void;
+  setMaxPrice: (value: number) => void;
   onReset: () => void;
 }
 
@@ -403,17 +408,17 @@ function FilterPanel({
           Categoria
         </h4>
         <div className="flex flex-wrap gap-2">
-          {categories.map((c) => (
+          {categories.map((item) => (
             <button
-              key={c}
-              onClick={() => setCategory(c)}
+              key={item}
+              onClick={() => setCategory(item)}
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                category === c
+                category === item
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-foreground hover:border-primary"
               }`}
             >
-              {c}
+              {item}
             </button>
           ))}
         </div>
@@ -421,20 +426,20 @@ function FilterPanel({
 
       <div>
         <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
-          Câmbio
+          Cambio
         </h4>
         <div className="flex flex-wrap gap-2">
-          {transmissions.map((t) => (
+          {transmissions.map((item) => (
             <button
-              key={t}
-              onClick={() => setTransmission(t)}
+              key={item}
+              onClick={() => setTransmission(item)}
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                transmission === t
+                transmission === item
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-foreground hover:border-primary"
               }`}
             >
-              {t}
+              {item}
             </button>
           ))}
         </div>
@@ -443,7 +448,7 @@ function FilterPanel({
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-            Preço máximo
+            Preco maximo
           </h4>
           <span className="text-xs font-bold text-primary">{formatPrice(maxPrice)}</span>
         </div>
@@ -453,7 +458,7 @@ function FilterPanel({
           max={250000}
           step={5000}
           value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          onChange={(event) => setMaxPrice(Number(event.target.value))}
           className="w-full accent-[oklch(0.62_0.24_25)]"
         />
         <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">

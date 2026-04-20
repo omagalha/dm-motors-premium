@@ -1,15 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { formatKm, formatPrice, type Car, type CarStatus, type Category, type Fuel, type Transmission } from "@/data/cars";
-import { resetCars, useCars, type CarInput } from "@/data/carsStore";
-import { createVehicle, deleteVehicle, updateVehicle } from "@/services/vehicleService";
+import { formatKm, formatPrice } from "@/data/cars";
+import { resetCars, useCars, type Car, type CarInput } from "@/data/carsStore";
 import { getCarInsights } from "@/data/insights";
+import { getVehiclePrimaryImage } from "@/lib/vehicles";
+import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import { createVehicle, deleteVehicle, updateVehicle } from "@/services/vehicleService";
+import type { Category, Fuel, Transmission, VehicleStatus } from "@/types/vehicle";
 import { Pencil, Plus, Trash2, X, Upload, RotateCcw, Eye, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const statusMeta: Record<CarStatus, { label: string; dot: string; pill: string }> = {
+const statusMeta: Record<VehicleStatus, { label: string; dot: string; pill: string }> = {
   disponivel: {
-    label: "Disponível",
+    label: "Disponivel",
     dot: "bg-whatsapp shadow-[0_0_0_3px_oklch(0.68_0.18_145/0.25)]",
     pill: "bg-whatsapp/15 text-whatsapp",
   },
@@ -28,48 +31,87 @@ const statusMeta: Record<CarStatus, { label: string; dot: string; pill: string }
 export const Route = createFileRoute("/admin/veiculos")({
   head: () => ({
     meta: [
-      { title: "Veículos — Admin DM Motors" },
+      { title: "Veiculos - Admin DM Motors" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AdminVeiculos,
 });
 
-const transmissions: Transmission[] = ["Automático", "Manual"];
-const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel"];
-const categories: Category[] = ["Hatch", "Sedan", "SUV"];
+const transmissions: Transmission[] = ["Automático", "Manual", "Nao informado"];
+const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel", "Nao informado"];
+const categories: Category[] = ["Hatch", "Sedan", "SUV", "Picape", "Nao informado"];
+const statuses: VehicleStatus[] = ["disponivel", "reservado", "vendido"];
 
 interface FormState {
   name: string;
+  brand: string;
+  model: string;
   price: string;
-  km: string;
+  mileage: string;
   year: string;
   transmission: Transmission;
   fuel: Fuel;
   category: Category;
   color: string;
+  city: string;
+  badge: string;
+  status: VehicleStatus;
+  whatsappNumber: string;
   description: string;
-  features: string; // comma-separated
-  image: string;
+  features: string;
+  tags: string;
+  images: string;
+  isFeatured: boolean;
+  active: boolean;
 }
 
 const emptyForm: FormState = {
   name: "",
+  brand: "",
+  model: "",
   price: "",
-  km: "",
+  mileage: "",
   year: String(new Date().getFullYear()),
   transmission: "Automático",
   fuel: "Flex",
   category: "Hatch",
   color: "",
+  city: "",
+  badge: "",
+  status: "disponivel",
+  whatsappNumber: WHATSAPP_NUMBER,
   description: "",
   features: "",
-  image: "",
+  tags: "",
+  images: "",
+  isFeatured: false,
+  active: true,
 };
+
+function parseList(value: string) {
+  return value
+    .split(/[,\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function joinList(items: string[]) {
+  return items.join("\n");
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Falha ao ler imagem."));
+    reader.readAsDataURL(file);
+  });
+}
 
 function AdminVeiculos() {
   const cars = useCars();
-  const insights = getCarInsights();
+  const insights = getCarInsights(cars);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -79,11 +121,13 @@ function AdminVeiculos() {
     () => ({
       total: cars.length,
       avgPrice: cars.length
-        ? Math.round(cars.reduce((s, c) => s + c.price, 0) / cars.length)
+        ? Math.round(cars.reduce((sum, car) => sum + car.price, 0) / cars.length)
         : 0,
     }),
-    [cars],
+    [cars]
   );
+
+  const previewImages = parseList(form.images);
 
   function openNew() {
     setEditingId(null);
@@ -95,16 +139,25 @@ function AdminVeiculos() {
     setEditingId(car.id);
     setForm({
       name: car.name,
+      brand: car.brand,
+      model: car.model,
       price: String(car.price),
-      km: String(car.km),
+      mileage: String(car.mileage),
       year: String(car.year),
       transmission: car.transmission,
       fuel: car.fuel,
-      category: car.category === "Picape" ? "SUV" : car.category,
-      color: car.color === "—" ? "" : car.color,
-      description: car.description ?? "",
-      features: car.features?.join(", ") ?? "",
-      image: car.image,
+      category: car.category,
+      color: car.color,
+      city: car.city,
+      badge: car.badge,
+      status: car.status,
+      whatsappNumber: car.whatsappNumber,
+      description: car.description,
+      features: joinList(car.features),
+      tags: joinList(car.tags),
+      images: joinList(car.images),
+      isFeatured: car.isFeatured,
+      active: car.active,
     });
     setOpen(true);
   }
@@ -115,79 +168,111 @@ function AdminVeiculos() {
     setForm(emptyForm);
   }
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 4 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 4MB).");
+  async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length) return;
+
+    if (files.some((file) => file.size > 4 * 1024 * 1024)) {
+      toast.error("Cada imagem deve ter no maximo 4MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setForm((f) => ({ ...f, image: String(reader.result) }));
-    reader.readAsDataURL(file);
+
+    try {
+      const currentImages = parseList(form.images);
+      const newImages = await Promise.all(files.map(readFileAsDataUrl));
+      setForm((current) => ({
+        ...current,
+        images: joinList([...currentImages, ...newImages]),
+      }));
+      event.target.value = "";
+    } catch {
+      toast.error("Nao foi possivel carregar as imagens.");
+    }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function removeImageAt(indexToRemove: number) {
+    const nextImages = previewImages.filter((_, index) => index !== indexToRemove);
+    setForm((current) => ({
+      ...current,
+      images: joinList(nextImages),
+    }));
+  }
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+
     const name = form.name.trim();
+    const brand = form.brand.trim();
+    const model = form.model.trim();
     const price = Number(form.price);
-    const km = Number(form.km);
+    const mileage = Number(form.mileage);
     const year = Number(form.year);
+    const images = parseList(form.images);
+    const features = parseList(form.features);
+    const tags = parseList(form.tags);
 
-    if (!name) return toast.error("Informe o nome do carro.");
-    if (!Number.isFinite(price) || price <= 0) return toast.error("Preço inválido.");
-    if (!Number.isFinite(km) || km < 0) return toast.error("KM inválida.");
-    if (!Number.isFinite(year) || year < 1980 || year > 2100)
-      return toast.error("Ano inválido.");
-    if (!form.image) return toast.error("Adicione uma imagem.");
+    if (!name) return toast.error("Informe o nome do veiculo.");
+    if (!brand) return toast.error("Informe a marca.");
+    if (!model) return toast.error("Informe o modelo.");
+    if (!Number.isFinite(price) || price <= 0) return toast.error("Preco invalido.");
+    if (!Number.isFinite(mileage) || mileage < 0) return toast.error("Quilometragem invalida.");
+    if (!Number.isFinite(year) || year < 1980 || year > 2100) {
+      return toast.error("Ano invalido.");
+    }
+    if (!images.length) return toast.error("Adicione pelo menos uma imagem.");
 
-    const brand = name.split(" ")[0] || "Outros";
-    const features = form.features
-      .split(",")
-      .map((f) => f.trim())
-      .filter(Boolean);
     const payload: CarInput = {
       name,
       brand,
-      year,
-      km,
+      model,
       price,
-      transmission: form.transmission,
-      category: form.category,
+      badge: form.badge.trim(),
+      isFeatured: form.isFeatured,
+      active: form.active,
+      year,
+      mileage,
       fuel: form.fuel,
-      color: form.color.trim() || "—",
-      tag: "OPORTUNIDADE",
-      image: form.image,
-      description: form.description.trim() || undefined,
-      features: features.length ? features : undefined,
+      transmission: form.transmission,
+      color: form.color.trim(),
+      description: form.description.trim(),
+      images,
+      features,
+      category: form.category,
+      city: form.city.trim(),
+      status: form.status,
+      whatsappNumber: form.whatsappNumber.trim() || WHATSAPP_NUMBER,
+      tags,
     };
 
     try {
       if (editingId) {
         await updateVehicle(editingId, payload);
-        toast.success("Veículo atualizado.");
+        toast.success("Veiculo atualizado.");
       } else {
         await createVehicle(payload);
-        toast.success("Veículo adicionado.");
+        toast.success("Veiculo adicionado.");
       }
       close();
     } catch {
-      toast.error("Não foi possível salvar. Tente novamente.");
+      toast.error("Nao foi possivel salvar. Tente novamente.");
     }
   }
 
   async function handleDelete(car: Car) {
     if (!window.confirm(`Excluir "${car.name}"?`)) return;
+
     try {
       await deleteVehicle(car.id);
-      toast.success("Veículo excluído.");
+      toast.success("Veiculo excluido.");
     } catch {
       toast.error("Falha ao excluir.");
     }
   }
 
   function handleReset() {
-    if (!window.confirm("Restaurar lista padrão? As alterações locais serão perdidas.")) return;
+    if (!window.confirm("Restaurar lista padrao? As alteracoes locais serao perdidas.")) {
+      return;
+    }
     resetCars();
     toast.success("Lista restaurada.");
   }
@@ -197,13 +282,13 @@ function AdminVeiculos() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary">
-            Inventário
+            Inventario
           </p>
           <h1 className="mt-1.5 text-3xl font-black tracking-tight text-foreground md:text-4xl">
-            Gerenciar veículos
+            Gerenciar veiculos
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {stats.total} veículos · ticket médio {formatPrice(stats.avgPrice)}
+            {stats.total} veiculos - ticket medio {formatPrice(stats.avgPrice)}
           </p>
         </div>
         <div className="flex gap-2">
@@ -217,40 +302,44 @@ function AdminVeiculos() {
             onClick={openNew}
             className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110"
           >
-            <Plus className="h-4 w-4" /> Novo veículo
+            <Plus className="h-4 w-4" /> Novo veiculo
           </button>
         </div>
       </header>
 
       <p className="rounded-lg border border-border/60 bg-card/50 px-4 py-3 text-xs text-muted-foreground">
-        ⚠️ Sem API conectada, os dados são salvos apenas neste navegador. Configure <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[11px] text-foreground">VITE_API_URL</code> para sincronizar com seu backend.
+        Configure <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[11px] text-foreground">VITE_API_URL</code> no frontend para apontar para a API correta em cada ambiente.
       </p>
 
-      {/* Unified table (responsive with horizontal scroll on mobile) */}
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
+          <table className="w-full min-w-[820px] text-sm">
             <thead className="bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">Veículo</th>
+                <th className="px-4 py-3 text-left font-semibold">Veiculo</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <th className="px-4 py-3 text-left font-semibold">Cidade</th>
                 <th className="px-4 py-3 text-right font-semibold">Ano</th>
                 <th className="px-4 py-3 text-right font-semibold">KM</th>
-                <th className="px-4 py-3 text-right font-semibold">Métricas</th>
-                <th className="px-4 py-3 text-right font-semibold">Preço</th>
-                <th className="px-4 py-3 text-right font-semibold">Ações</th>
+                <th className="px-4 py-3 text-right font-semibold">Metricas</th>
+                <th className="px-4 py-3 text-right font-semibold">Preco</th>
+                <th className="px-4 py-3 text-right font-semibold">Acoes</th>
               </tr>
             </thead>
             <tbody>
               {cars.map((car) => {
-                const status = statusMeta[car.status ?? "disponivel"];
-                const ins = insights[car.id];
+                const status = statusMeta[car.status];
+                const metrics = insights[car.id];
                 return (
                   <tr key={car.id} className="border-t border-border transition hover:bg-secondary/30">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <img src={car.image} alt={car.name} className="h-12 w-16 rounded-md object-cover" />
+                          <img
+                            src={getVehiclePrimaryImage(car)}
+                            alt={car.name}
+                            className="h-12 w-16 rounded-md object-cover"
+                          />
                           <span
                             aria-label={status.label}
                             title={status.label}
@@ -259,31 +348,46 @@ function AdminVeiculos() {
                         </div>
                         <div>
                           <p className="font-semibold text-foreground">{car.name}</p>
-                          <p className="text-xs text-muted-foreground">{car.transmission} · {car.fuel}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {car.brand} - {car.model}
+                          </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${status.pill}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${status.pill}`}
+                      >
                         <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
                         {status.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-foreground">{car.year}</td>
-                    <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatKm(car.km)}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {car.city || "Nao informada"}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-foreground">
+                      {car.year}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                      {formatKm(car.mileage)}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-3 text-xs">
                         <span className="inline-flex items-center gap-1 font-semibold text-primary">
                           <Eye className="h-3.5 w-3.5" />
-                          <span className="tabular-nums">{ins?.views.toLocaleString("pt-BR") ?? 0}</span>
+                          <span className="tabular-nums">
+                            {metrics?.views.toLocaleString("pt-BR") ?? 0}
+                          </span>
                         </span>
                         <span className="inline-flex items-center gap-1 font-semibold text-whatsapp">
                           <MessageCircle className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
-                          <span className="tabular-nums">{ins?.whatsappClicks ?? 0}</span>
+                          <span className="tabular-nums">{metrics?.whatsappClicks ?? 0}</span>
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right font-bold text-foreground">{formatPrice(car.price)}</td>
+                    <td className="px-4 py-3 text-right font-bold text-foreground">
+                      {formatPrice(car.price)}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         <button
@@ -310,30 +414,29 @@ function AdminVeiculos() {
 
       {cars.length === 0 && (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-          <p className="text-muted-foreground">Nenhum veículo cadastrado.</p>
+          <p className="text-muted-foreground">Nenhum veiculo cadastrado.</p>
           <button
             onClick={openNew}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground"
           >
-            <Plus className="h-4 w-4" /> Adicionar primeiro veículo
+            <Plus className="h-4 w-4" /> Adicionar primeiro veiculo
           </button>
         </div>
       )}
 
-      {/* Modal */}
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
           onClick={close}
         >
           <form
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
             onSubmit={handleSubmit}
-            className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-border bg-card shadow-card sm:rounded-2xl"
+            className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl border border-border bg-card shadow-card sm:rounded-2xl"
           >
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <h2 className="text-lg font-bold text-foreground">
-                {editingId ? "Editar veículo" : "Novo veículo"}
+                {editingId ? "Editar veiculo" : "Novo veiculo"}
               </h2>
               <button
                 type="button"
@@ -345,25 +448,45 @@ function AdminVeiculos() {
             </div>
 
             <div className="space-y-4 px-5 py-5">
-              <Field label="Nome do carro">
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Ex: VW Polo Highline"
-                  className="adm-input"
-                  required
-                  maxLength={80}
-                />
-              </Field>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <Field label="Nome de exibicao">
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(event) => setForm({ ...form, name: event.target.value })}
+                    placeholder="Ex: Honda Civic EXL"
+                    className="adm-input"
+                    required
+                  />
+                </Field>
+                <Field label="Marca">
+                  <input
+                    type="text"
+                    value={form.brand}
+                    onChange={(event) => setForm({ ...form, brand: event.target.value })}
+                    placeholder="Ex: Honda"
+                    className="adm-input"
+                    required
+                  />
+                </Field>
+                <Field label="Modelo">
+                  <input
+                    type="text"
+                    value={form.model}
+                    onChange={(event) => setForm({ ...form, model: event.target.value })}
+                    placeholder="Ex: Civic"
+                    className="adm-input"
+                    required
+                  />
+                </Field>
+              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Preço (R$)">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <Field label="Preco (R$)">
                   <input
                     type="number"
                     value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    placeholder="96900"
+                    onChange={(event) => setForm({ ...form, price: event.target.value })}
                     className="adm-input"
                     min={0}
                     step={100}
@@ -373,9 +496,8 @@ function AdminVeiculos() {
                 <Field label="KM">
                   <input
                     type="number"
-                    value={form.km}
-                    onChange={(e) => setForm({ ...form, km: e.target.value })}
-                    placeholder="28000"
+                    value={form.mileage}
+                    onChange={(event) => setForm({ ...form, mileage: event.target.value })}
                     className="adm-input"
                     min={0}
                     required
@@ -385,97 +507,190 @@ function AdminVeiculos() {
                   <input
                     type="number"
                     value={form.year}
-                    onChange={(e) => setForm({ ...form, year: e.target.value })}
-                    placeholder="2022"
+                    onChange={(event) => setForm({ ...form, year: event.target.value })}
                     className="adm-input"
                     min={1980}
                     max={2100}
                     required
                   />
                 </Field>
-                <Field label="Câmbio">
+                <Field label="Selo principal">
+                  <input
+                    type="text"
+                    value={form.badge}
+                    onChange={(event) => setForm({ ...form, badge: event.target.value })}
+                    placeholder="Ex: BAIXA KM"
+                    className="adm-input"
+                  />
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <Field label="Cambio">
                   <select
                     value={form.transmission}
-                    onChange={(e) =>
-                      setForm({ ...form, transmission: e.target.value as Transmission })
+                    onChange={(event) =>
+                      setForm({ ...form, transmission: event.target.value as Transmission })
                     }
                     className="adm-input"
                   >
-                    {transmissions.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
+                    {transmissions.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
                       </option>
                     ))}
                   </select>
                 </Field>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Combustível">
+                <Field label="Combustivel">
                   <select
                     value={form.fuel}
-                    onChange={(e) => setForm({ ...form, fuel: e.target.value as Fuel })}
+                    onChange={(event) => setForm({ ...form, fuel: event.target.value as Fuel })}
                     className="adm-input"
                   >
-                    {fuels.map((f) => (
-                      <option key={f} value={f}>{f}</option>
+                    {fuels.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
                     ))}
                   </select>
                 </Field>
                 <Field label="Categoria">
                   <select
                     value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+                    onChange={(event) =>
+                      setForm({ ...form, category: event.target.value as Category })
+                    }
                     className="adm-input"
                   >
-                    {categories.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {categories.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Status">
+                  <select
+                    value={form.status}
+                    onChange={(event) =>
+                      setForm({ ...form, status: event.target.value as VehicleStatus })
+                    }
+                    className="adm-input"
+                  >
+                    {statuses.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
                     ))}
                   </select>
                 </Field>
               </div>
 
-              <Field label="Cor">
-                <input
-                  type="text"
-                  value={form.color}
-                  onChange={(e) => setForm({ ...form, color: e.target.value })}
-                  placeholder="Ex: Branco Cristal"
-                  className="adm-input"
-                  maxLength={40}
-                />
-              </Field>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <Field label="Cor">
+                  <input
+                    type="text"
+                    value={form.color}
+                    onChange={(event) => setForm({ ...form, color: event.target.value })}
+                    placeholder="Ex: Prata"
+                    className="adm-input"
+                  />
+                </Field>
+                <Field label="Cidade">
+                  <input
+                    type="text"
+                    value={form.city}
+                    onChange={(event) => setForm({ ...form, city: event.target.value })}
+                    placeholder="Ex: Juiz de Fora - MG"
+                    className="adm-input"
+                  />
+                </Field>
+                <Field label="WhatsApp da loja">
+                  <input
+                    type="text"
+                    value={form.whatsappNumber}
+                    onChange={(event) =>
+                      setForm({ ...form, whatsappNumber: event.target.value })
+                    }
+                    placeholder="5532999264848"
+                    className="adm-input"
+                  />
+                </Field>
+              </div>
 
-              <Field label="Descrição do veículo">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <ToggleField
+                  label="Destaque"
+                  checked={form.isFeatured}
+                  onChange={(checked) => setForm({ ...form, isFeatured: checked })}
+                />
+                <ToggleField
+                  label="Ativo no estoque"
+                  checked={form.active}
+                  onChange={(checked) => setForm({ ...form, active: checked })}
+                />
+              </div>
+
+              <Field label="Descricao do veiculo">
                 <textarea
                   value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Descreva o estado, histórico, manutenções e diferenciais do veículo…"
+                  onChange={(event) => setForm({ ...form, description: event.target.value })}
+                  placeholder="Descreva o estado, historico e diferenciais do veiculo."
                   className="adm-input min-h-[110px] resize-y"
                   rows={5}
-                  maxLength={1500}
                 />
               </Field>
 
-              <Field label="Itens e opcionais (separados por vírgula)">
-                <textarea
-                  value={form.features}
-                  onChange={(e) => setForm({ ...form, features: e.target.value })}
-                  placeholder="Ex: Ar-condicionado, Câmera de ré, Multimídia, Rodas de liga leve"
-                  className="adm-input min-h-[80px] resize-y"
-                  rows={3}
-                />
-              </Field>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <Field label="Itens e opcionais (virgula ou quebra de linha)">
+                  <textarea
+                    value={form.features}
+                    onChange={(event) => setForm({ ...form, features: event.target.value })}
+                    placeholder="Ex: Ar-condicionado, Camera de re, Multimidia"
+                    className="adm-input min-h-[100px] resize-y"
+                    rows={4}
+                  />
+                </Field>
+                <Field label="Tags comerciais (virgula ou quebra de linha)">
+                  <textarea
+                    value={form.tags}
+                    onChange={(event) => setForm({ ...form, tags: event.target.value })}
+                    placeholder="Ex: Unico dono, Revisado, IPVA pago"
+                    className="adm-input min-h-[100px] resize-y"
+                    rows={4}
+                  />
+                </Field>
+              </div>
 
-              <Field label="Imagem">
+              <Field label="Imagens (uma URL por linha)">
                 <div className="space-y-3">
-                  {form.image && (
-                    <img
-                      src={form.image}
-                      alt="Pré-visualização"
-                      className="h-40 w-full rounded-lg border border-border object-cover"
-                    />
+                  {previewImages.length > 0 && (
+                    <>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {previewImages.length} {previewImages.length === 1 ? "imagem carregada" : "imagens carregadas"}
+                      </p>
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                        {previewImages.map((image, index) => (
+                          <div key={`${image}-${index}`} className="relative">
+                            <img
+                              src={image}
+                              alt={`Pre-visualizacao ${index + 1}`}
+                              className="h-28 w-full rounded-lg border border-border object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImageAt(index)}
+                              className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
+                              aria-label={`Remover imagem ${index + 1}`}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   )}
+
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -483,22 +698,24 @@ function AdminVeiculos() {
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary"
                     >
                       <Upload className="h-4 w-4" />
-                      {form.image ? "Trocar imagem" : "Enviar imagem"}
+                      Adicionar imagem
                     </button>
                     <input
                       ref={fileRef}
                       type="file"
                       accept="image/*"
+                      multiple
                       className="hidden"
                       onChange={handleFile}
                     />
                   </div>
-                  <input
-                    type="url"
-                    value={form.image.startsWith("data:") ? "" : form.image}
-                    onChange={(e) => setForm({ ...form, image: e.target.value })}
-                    placeholder="ou cole uma URL https://…"
-                    className="adm-input"
+
+                  <textarea
+                    value={form.images}
+                    onChange={(event) => setForm({ ...form, images: event.target.value })}
+                    placeholder={"https://.../foto-1.jpg\nhttps://.../foto-2.jpg"}
+                    className="adm-input min-h-[110px] resize-y"
+                    rows={5}
                   />
                 </div>
               </Field>
@@ -550,6 +767,28 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
         {label}
       </span>
       {children}
+    </label>
+  );
+}
+
+function ToggleField({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
+      <span className="text-sm font-semibold text-foreground">{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="h-4 w-4 accent-[oklch(0.62_0.24_25)]"
+      />
     </label>
   );
 }

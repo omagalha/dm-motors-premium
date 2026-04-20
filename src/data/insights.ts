@@ -17,6 +17,10 @@ export interface CarInsight {
   whatsappClicks: number;
 }
 
+interface InsightCar {
+  id: string;
+}
+
 // Deterministic pseudo-random so numbers stay stable between renders.
 function seeded(seed: number) {
   let s = seed;
@@ -47,10 +51,10 @@ export function getLast7DaysActivity(): DailyActivity[] {
   return out;
 }
 
-export function getCarInsights(): Record<string, CarInsight> {
+export function getCarInsights(cars: InsightCar[] = allCars): Record<string, CarInsight> {
   const rand = seeded(7);
   const map: Record<string, CarInsight> = {};
-  for (const c of allCars) {
+  for (const c of cars) {
     map[c.id] = {
       carId: c.id,
       views: 120 + Math.floor(rand() * 880),

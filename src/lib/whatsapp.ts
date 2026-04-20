@@ -1,9 +1,14 @@
-// DM Motors Imports — central WhatsApp config
+// DM Motors Imports - central WhatsApp config
 export const WHATSAPP_NUMBER = "5532999264848";
 
-export function whatsappLink(message?: string) {
+function normalizePhone(value?: string) {
+  return (value ?? "").replace(/\D/g, "");
+}
+
+export function whatsappLink(message?: string, number = WHATSAPP_NUMBER) {
   const text = encodeURIComponent(
-    message ?? "Olá! Tenho interesse em um veículo da DM Motors Imports."
+    message ?? "Ola! Tenho interesse em um veiculo da DM Motors Imports."
   );
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+  const phone = normalizePhone(number) || WHATSAPP_NUMBER;
+  return `https://wa.me/${phone}?text=${text}`;
 }

@@ -1,39 +1,36 @@
-// Vehicle service — single source of truth for the UI.
-//
-// Strategy:
-//   1. If VITE_API_URL is configured, prefer the remote API (Node.js + MongoDB).
-//   2. If the API call fails or returns nothing, fall back to the local store
-//      (localStorage overrides + the static seed in data/cars.ts).
-//
-// This keeps the frontend usable in development and in demo, while being
-// 100% ready to plug into the real backend by setting one env variable.
-
 import { apiFetch, ApiError, isApiConfigured } from "./apiClient";
 import * as localStore from "@/data/carsStore";
-import type { Vehicle, VehicleInput } from "@/types/vehicle";
+import { normalizeVehicleRecord } from "@/lib/vehicles";
+import type { Vehicle, VehicleInput, VehicleUpdateInput } from "@/types/vehicle";
 
-// ────────────────────────────────────────────────────────────────────────────
-// Read
+type ApiVehicle = Vehicle & { _id?: string };
 
 export async function getVehicles(): Promise<Vehicle[]> {
   if (isApiConfigured) {
     try {
-      const remote = await apiFetch<Vehicle[]>("/vehicles");
-      if (Array.isArray(remote) && remote.length) return remote;
+      const remote = await apiFetch<ApiVehicle[]>("/vehicles");
+      if (Array.isArray(remote)) {
+        const normalized = remote.map(normalizeVehicleRecord);
+        localStore.replaceCars(normalized);
+        return normalized;
+      }
     } catch (err) {
-      // Fall through to local data; surface the error in dev only.
       if (import.meta.env.DEV) {
         console.warn("[vehicleService] API unreachable, using local data:", err);
       }
     }
   }
+
   return localStore.getCars();
 }
 
 export async function getVehicleById(id: string): Promise<Vehicle | undefined> {
   if (isApiConfigured) {
     try {
-      return await apiFetch<Vehicle>(`/vehicles/${encodeURIComponent(id)}`);
+      const remote = await apiFetch<ApiVehicle>(`/vehicles/${encodeURIComponent(id)}`);
+      const normalized = normalizeVehicleRecord(remote);
+      localStore.addCar(normalized);
+      return normalized;
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) return undefined;
       if (import.meta.env.DEV) {
@@ -41,48 +38,48 @@ export async function getVehicleById(id: string): Promise<Vehicle | undefined> {
       }
     }
   }
+
   return localStore.getCarById(id);
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Write — admin operations
-// Until the backend is live these write to the local store. When the API is
-// configured, we POST/PUT/DELETE there and mirror the result locally so the
-// UI stays reactive.
-
 export async function createVehicle(input: VehicleInput): Promise<Vehicle> {
+  const payload = normalizeVehicleRecord(input);
+
   if (isApiConfigured) {
     try {
-      const created = await apiFetch<Vehicle>("/vehicles", {
+      const created = await apiFetch<ApiVehicle>("/vehicles", {
         method: "POST",
-        body: JSON.stringify(input),
+        body: JSON.stringify(payload),
       });
-      // Mirror in local store for offline reactivity
-      localStore.addCar(created);
-      return created;
+      const normalized = normalizeVehicleRecord(created);
+      localStore.addCar(normalized);
+      return normalized;
     } catch (err) {
       if (import.meta.env.DEV) console.warn("[vehicleService] create fallback:", err);
     }
   }
-  return localStore.addCar(input);
+
+  return localStore.addCar(payload);
 }
 
 export async function updateVehicle(
   id: string,
-  patch: Partial<VehicleInput>,
+  patch: VehicleUpdateInput,
 ): Promise<Vehicle | undefined> {
   if (isApiConfigured) {
     try {
-      const updated = await apiFetch<Vehicle>(`/vehicles/${encodeURIComponent(id)}`, {
+      const updated = await apiFetch<ApiVehicle>(`/vehicles/${encodeURIComponent(id)}`, {
         method: "PUT",
         body: JSON.stringify(patch),
       });
-      localStore.updateCar(id, updated);
-      return updated;
+      const normalized = normalizeVehicleRecord(updated);
+      localStore.updateCar(id, normalized);
+      return normalized;
     } catch (err) {
       if (import.meta.env.DEV) console.warn("[vehicleService] update fallback:", err);
     }
   }
+
   return localStore.updateCar(id, patch);
 }
 
@@ -94,5 +91,6 @@ export async function deleteVehicle(id: string): Promise<void> {
       if (import.meta.env.DEV) console.warn("[vehicleService] delete fallback:", err);
     }
   }
+
   localStore.deleteCar(id);
 }
