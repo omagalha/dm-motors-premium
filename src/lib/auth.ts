@@ -1,58 +1,103 @@
-// Provisional admin auth — single master password kept in localStorage.
-// This is intentionally simple and NOT production-grade. It exists so the
-// /admin route is not openly accessible during the prototype phase.
-//
-// When the backend is connected, replace this with a real JWT/session flow:
-//   - exchange email + password at POST /auth/login
-//   - store the returned token (httpOnly cookie ideally)
-//   - update isAuthenticated() / login() / logout() to use it
-//   - add multi-tenant: include the tenant slug in the auth payload
+import type { AdminSession, AdminUser } from "@/lib/adminSession";
+import {
+  clearStoredAdminSession,
+  getStoredAdminSession,
+  saveStoredAdminSession,
+} from "@/lib/adminSession";
+import { apiFetch } from "@/services/apiClient";
 
-const SESSION_KEY = "dm-motors:admin:session:v1";
-// Default password for the prototype. Change this before sharing the URL.
-// In a real deployment this would never live in the frontend.
-const MASTER_PASSWORD = "dmmotors2025";
-
-function isBrowser() {
-  return typeof window !== "undefined";
+interface AuthResponse {
+  token?: string;
+  user?: {
+    email?: string;
+    role?: string;
+  };
+  loggedInAt?: number;
+  expiresAt?: number;
 }
 
-export interface AdminSession {
-  loggedInAt: number;
-  email?: string;
+function normalizeAuthSession(payload: AuthResponse, fallbackToken?: string): AdminSession {
+  const token = typeof payload.token === "string" && payload.token ? payload.token : fallbackToken;
+  const email = payload.user?.email?.trim();
+  const role = payload.user?.role;
+  const loggedInAt = payload.loggedInAt;
+  const expiresAt = payload.expiresAt;
+
+  if (
+    !token ||
+    !email ||
+    role !== "admin" ||
+    typeof loggedInAt !== "number" ||
+    !Number.isFinite(loggedInAt) ||
+    typeof expiresAt !== "number" ||
+    !Number.isFinite(expiresAt)
+  ) {
+    throw new Error("Resposta invalida do servidor de autenticacao.");
+  }
+
+  return {
+    token,
+    user: {
+      email,
+      role: "admin",
+    },
+    loggedInAt,
+    expiresAt,
+  };
 }
 
 export function isAuthenticated(): boolean {
-  if (!isBrowser()) return false;
-  try {
-    const raw = window.localStorage.getItem(SESSION_KEY);
-    if (!raw) return false;
-    const session = JSON.parse(raw) as AdminSession;
-    return Boolean(session?.loggedInAt);
-  } catch {
-    return false;
-  }
-}
-
-export function login(email: string, password: string): boolean {
-  if (!isBrowser()) return false;
-  if (password !== MASTER_PASSWORD) return false;
-  const session: AdminSession = { loggedInAt: Date.now(), email: email || undefined };
-  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  return true;
-}
-
-export function logout() {
-  if (!isBrowser()) return;
-  window.localStorage.removeItem(SESSION_KEY);
+  return Boolean(getStoredAdminSession());
 }
 
 export function getSession(): AdminSession | null {
-  if (!isBrowser()) return null;
+  return getStoredAdminSession();
+}
+
+export async function login(email: string, password: string): Promise<AdminSession> {
+  const response = await apiFetch<AuthResponse>("/auth/login", {
+    method: "POST",
+    skipAuth: true,
+    body: JSON.stringify({
+      email: email.trim(),
+      password,
+    }),
+  });
+
+  const session = normalizeAuthSession(response);
+  saveStoredAdminSession(session);
+  return session;
+}
+
+export async function restoreSession(): Promise<AdminSession | null> {
+  const existingSession = getStoredAdminSession();
+  if (!existingSession) return null;
+
   try {
-    const raw = window.localStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as AdminSession) : null;
+    const response = await apiFetch<AuthResponse>("/auth/session");
+    const session = normalizeAuthSession(response, existingSession.token);
+    saveStoredAdminSession(session);
+    return session;
   } catch {
+    clearStoredAdminSession();
     return null;
   }
 }
+
+export async function logout() {
+  const existingSession = getStoredAdminSession();
+
+  try {
+    if (existingSession) {
+      await apiFetch<void>("/auth/logout", {
+        method: "POST",
+      });
+    }
+  } catch {
+    /* Stateless logout can fail silently; local cleanup still wins. */
+  } finally {
+    clearStoredAdminSession();
+  }
+}
+
+export type { AdminSession, AdminUser };

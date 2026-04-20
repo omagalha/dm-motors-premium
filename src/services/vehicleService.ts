@@ -46,17 +46,13 @@ export async function createVehicle(input: VehicleInput): Promise<Vehicle> {
   const payload = normalizeVehicleRecord(input);
 
   if (isApiConfigured) {
-    try {
-      const created = await apiFetch<ApiVehicle>("/vehicles", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      const normalized = normalizeVehicleRecord(created);
-      localStore.addCar(normalized);
-      return normalized;
-    } catch (err) {
-      if (import.meta.env.DEV) console.warn("[vehicleService] create fallback:", err);
-    }
+    const created = await apiFetch<ApiVehicle>("/vehicles", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const normalized = normalizeVehicleRecord(created);
+    localStore.addCar(normalized);
+    return normalized;
   }
 
   return localStore.addCar(payload);
@@ -67,17 +63,13 @@ export async function updateVehicle(
   patch: VehicleUpdateInput,
 ): Promise<Vehicle | undefined> {
   if (isApiConfigured) {
-    try {
-      const updated = await apiFetch<ApiVehicle>(`/vehicles/${encodeURIComponent(id)}`, {
-        method: "PUT",
-        body: JSON.stringify(patch),
-      });
-      const normalized = normalizeVehicleRecord(updated);
-      localStore.updateCar(id, normalized);
-      return normalized;
-    } catch (err) {
-      if (import.meta.env.DEV) console.warn("[vehicleService] update fallback:", err);
-    }
+    const updated = await apiFetch<ApiVehicle>(`/vehicles/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(patch),
+    });
+    const normalized = normalizeVehicleRecord(updated);
+    localStore.updateCar(id, normalized);
+    return normalized;
   }
 
   return localStore.updateCar(id, patch);
@@ -85,11 +77,7 @@ export async function updateVehicle(
 
 export async function deleteVehicle(id: string): Promise<void> {
   if (isApiConfigured) {
-    try {
-      await apiFetch<void>(`/vehicles/${encodeURIComponent(id)}`, { method: "DELETE" });
-    } catch (err) {
-      if (import.meta.env.DEV) console.warn("[vehicleService] delete fallback:", err);
-    }
+    await apiFetch<void>(`/vehicles/${encodeURIComponent(id)}`, { method: "DELETE" });
   }
 
   localStore.deleteCar(id);

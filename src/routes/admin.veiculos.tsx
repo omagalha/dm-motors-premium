@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatKm, formatPrice } from "@/data/cars";
 import { resetCars, useCars, type Car, type CarInput } from "@/data/carsStore";
 import { getCarInsights } from "@/data/insights";
+import { getStoredAdminToken } from "@/lib/adminSession";
 import {
   ensureSingleCover,
   getVehicleImageUrl,
@@ -20,7 +21,20 @@ import type {
   VehicleImage,
   VehicleStatus,
 } from "@/types/vehicle";
-import { Pencil, Plus, Trash2, X, Upload, RotateCcw, Eye, MessageCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Copy,
+  Eye,
+  MessageCircle,
+  Pencil,
+  Plus,
+  Power,
+  RotateCcw,
+  Search,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const statusMeta: Record<VehicleStatus, { label: string; dot: string; pill: string }> = {
@@ -56,6 +70,9 @@ const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel", "Nao informado"];
 const categories: Category[] = ["Hatch", "Sedan", "SUV", "Picape", "Nao informado"];
 const statuses: VehicleStatus[] = ["disponivel", "reservado", "vendido"];
 type SubmitStatus = "idle" | "uploading_images" | "saving_vehicle";
+type ActiveFilter = "all" | "active" | "inactive";
+type FeaturedFilter = "all" | "featured" | "regular";
+type EditorMode = "create" | "edit" | "duplicate";
 
 interface PendingUploadItem {
   id: string;
@@ -94,6 +111,17 @@ interface FormState {
   active: boolean;
 }
 
+interface RowActionState {
+  id: string;
+  type: "toggle" | "delete";
+}
+
+interface ActionNotice {
+  tone: "success" | "warning";
+  title: string;
+  description: string;
+}
+
 const emptyForm: FormState = {
   name: "",
   brand: "",
@@ -115,6 +143,66 @@ const emptyForm: FormState = {
   isFeatured: false,
   active: true,
 };
+
+function normalizeText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function buildVehicleSearchValue(car: Car) {
+  return normalizeText(
+    [
+      car.name,
+      car.brand,
+      car.model,
+      car.city,
+      car.category,
+      car.badge,
+      car.status,
+      car.active ? "ativo" : "inativo",
+      car.isFeatured ? "destaque" : "",
+      car.tags.join(" "),
+      car.features.join(" "),
+      String(car.year),
+    ].join(" ")
+  );
+}
+
+function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormState {
+  return {
+    name: car.name,
+    brand: car.brand,
+    model: car.model,
+    price: String(car.price),
+    mileage: String(car.mileage),
+    year: String(car.year),
+    transmission: car.transmission,
+    fuel: car.fuel,
+    category: car.category,
+    color: car.color,
+    city: car.city,
+    badge: car.badge,
+    status: car.status,
+    whatsappNumber: car.whatsappNumber,
+    description: car.description,
+    features: joinList(car.features),
+    tags: joinList(car.tags),
+    isFeatured: car.isFeatured,
+    active: car.active,
+    ...overrides,
+  };
+}
+
+function cloneDraftImages(images: Car["images"]) {
+  return normalizeVehicleImages(images).map((image) => ({ ...image }));
+}
+
+function getDuplicateName(name: string) {
+  return /\bcopia\b/i.test(name) ? name : `${name} - Copia`;
+}
 
 function parseList(value: string) {
   return value
@@ -138,9 +226,13 @@ function readFileAsDataUrl(file: File) {
 
 async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
   const apiUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+  const token = getStoredAdminToken();
 
   if (!apiUrl) {
     throw new Error("VITE_API_URL nao configurada para upload.");
+  }
+  if (!token) {
+    throw new Error("Sessao expirada. Faca login novamente.");
   }
 
   const formData = new FormData();
@@ -151,6 +243,9 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
 
   const response = await fetch(`${apiUrl}/upload/images`, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     body: formData,
   });
 
@@ -202,14 +297,19 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
 
 async function deleteVehicleImages(publicIds: string[]) {
   const apiUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+  const token = getStoredAdminToken();
 
   if (!apiUrl || !publicIds.length) return;
+  if (!token) {
+    throw new Error("Sessao expirada. Faca login novamente.");
+  }
 
   const response = await fetch(`${apiUrl}/upload/images`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ publicIds }),
   });
@@ -275,19 +375,31 @@ function AdminVeiculos() {
   const cars = useCars();
   const insights = getCarInsights(cars);
   const [open, setOpen] = useState(false);
+  const [editorMode, setEditorMode] = useState<EditorMode>("create");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [existingImages, setExistingImages] = useState<VehicleImage[]>([]);
   const [pendingUploads, setPendingUploads] = useState<PendingUploadItem[]>([]);
   const [removedExistingImages, setRemovedExistingImages] = useState<VehicleImage[]>([]);
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
+  const [featuredFilter, setFeaturedFilter] = useState<FeaturedFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | Category>("all");
+  const [rowAction, setRowAction] = useState<RowActionState | null>(null);
+  const [actionNotice, setActionNotice] = useState<ActionNotice | null>(null);
+  const [highlightedCarId, setHighlightedCarId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingUploadIdRef = useRef(0);
   const isSubmitting = submitStatus !== "idle";
+  const hasBusyRow = Boolean(rowAction);
 
   const stats = useMemo(
     () => ({
       total: cars.length,
+      active: cars.filter((car) => car.active).length,
+      inactive: cars.filter((car) => !car.active).length,
+      featured: cars.filter((car) => car.isFeatured).length,
       avgPrice: cars.length
         ? Math.round(cars.reduce((sum, car) => sum + car.price, 0) / cars.length)
         : 0,
@@ -300,8 +412,53 @@ function AdminVeiculos() {
     [existingImages, pendingUploads]
   );
 
+  const filteredCars = useMemo(() => {
+    const normalizedSearch = normalizeText(searchQuery);
+
+    return cars.filter((car) => {
+      const matchesSearch =
+        !normalizedSearch || buildVehicleSearchValue(car).includes(normalizedSearch);
+      const matchesActive =
+        activeFilter === "all" ||
+        (activeFilter === "active" ? car.active : !car.active);
+      const matchesFeatured =
+        featuredFilter === "all" ||
+        (featuredFilter === "featured" ? car.isFeatured : !car.isFeatured);
+      const matchesCategory = categoryFilter === "all" || car.category === categoryFilter;
+
+      return matchesSearch && matchesActive && matchesFeatured && matchesCategory;
+    });
+  }, [activeFilter, cars, categoryFilter, featuredFilter, searchQuery]);
+
+  const hasActiveFilters =
+    Boolean(searchQuery.trim()) ||
+    activeFilter !== "all" ||
+    featuredFilter !== "all" ||
+    categoryFilter !== "all";
+
+  useEffect(() => {
+    if (!actionNotice) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setActionNotice(null);
+    }, 5000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [actionNotice]);
+
+  useEffect(() => {
+    if (!highlightedCarId) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setHighlightedCarId(null);
+    }, 3500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [highlightedCarId]);
+
   function resetEditorState() {
     setOpen(false);
+    setEditorMode("create");
     setEditingId(null);
     setForm(emptyForm);
     setExistingImages([]);
@@ -312,33 +469,34 @@ function AdminVeiculos() {
 
   function openNew() {
     resetEditorState();
+    setEditorMode("create");
     setOpen(true);
   }
 
   function openEdit(car: Car) {
+    setEditorMode("edit");
     setEditingId(car.id);
-    setForm({
-      name: car.name,
-      brand: car.brand,
-      model: car.model,
-      price: String(car.price),
-      mileage: String(car.mileage),
-      year: String(car.year),
-      transmission: car.transmission,
-      fuel: car.fuel,
-      category: car.category,
-      color: car.color,
-      city: car.city,
-      badge: car.badge,
-      status: car.status,
-      whatsappNumber: car.whatsappNumber,
-      description: car.description,
-      features: joinList(car.features),
-      tags: joinList(car.tags),
-      isFeatured: car.isFeatured,
-      active: car.active,
-    });
-    setExistingImages(normalizeVehicleImages(car.images).map((image) => ({ ...image })));
+    setForm(buildFormFromCar(car));
+    setExistingImages(cloneDraftImages(car.images));
+    setPendingUploads([]);
+    setRemovedExistingImages([]);
+    setSubmitStatus("idle");
+    setOpen(true);
+  }
+
+  function openDuplicate(car: Car) {
+    resetEditorState();
+    setEditorMode("duplicate");
+    setEditingId(null);
+    setForm(
+      buildFormFromCar(car, {
+        name: getDuplicateName(car.name),
+        active: false,
+        isFeatured: false,
+        status: "disponivel",
+      })
+    );
+    setExistingImages(cloneDraftImages(car.images));
     setPendingUploads([]);
     setRemovedExistingImages([]);
     setSubmitStatus("idle");
@@ -451,6 +609,41 @@ function AdminVeiculos() {
     applyImageItems(imageItems.filter((imageItem) => imageItem.id !== id));
   }
 
+  function clearFilters() {
+    setSearchQuery("");
+    setActiveFilter("all");
+    setFeaturedFilter("all");
+    setCategoryFilter("all");
+  }
+
+  async function handleToggleActive(car: Car) {
+    if (isSubmitting || hasBusyRow) return;
+
+    const nextActive = !car.active;
+    setRowAction({ id: car.id, type: "toggle" });
+
+    try {
+      const updatedCar = await updateVehicle(car.id, { active: nextActive });
+      setHighlightedCarId(car.id);
+      setActionNotice({
+        tone: "success",
+        title: nextActive ? "Veiculo reativado" : "Veiculo movido para inativos",
+        description: nextActive
+          ? `${updatedCar?.name ?? car.name} voltou para a operacao do estoque.`
+          : `${updatedCar?.name ?? car.name} saiu da vitrine sem abrir o formulario.`,
+      });
+      toast.success(nextActive ? "Veiculo ativado." : "Veiculo desativado.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar o status do veiculo."
+      );
+    } finally {
+      setRowAction(null);
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (isSubmitting) return;
@@ -477,6 +670,7 @@ function AdminVeiculos() {
     }
 
     try {
+      const mode = editorMode;
       const removedImagesSnapshot = [...removedExistingImages];
       let nextImageItems = [...imageItems];
 
@@ -548,13 +742,33 @@ function AdminVeiculos() {
         tags,
       };
 
+      let savedVehicle: Car | undefined;
+
       if (editingId) {
-        await updateVehicle(editingId, payload);
+        savedVehicle = await updateVehicle(editingId, payload);
         toast.success("Veiculo atualizado.");
       } else {
-        await createVehicle(payload);
-        toast.success("Veiculo adicionado.");
+        savedVehicle = await createVehicle(payload);
+        toast.success(mode === "duplicate" ? "Copia criada." : "Veiculo adicionado.");
       }
+
+      const savedVehicleId = savedVehicle?.id ?? editingId ?? null;
+      setHighlightedCarId(savedVehicleId);
+      setActionNotice({
+        tone: "success",
+        title:
+          mode === "edit"
+            ? "Alteracoes salvas"
+            : mode === "duplicate"
+              ? "Copia pronta para operar"
+              : "Veiculo salvo com sucesso",
+        description:
+          mode === "duplicate"
+            ? `${payload.name} foi criado como ${
+                payload.active ? "ativo" : "inativo"
+              } para voce revisar antes de publicar.`
+            : `${payload.name} ja esta com os dados atualizados no painel.`,
+      });
       resetEditorState();
 
       const activePublicIds = new Set(
@@ -587,12 +801,39 @@ function AdminVeiculos() {
 
   async function handleDelete(car: Car) {
     if (!window.confirm(`Excluir "${car.name}"?`)) return;
+    if (isSubmitting || hasBusyRow) return;
+
+    const removablePublicIds = [
+      ...new Set(
+        normalizeVehicleImages(car.images)
+          .map((image) => image.publicId?.trim())
+          .filter((publicId): publicId is string => Boolean(publicId))
+      ),
+    ];
+
+    setRowAction({ id: car.id, type: "delete" });
 
     try {
       await deleteVehicle(car.id);
       toast.success("Veiculo excluido.");
-    } catch {
-      toast.error("Falha ao excluir.");
+      setActionNotice({
+        tone: "success",
+        title: "Veiculo removido",
+        description: `${car.name} saiu do painel com sucesso.`,
+      });
+
+      if (removablePublicIds.length) {
+        void deleteVehicleImages(removablePublicIds).catch((error) => {
+          console.warn("[admin.veiculos] Cloudinary cleanup after delete failed:", error);
+          toast.warning(
+            "Veiculo removido, mas algumas imagens nao puderam ser limpas do Cloudinary."
+          );
+        });
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Falha ao excluir.");
+    } finally {
+      setRowAction(null);
     }
   }
 
@@ -615,19 +856,21 @@ function AdminVeiculos() {
             Gerenciar veiculos
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {stats.total} veiculos - ticket medio {formatPrice(stats.avgPrice)}
+            {stats.total} veiculos - {stats.active} ativos - {stats.featured} em destaque
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleReset}
-            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:border-primary hover:text-foreground"
+            disabled={isSubmitting || hasBusyRow}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:border-primary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RotateCcw className="h-4 w-4" /> Restaurar
           </button>
           <button
             onClick={openNew}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110"
+            disabled={isSubmitting || hasBusyRow}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="h-4 w-4" /> Novo veiculo
           </button>
@@ -637,6 +880,115 @@ function AdminVeiculos() {
       <p className="rounded-lg border border-border/60 bg-card/50 px-4 py-3 text-xs text-muted-foreground">
         Configure <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[11px] text-foreground">VITE_API_URL</code> no frontend para apontar para a API correta em cada ambiente.
       </p>
+
+      {actionNotice && (
+        <div
+          className={`rounded-2xl border px-4 py-3 shadow-card ${
+            actionNotice.tone === "success"
+              ? "border-emerald-500/30 bg-emerald-500/10"
+              : "border-amber-500/30 bg-amber-500/10"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <CheckCircle2
+                className={`mt-0.5 h-5 w-5 ${
+                  actionNotice.tone === "success" ? "text-emerald-500" : "text-amber-500"
+                }`}
+              />
+              <div>
+                <p className="text-sm font-bold text-foreground">{actionNotice.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{actionNotice.description}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActionNotice(null)}
+              className="rounded-md p-1 text-muted-foreground transition hover:bg-background/60 hover:text-foreground"
+              aria-label="Fechar aviso"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+          <Field label="Buscar veiculo">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Nome, marca, modelo, cidade, tag..."
+                className="adm-input pl-10"
+              />
+            </div>
+          </Field>
+
+          <Field label="Estoque">
+            <select
+              value={activeFilter}
+              onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}
+              className="adm-input"
+            >
+              <option value="all">Todos</option>
+              <option value="active">Ativos</option>
+              <option value="inactive">Inativos</option>
+            </select>
+          </Field>
+
+          <Field label="Destaque">
+            <select
+              value={featuredFilter}
+              onChange={(event) => setFeaturedFilter(event.target.value as FeaturedFilter)}
+              className="adm-input"
+            >
+              <option value="all">Todos</option>
+              <option value="featured">Em destaque</option>
+              <option value="regular">Sem destaque</option>
+            </select>
+          </Field>
+
+          <Field label="Categoria">
+            <select
+              value={categoryFilter}
+              onChange={(event) =>
+                setCategoryFilter(event.target.value === "all" ? "all" : (event.target.value as Category))
+              }
+              className="adm-input"
+            >
+              <option value="all">Todas</option>
+              {categories.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span>{filteredCars.length} visiveis</span>
+            <span>-</span>
+            <span>{stats.inactive} inativos no total</span>
+            <span>-</span>
+            <span>ticket medio {formatPrice(stats.avgPrice)}</span>
+          </div>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground transition hover:border-primary hover:text-foreground"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Limpar filtros
+            </button>
+          )}
+        </div>
+      </section>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
         <div className="overflow-x-auto">
@@ -654,11 +1006,18 @@ function AdminVeiculos() {
               </tr>
             </thead>
             <tbody>
-              {cars.map((car) => {
+              {filteredCars.map((car) => {
                 const status = statusMeta[car.status];
                 const metrics = insights[car.id];
+                const isRowBusy = rowAction?.id === car.id;
+                const isHighlighted = highlightedCarId === car.id;
                 return (
-                  <tr key={car.id} className="border-t border-border transition hover:bg-secondary/30">
+                  <tr
+                    key={car.id}
+                    className={`border-t border-border transition hover:bg-secondary/30 ${
+                      isHighlighted ? "bg-emerald-500/5" : ""
+                    }`}
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="relative">
@@ -678,6 +1037,25 @@ function AdminVeiculos() {
                           <p className="text-xs text-muted-foreground">
                             {car.brand} - {car.model}
                           </p>
+                          <div className="mt-1.5 flex flex-wrap gap-1.5">
+                            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-foreground">
+                              {car.category}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                car.active
+                                  ? "bg-whatsapp/15 text-whatsapp"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {car.active ? "Ativo" : "Inativo"}
+                            </span>
+                            {car.isFeatured && (
+                              <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                                Destaque
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -716,18 +1094,44 @@ function AdminVeiculos() {
                       {formatPrice(car.price)}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <button
                           onClick={() => openEdit(car)}
+                          disabled={isSubmitting || hasBusyRow}
                           className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
                         >
                           <Pencil className="h-3.5 w-3.5" /> Editar
                         </button>
                         <button
-                          onClick={() => handleDelete(car)}
-                          className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
+                          onClick={() => openDuplicate(car)}
+                          disabled={isSubmitting || hasBusyRow}
+                          className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          <Trash2 className="h-3.5 w-3.5" /> Excluir
+                          <Copy className="h-3.5 w-3.5" /> Duplicar
+                        </button>
+                        <button
+                          onClick={() => void handleToggleActive(car)}
+                          disabled={isSubmitting || hasBusyRow}
+                          className={`inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                            car.active
+                              ? "border-amber-500/40 text-amber-500 hover:border-amber-500"
+                              : "border-whatsapp/40 text-whatsapp hover:border-whatsapp"
+                          }`}
+                        >
+                          <Power className="h-3.5 w-3.5" />
+                          {isRowBusy && rowAction?.type === "toggle"
+                            ? "Salvando..."
+                            : car.active
+                              ? "Desativar"
+                              : "Ativar"}
+                        </button>
+                        <button
+                          onClick={() => void handleDelete(car)}
+                          disabled={isSubmitting || hasBusyRow}
+                          className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          {isRowBusy && rowAction?.type === "delete" ? "Excluindo..." : "Excluir"}
                         </button>
                       </div>
                     </td>
@@ -751,6 +1155,24 @@ function AdminVeiculos() {
         </div>
       )}
 
+      {cars.length > 0 && filteredCars.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+          <p className="font-semibold text-foreground">Nenhum veiculo encontrado com esses filtros.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Ajuste a busca ou limpe os filtros para voltar ao inventario completo.
+          </p>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
+            >
+              <RotateCcw className="h-4 w-4" /> Limpar filtros
+            </button>
+          )}
+        </div>
+      )}
+
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
@@ -763,7 +1185,11 @@ function AdminVeiculos() {
           >
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <h2 className="text-lg font-bold text-foreground">
-                {editingId ? "Editar veiculo" : "Novo veiculo"}
+                {editorMode === "edit"
+                  ? "Editar veiculo"
+                  : editorMode === "duplicate"
+                    ? "Duplicar veiculo"
+                    : "Novo veiculo"}
               </h2>
               <button
                 type="button"
@@ -1130,12 +1556,16 @@ function AdminVeiculos() {
                 {submitStatus === "uploading_images"
                   ? "Enviando imagens..."
                   : submitStatus === "saving_vehicle"
-                    ? editingId
+                    ? editorMode === "edit"
                       ? "Salvando..."
-                      : "Adicionando..."
-                    : editingId
+                      : editorMode === "duplicate"
+                        ? "Criando copia..."
+                        : "Adicionando..."
+                    : editorMode === "edit"
                       ? "Salvar"
-                      : "Adicionar"}
+                      : editorMode === "duplicate"
+                        ? "Criar copia"
+                        : "Adicionar"}
               </button>
             </div>
           </form>

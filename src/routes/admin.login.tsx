@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Lock, Mail, ArrowRight, ShieldCheck, ArrowLeft } from "lucide-react";
-import { isAuthenticated, login } from "@/lib/auth";
+import { ArrowLeft, ArrowRight, Lock, Mail, ShieldCheck } from "lucide-react";
+import { login, restoreSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
     meta: [
-      { title: "Acessar painel — DM Motors" },
+      { title: "Acessar painel - DM Motors" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -20,29 +20,40 @@ function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // If already logged in, jump straight to the dashboard
   useEffect(() => {
-    if (isAuthenticated()) {
-      navigate({ to: "/admin" });
+    let cancelled = false;
+
+    async function checkSession() {
+      const session = await restoreSession();
+      if (!cancelled && session) {
+        navigate({ to: "/admin" });
+      }
     }
+
+    void checkSession();
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setError(null);
     setLoading(true);
-    const ok = login(email.trim(), password);
-    setLoading(false);
-    if (!ok) {
-      setError("Senha incorreta. Tente novamente.");
-      return;
+
+    try {
+      await login(email.trim(), password);
+      navigate({ to: "/admin" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel entrar.");
+    } finally {
+      setLoading(false);
     }
-    navigate({ to: "/admin" });
   }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-5 py-10">
-      {/* Background glow */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-gradient-red opacity-30 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
@@ -70,9 +81,7 @@ function AdminLoginPage() {
           onSubmit={handleSubmit}
           className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8"
         >
-          <h1 className="text-2xl font-black tracking-tight text-foreground">
-            Acessar painel
-          </h1>
+          <h1 className="text-2xl font-black tracking-tight text-foreground">Acessar painel</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Entre com suas credenciais para gerenciar o estoque.
           </p>
@@ -87,9 +96,10 @@ function AdminLoginPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="voce@dmmotors.com.br"
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="admin@dmmotors.com.br"
                   autoComplete="email"
+                  required
                   className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                 />
               </div>
@@ -104,8 +114,8 @@ function AdminLoginPage() {
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="********"
                   autoComplete="current-password"
                   required
                   className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
@@ -124,14 +134,14 @@ function AdminLoginPage() {
               disabled={loading}
               className="group flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110 disabled:opacity-60"
             >
-              {loading ? "Entrando…" : "Entrar"}
+              {loading ? "Entrando..." : "Entrar"}
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
             </button>
           </div>
         </form>
 
         <p className="mt-4 text-center text-[11px] text-muted-foreground">
-          Acesso provisório por senha mestre. Será substituído por autenticação completa quando o backend estiver conectado.
+          Login protegido por token com sessao persistida no navegador.
         </p>
       </div>
     </div>

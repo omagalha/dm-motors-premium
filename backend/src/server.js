@@ -4,6 +4,7 @@ dotenv.config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
 
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
   res.json({ message: "API DM Motors rodando." });
 });
 
+app.use("/auth", authRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/vehicles", vehicleRoutes);
 

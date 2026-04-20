@@ -6,7 +6,8 @@ const {
 
 async function getVehicles(req, res) {
   try {
-    const vehicles = await Vehicle.find({ active: true }).sort({ createdAt: -1 });
+    const query = req.admin ? {} : { active: true };
+    const vehicles = await Vehicle.find(query).sort({ createdAt: -1 });
     return res.status(200).json(vehicles.map(serializeVehicle));
   } catch (error) {
     return res.status(500).json({ message: "Erro ao buscar veiculos." });
@@ -17,7 +18,7 @@ async function getVehicleById(req, res) {
   try {
     const vehicle = await Vehicle.findById(req.params.id);
 
-    if (!vehicle) {
+    if (!vehicle || (!req.admin && !vehicle.active)) {
       return res.status(404).json({ message: "Veiculo nao encontrado." });
     }
 

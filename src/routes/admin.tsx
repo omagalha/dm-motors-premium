@@ -11,12 +11,13 @@ import {
   X,
 } from "lucide-react";
 import { Toaster } from "sonner";
-import { isAuthenticated, logout } from "@/lib/auth";
+import { isAuthenticated, logout, restoreSession } from "@/lib/auth";
+import { subscribeToAdminSessionChanges } from "@/lib/adminSession";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Painel Admin — DM Motors Imports" },
+      { title: "Painel Admin - DM Motors Imports" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -24,8 +25,8 @@ export const Route = createFileRoute("/admin")({
 });
 
 const navItems = [
-  { to: "/admin" as const, label: "Visão geral", icon: LayoutDashboard, exact: true },
-  { to: "/admin/veiculos" as const, label: "Veículos", icon: Car, exact: false },
+  { to: "/admin" as const, label: "Visao geral", icon: LayoutDashboard, exact: true },
+  { to: "/admin/veiculos" as const, label: "Veiculos", icon: Car, exact: false },
   { to: "/admin/insights" as const, label: "Insights", icon: BarChart3, exact: false },
 ];
 
@@ -35,27 +36,61 @@ function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
 
-  // Auth guard: anything under /admin requires login, except /admin/login itself.
   useEffect(() => {
-    const onLoginPage = location.pathname === "/admin/login";
-    const ok = isAuthenticated();
-    setAuthed(ok);
-    if (!ok && !onLoginPage) {
-      navigate({ to: "/admin/login" });
+    let cancelled = false;
+
+    async function checkAccess() {
+      const onLoginPage = location.pathname === "/admin/login";
+
+      if (onLoginPage) {
+        setAuthed(true);
+        return;
+      }
+
+      setAuthed(null);
+
+      const session = isAuthenticated() ? await restoreSession() : null;
+      if (cancelled) return;
+
+      if (!session) {
+        setAuthed(false);
+        navigate({ to: "/admin/login" });
+        return;
+      }
+
+      setAuthed(true);
     }
+
+    void checkAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname, navigate]);
+
+  useEffect(() => {
+    return subscribeToAdminSessionChanges(() => {
+      if (location.pathname === "/admin/login") return;
+
+      const ok = isAuthenticated();
+      setAuthed(ok);
+
+      if (!ok) {
+        navigate({ to: "/admin/login" });
+      }
+    });
   }, [location.pathname, navigate]);
 
   function isActive(to: string, exact: boolean) {
     if (exact) return location.pathname === to;
-    return location.pathname === to || location.pathname.startsWith(to + "/");
+    return location.pathname === to || location.pathname.startsWith(`${to}/`);
   }
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     navigate({ to: "/admin/login" });
   }
 
-  // Render the login route without the chrome (sidebar/topbar).
   if (location.pathname === "/admin/login") {
     return (
       <>
@@ -65,11 +100,10 @@ function AdminLayout() {
     );
   }
 
-  // While checking auth, don't flash protected content.
   if (authed === null || authed === false) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-        Verificando acesso…
+        Verificando acesso...
       </div>
     );
   }
@@ -78,12 +112,11 @@ function AdminLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <Toaster theme="dark" position="top-center" richColors />
 
-      {/* Topbar */}
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg">
         <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setMobileOpen((v) => !v)}
+              onClick={() => setMobileOpen((value) => !value)}
               className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-foreground md:hidden"
               aria-label="Menu"
             >
@@ -107,7 +140,7 @@ function AdminLayout() {
               <span className="hidden sm:inline">Ver site</span>
             </Link>
             <button
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
               className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -118,10 +151,9 @@ function AdminLayout() {
       </header>
 
       <div className="flex">
-        {/* Sidebar — desktop */}
         <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 border-r border-border/60 bg-card/30 px-3 py-6 md:block">
           <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Gestão
+            Gestao
           </p>
           <nav className="flex flex-col gap-1">
             {navItems.map((item) => {
@@ -138,7 +170,9 @@ function AdminLayout() {
                   }`}
                 >
                   <Icon
-                    className={`h-4 w-4 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                    className={`h-4 w-4 ${
+                      active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    }`}
                   />
                   {item.label}
                   {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
@@ -148,9 +182,7 @@ function AdminLayout() {
           </nav>
 
           <div className="mt-8 rounded-xl border border-border/60 bg-background/50 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-              Backend
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Backend</p>
             <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
               Configure <code className="rounded bg-secondary px-1 py-0.5 text-[10px] text-foreground">VITE_API_URL</code> para conectar a API real.
             </p>
@@ -164,15 +196,14 @@ function AdminLayout() {
           </Link>
         </aside>
 
-        {/* Sidebar — mobile drawer */}
         {mobileOpen && (
           <div
             className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
             onClick={() => setMobileOpen(false)}
           >
             <aside
-              onClick={(e) => e.stopPropagation()}
-              className="h-full w-72 border-r border-border bg-card px-3 pt-20 pb-6"
+              onClick={(event) => event.stopPropagation()}
+              className="h-full w-72 border-r border-border bg-card px-3 pb-6 pt-20"
             >
               <nav className="flex flex-col gap-1">
                 {navItems.map((item) => {
@@ -198,7 +229,7 @@ function AdminLayout() {
               <button
                 onClick={() => {
                   setMobileOpen(false);
-                  handleLogout();
+                  void handleLogout();
                 }}
                 className="mt-4 flex w-full items-center gap-2 rounded-lg px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-destructive"
               >

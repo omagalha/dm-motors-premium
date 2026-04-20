@@ -1,5 +1,6 @@
 const streamifier = require("streamifier");
 const cloudinary = require("../config/cloudinary");
+const Vehicle = require("../models/Vehicle");
 
 function uploadBuffer(fileBuffer, folder = "dm-motors") {
   return new Promise((resolve, reject) => {
@@ -60,6 +61,19 @@ async function deleteImages(req, res) {
     const results = await Promise.all(
       publicIds.map(async (publicId) => {
         try {
+          const isStillReferenced = await Vehicle.exists({
+            "images.publicId": publicId,
+          });
+
+          if (isStillReferenced) {
+            return {
+              publicId,
+              result: "in_use",
+              success: true,
+              skipped: true,
+            };
+          }
+
           const result = await cloudinary.uploader.destroy(publicId, {
             resource_type: "image",
             invalidate: true,

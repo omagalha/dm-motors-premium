@@ -1,3 +1,5 @@
+import { clearStoredAdminSession, getStoredAdminToken } from "@/lib/adminSession";
+
 // Thin fetch wrapper around the backend API.
 // Configure the base URL via the VITE_API_URL environment variable.
 // When VITE_API_URL is not defined, the helpers below behave as if the backend
@@ -17,8 +19,10 @@ export class ApiError extends Error {
 }
 
 interface ApiOptions extends RequestInit {
-  // Optional auth token; when implemented, will be attached as Bearer.
+  // Optional auth token override.
   token?: string;
+  // Skip automatic Bearer token injection for public endpoints like /auth/login.
+  skipAuth?: boolean;
   // Tenant slug for multi-tenant requests (Phase 2).
   tenant?: string;
 }
@@ -33,18 +37,50 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   if (!headers.has("Content-Type") && options.body) {
     headers.set("Content-Type", "application/json");
   }
-  if (options.token) headers.set("Authorization", `Bearer ${options.token}`);
+
+  const authToken = options.token ?? (!options.skipAuth ? getStoredAdminToken() : null);
+  if (authToken) {
+    headers.set("Authorization", `Bearer ${authToken}`);
+  }
+
   if (options.tenant) headers.set("X-Tenant", options.tenant);
 
   const url = `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
   const res = await fetch(url, { ...options, headers });
+  const contentType = res.headers.get("Content-Type") ?? "";
 
   if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new ApiError(text || `HTTP ${res.status}`, res.status);
+    let message = res.statusText || `HTTP ${res.status}`;
+
+    if (contentType.includes("application/json")) {
+      const payload = (await res.json().catch(() => null)) as
+        | { message?: string; error?: string }
+        | null;
+
+      if (payload?.message) {
+        message = payload.message;
+      } else if (payload?.error) {
+        message = payload.error;
+      }
+    } else {
+      const text = await res.text().catch(() => "");
+      if (text) {
+        message = text;
+      }
+    }
+
+    if (res.status === 401 && !options.skipAuth) {
+      clearStoredAdminSession();
+    }
+
+    throw new ApiError(message, res.status);
   }
 
   // Endpoints that return 204 No Content
   if (res.status === 204) return undefined as T;
+  if (!contentType.includes("application/json")) {
+    return undefined as T;
+  }
+
   return (await res.json()) as T;
 }

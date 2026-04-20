@@ -6,13 +6,15 @@ const {
   updateVehicle,
   deleteVehicle,
 } = require("../controllers/vehicleController");
+const attachAdminAuth = require("../middleware/attachAdminAuth");
+const requireAdminAuth = require("../middleware/requireAdminAuth");
 
 const router = express.Router();
 
-router.get("/", getVehicles);
-router.get("/:id", getVehicleById);
-router.post("/", createVehicle);
-router.put("/:id", updateVehicle);
-router.delete("/:id", deleteVehicle);
+router.get("/", attachAdminAuth, getVehicles);
+router.get("/:id", attachAdminAuth, getVehicleById);
+router.post("/", requireAdminAuth, createVehicle);
+router.put("/:id", requireAdminAuth, updateVehicle);
+router.delete("/:id", requireAdminAuth, deleteVehicle);
 
 module.exports = router;
