@@ -214,7 +214,7 @@ function AdminVeiculos() {
       </header>
 
       <p className="rounded-lg border border-border/60 bg-card/50 px-4 py-3 text-xs text-muted-foreground">
-        ⚠️ Os dados são salvos apenas neste navegador. Para persistência real entre dispositivos, ative o Lovable Cloud.
+        ⚠️ Sem API conectada, os dados são salvos apenas neste navegador. Configure <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[11px] text-foreground">VITE_API_URL</code> para sincronizar com seu backend.
       </p>
 
       {/* Unified table (responsive with horizontal scroll on mobile) */}

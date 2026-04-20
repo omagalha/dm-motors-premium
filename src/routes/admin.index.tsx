@@ -231,7 +231,7 @@ function AdminOverview() {
       </section>
 
       <p className="text-center text-xs text-muted-foreground">
-        Dados de demonstração · conecte ao Lovable Cloud para métricas reais em tempo real.
+        Dados de demonstração · conecte ao backend (VITE_API_URL) para métricas reais em tempo real.
       </p>
     </div>
   );
