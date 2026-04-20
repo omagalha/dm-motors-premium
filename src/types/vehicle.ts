@@ -29,7 +29,13 @@ export interface Vehicle {
   status?: CarStatus;
 }
 
-export type VehicleInput = Omit<Vehicle, "id"> & { id?: string };
+// Input shape for create/update operations.
+// `id` is assigned by the backend (or the local store) on create.
+// `highlights` is optional because the local store falls back to a sensible default.
+export type VehicleInput = Omit<Vehicle, "id" | "highlights"> & {
+  id?: string;
+  highlights?: string[];
+};
 
 // Filters that the inventory page sends to the service. Even if filtering happens
 // client-side today, the same shape will be forwarded as querystring to the API.
