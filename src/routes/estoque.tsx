@@ -36,8 +36,75 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import suvBanner from "@/assets/suv-banner.jpg";
+import heroAll from "@/assets/hero-stock-all.jpg";
+import heroSedan from "@/assets/hero-stock-sedan.jpg";
+import heroHatch from "@/assets/hero-stock-hatch.jpg";
+import heroPicape from "@/assets/hero-stock-picape.jpg";
+
+type HeroCategoryKey = "all" | "suv" | "sedan" | "hatch" | "picape";
+
+interface HeroContent {
+  eyebrow: string;
+  title: string;
+  highlight: string;
+  subtitle: string;
+  image: string;
+}
+
+const HERO_CONTENT: Record<HeroCategoryKey, HeroContent> = {
+  all: {
+    eyebrow: "Estoque",
+    title: "Todo o estoque",
+    highlight: "DM Motors",
+    subtitle: "Procedência garantida, revisados e com financiamento facilitado.",
+    image: heroAll,
+  },
+  suv: {
+    eyebrow: "Categoria SUV",
+    title: "SUVs",
+    highlight: "disponíveis",
+    subtitle: "Robustez, espaço e tecnologia. Os melhores SUVs com procedência.",
+    image: suvBanner,
+  },
+  sedan: {
+    eyebrow: "Categoria Sedan",
+    title: "Sedans",
+    highlight: "premium",
+    subtitle: "Conforto, design e performance para o dia a dia executivo.",
+    image: heroSedan,
+  },
+  hatch: {
+    eyebrow: "Categoria Hatch",
+    title: "Hatches",
+    highlight: "ágeis",
+    subtitle: "Econômicos, modernos e perfeitos para a cidade.",
+    image: heroHatch,
+  },
+  picape: {
+    eyebrow: "Categoria Picape",
+    title: "Picapes",
+    highlight: "potentes",
+    subtitle: "Força, robustez e versatilidade para qualquer terreno.",
+    image: heroPicape,
+  },
+};
+
+function getHeroKey(category: Category | null): HeroCategoryKey {
+  switch (category) {
+    case "SUV":
+      return "suv";
+    case "Sedan":
+      return "sedan";
+    case "Hatch":
+      return "hatch";
+    case "Picape":
+      return "picape";
+    default:
+      return "all";
+  }
+}
 
 interface EstoqueSearch {
   category?: Category;
@@ -138,7 +205,8 @@ function EstoquePage() {
 
   const quickFilters = useMemo(() => getStockQuickFilterPresets(), []);
   const recentMinYear = getRecentVehicleMinYear();
-  const isSuv = filters.category === "SUV";
+  const heroKey = getHeroKey(filters.category);
+  const heroContent = HERO_CONTENT[heroKey];
   const activeFilterCount = countActiveVehicleFilters(filters);
   const priceSliderValue = filters.maxPrice ?? STOCK_PRICE_MAX;
 
@@ -194,59 +262,70 @@ function EstoquePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {isSuv && (
-        <section className="relative overflow-hidden border-b border-border">
-          <img
-            src={suvBanner}
-            alt="SUVs disponiveis"
-            width={1920}
-            height={640}
-            className="absolute inset-0 h-full w-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30" />
-          <div className="relative mx-auto max-w-7xl px-5 py-14 md:py-20">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-              Categoria
-            </span>
-            <h1 className="mt-3 text-5xl font-black uppercase leading-[0.95] tracking-tight text-foreground md:text-7xl">
-              SUVs <span className="text-primary">disponiveis</span>
-            </h1>
-            <p className="mt-3 max-w-md text-sm text-muted-foreground md:text-base">
-              Robustez, espaco e tecnologia. Selecionamos os melhores SUVs com procedencia e preco competitivo.
-            </p>
-          </div>
-        </section>
-      )}
+      <section className="relative overflow-hidden border-b border-border bg-gradient-hero">
+        {/* Background images crossfade */}
+        <div className="absolute inset-0">
+          <AnimatePresence mode="sync">
+            <motion.img
+              key={heroKey}
+              src={heroContent.image}
+              alt=""
+              aria-hidden="true"
+              width={1920}
+              height={640}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </AnimatePresence>
+        </div>
 
-      {!isSuv && (
-        <section className="relative overflow-hidden border-b border-border bg-gradient-hero py-10 md:py-14">
-          <div className="pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-red opacity-50 blur-2xl" />
-          <div className="relative mx-auto max-w-7xl px-5">
-            <nav className="mb-3 text-xs text-muted-foreground">
-              <Link to="/" className="hover:text-foreground">
-                Home
-              </Link>
-              <span className="mx-2">/</span>
-              <span className="text-foreground">Estoque</span>
-            </nav>
-            <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
-              <span className="text-[7rem] font-black leading-[0.85] text-primary drop-shadow-[0_0_30px_oklch(0.62_0.24_25/0.4)] tabular-nums md:text-[9rem]">
-                {allCars.length}
-              </span>
-              <div className="pb-2">
-                <h1 className="text-3xl font-black uppercase leading-tight text-foreground md:text-5xl">
-                  veiculos
-                  <br />
-                  no estoque
-                </h1>
-                <p className="mt-2 max-w-md text-xs text-muted-foreground md:text-sm">
-                  Procedencia garantida e financiamento facilitado.
-                </p>
-              </div>
+        {/* Overlays — fixed for consistency */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/30" />
+        <div className="pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-red opacity-40 blur-2xl" />
+
+        {/* Fixed structural container — height never changes */}
+        <div className="relative mx-auto max-w-7xl px-5 py-12 md:py-16">
+          <nav className="mb-3 text-xs text-muted-foreground">
+            <Link to="/" className="hover:text-foreground">
+              Home
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-foreground">Estoque</span>
+          </nav>
+
+          <div className="flex min-h-[180px] flex-wrap items-end gap-x-8 gap-y-4 md:min-h-[220px]">
+            <span className="text-[5.5rem] font-black leading-[0.85] text-primary drop-shadow-[0_0_30px_oklch(0.62_0.24_25/0.4)] tabular-nums md:text-[8rem]">
+              {filtered.length}
+            </span>
+
+            <div className="relative flex-1 pb-2">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={heroKey}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                    {heroContent.eyebrow}
+                  </span>
+                  <h1 className="mt-3 text-3xl font-black uppercase leading-[0.95] tracking-tight text-foreground md:text-5xl">
+                    {heroContent.title}{" "}
+                    <span className="text-primary">{heroContent.highlight}</span>
+                  </h1>
+                  <p className="mt-2 max-w-md text-xs text-muted-foreground md:text-sm">
+                    {heroContent.subtitle}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <section className="sticky top-[68px] z-30 border-b border-border bg-background/90 backdrop-blur-lg">
         <div className="mx-auto max-w-7xl px-5 py-3">
