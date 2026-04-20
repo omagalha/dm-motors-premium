@@ -47,8 +47,8 @@ export function Footer() {
             <li className="flex items-start gap-2">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span>
-                Av. Brasil, 1234<br />
-                Centro · Juiz de Fora — MG
+                Rua Eliaquim Sáles, 85<br />
+                Centro · Santo Antônio de Pádua — RJ
               </span>
             </li>
             <li>
