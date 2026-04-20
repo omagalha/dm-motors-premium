@@ -67,9 +67,10 @@ function nextId(cars: Vehicle[]) {
 
 export function addCar(input: VehicleInput | Vehicle): Vehicle {
   const list = [...getCars()];
+  const providedId = "id" in input && typeof input.id === "string" ? input.id : undefined;
   const car = normalizeVehicleRecord({
     ...input,
-    id: input.id ?? nextId(list),
+    id: providedId ?? nextId(list),
   });
 
   const index = list.findIndex((item) => item.id === car.id);
