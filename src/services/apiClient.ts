@@ -46,7 +46,17 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   if (options.tenant) headers.set("X-Tenant", options.tenant);
 
   const url = `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
-  const res = await fetch(url, { ...options, headers });
+  let res: Response;
+
+  try {
+    res = await fetch(url, { ...options, headers });
+  } catch (error) {
+    throw new ApiError(
+      "Nao foi possivel conectar a API. Verifique VITE_API_URL, o backend online e o CORS.",
+      0,
+    );
+  }
+
   const contentType = res.headers.get("Content-Type") ?? "";
 
   if (!res.ok) {

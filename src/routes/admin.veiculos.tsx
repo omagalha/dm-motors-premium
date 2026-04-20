@@ -241,13 +241,21 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
     formData.append("images", file);
   });
 
-  const response = await fetch(`${apiUrl}/upload/images`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${apiUrl}/upload/images`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  } catch {
+    throw new Error(
+      "Nao foi possivel conectar ao servidor de upload. Verifique VITE_API_URL, backend online e CORS.",
+    );
+  }
 
   if (!response.ok) {
     let message = "Falha ao enviar imagens";
@@ -304,15 +312,23 @@ async function deleteVehicleImages(publicIds: string[]) {
     throw new Error("Sessao expirada. Faca login novamente.");
   }
 
-  const response = await fetch(`${apiUrl}/upload/images`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ publicIds }),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${apiUrl}/upload/images`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ publicIds }),
+    });
+  } catch {
+    throw new Error(
+      "Nao foi possivel conectar ao servidor para excluir imagens. Verifique VITE_API_URL, backend online e CORS.",
+    );
+  }
 
   let json = null as unknown;
 

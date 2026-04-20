@@ -99,12 +99,30 @@ Exemplo:
 - `.env.local` -> `VITE_API_URL=http://localhost:3000`
 - `.env.production` -> `VITE_API_URL=https://api.seudominio.com`
 
+Resumo:
+
+- sem backend real, a vitrine usa fallback local
+- com backend/admin real, configure `VITE_API_URL` com a URL publica da API
+
 ### Backend
 Copie `backend/.env.example` para `backend/.env` e ajuste:
 
 - `PORT`
 - `MONGO_URI`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN_HOURS`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
 - `FRONTEND_URL`
+
+Fluxo recomendado:
+
+- `Mongo Atlas` -> entra em `MONGO_URI` no backend
+- `Backend online` -> conecta no Atlas e expoe a API
+- `Frontend` -> usa apenas `VITE_API_URL` para falar com a API
 
 ---
 
@@ -133,5 +151,5 @@ Copie `backend/.env.example` para `backend/.env` e ajuste:
 ---
 
 ## 🤝 Contato
-
+22 99283074900
 Projeto desenvolvido com foco em soluções comerciais para negócios locais.

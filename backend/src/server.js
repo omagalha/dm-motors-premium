@@ -29,10 +29,14 @@ app.get("/", (req, res) => {
   res.json({ message: "API DM Motors rodando." });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ ok: true });
+});
+
 app.use("/auth", authRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/vehicles", vehicleRoutes);
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor rodando na porta ${PORT}.`);
 });
