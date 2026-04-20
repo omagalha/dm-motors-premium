@@ -36,8 +36,75 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import suvBanner from "@/assets/suv-banner.jpg";
+import heroAll from "@/assets/hero-stock-all.jpg";
+import heroSedan from "@/assets/hero-stock-sedan.jpg";
+import heroHatch from "@/assets/hero-stock-hatch.jpg";
+import heroPicape from "@/assets/hero-stock-picape.jpg";
+
+type HeroCategoryKey = "all" | "suv" | "sedan" | "hatch" | "picape";
+
+interface HeroContent {
+  eyebrow: string;
+  title: string;
+  highlight: string;
+  subtitle: string;
+  image: string;
+}
+
+const HERO_CONTENT: Record<HeroCategoryKey, HeroContent> = {
+  all: {
+    eyebrow: "Estoque",
+    title: "Todo o estoque",
+    highlight: "DM Motors",
+    subtitle: "Procedência garantida, revisados e com financiamento facilitado.",
+    image: heroAll,
+  },
+  suv: {
+    eyebrow: "Categoria SUV",
+    title: "SUVs",
+    highlight: "disponíveis",
+    subtitle: "Robustez, espaço e tecnologia. Os melhores SUVs com procedência.",
+    image: suvBanner,
+  },
+  sedan: {
+    eyebrow: "Categoria Sedan",
+    title: "Sedans",
+    highlight: "premium",
+    subtitle: "Conforto, design e performance para o dia a dia executivo.",
+    image: heroSedan,
+  },
+  hatch: {
+    eyebrow: "Categoria Hatch",
+    title: "Hatches",
+    highlight: "ágeis",
+    subtitle: "Econômicos, modernos e perfeitos para a cidade.",
+    image: heroHatch,
+  },
+  picape: {
+    eyebrow: "Categoria Picape",
+    title: "Picapes",
+    highlight: "potentes",
+    subtitle: "Força, robustez e versatilidade para qualquer terreno.",
+    image: heroPicape,
+  },
+};
+
+function getHeroKey(category: Category | null): HeroCategoryKey {
+  switch (category) {
+    case "SUV":
+      return "suv";
+    case "Sedan":
+      return "sedan";
+    case "Hatch":
+      return "hatch";
+    case "Picape":
+      return "picape";
+    default:
+      return "all";
+  }
+}
 
 interface EstoqueSearch {
   category?: Category;
