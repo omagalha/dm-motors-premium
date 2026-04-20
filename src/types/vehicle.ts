@@ -56,9 +56,9 @@ export type VehicleInput = Omit<Vehicle, "id" | "createdAt" | "updatedAt">;
 export type VehicleUpdateInput = Partial<VehicleInput>;
 
 export interface VehicleFilters {
-  search?: string;
-  category?: Category | "Todos";
-  transmission?: Transmission | "Todos";
-  maxPrice?: number;
-  sort?: "destaque" | "menor-preco" | "maior-preco" | "menor-km" | "novos";
+  category: Category | null;
+  transmission: Transmission | null;
+  maxPrice: number | null;
+  maxKm: number | null;
+  minYear: number | null;
 }

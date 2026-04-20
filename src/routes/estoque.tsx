@@ -1,37 +1,105 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
 import { formatKm, formatPrice, type Category, type Transmission } from "@/data/cars";
 import { useCars } from "@/data/carsStore";
 import {
+  applyVehicleFilters,
+  countActiveVehicleFilters,
+  createDefaultVehicleFilters,
+  getRecentVehicleMinYear,
+  getStockQuickFilterPresets,
+  getVehicleFilterSearch,
+  isVehicleFilterPatchActive,
+  matchesVehicleSearch,
+  STOCK_PRICE_MAX,
+  STOCK_PRICE_MIN,
+  toggleVehicleFilterPatch,
+} from "@/lib/stockFilters";
+import {
   getVehicleBadgeStyle,
   getVehiclePrimaryImage,
   getVehicleWhatsappNumber,
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
+import type { VehicleFilters } from "@/types/vehicle";
 import {
+  BadgePercent,
+  Flame,
+  Gauge,
   MessageCircle,
   Search,
   SlidersHorizontal,
-  X,
-  Flame,
-  Gauge,
-  Zap,
-  BadgePercent,
   Tag,
+  X,
+  Zap,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import suvBanner from "@/assets/suv-banner.jpg";
 
 interface EstoqueSearch {
+  category?: Category;
+  transmission?: Transmission;
+  maxPrice?: number;
+  maxKm?: number;
+  minYear?: number;
   cat?: Category | "Todos";
+}
+
+const categories: Category[] = ["Hatch", "Sedan", "SUV", "Picape"];
+const transmissions: Transmission[] = ["Automático", "Manual"];
+
+type SortKey = "destaque" | "menor-preco" | "maior-preco" | "menor-km" | "novos";
+
+function parsePositiveNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
+function parseCategory(value: unknown) {
+  if (typeof value !== "string") return undefined;
+  return categories.includes(value as Category) ? (value as Category) : undefined;
+}
+
+function parseTransmission(value: unknown) {
+  if (typeof value !== "string") return undefined;
+  return transmissions.includes(value as Transmission) ? (value as Transmission) : undefined;
+}
+
+function getFiltersFromSearch(search: EstoqueSearch): VehicleFilters {
+  return {
+    ...createDefaultVehicleFilters(),
+    ...(parseCategory(search.category ?? search.cat) ? { category: parseCategory(search.category ?? search.cat)! } : {}),
+    ...(parseTransmission(search.transmission) ? { transmission: parseTransmission(search.transmission)! } : {}),
+    ...(typeof search.maxPrice === "number" ? { maxPrice: search.maxPrice } : {}),
+    ...(typeof search.maxKm === "number" ? { maxKm: search.maxKm } : {}),
+    ...(typeof search.minYear === "number" ? { minYear: search.minYear } : {}),
+  };
 }
 
 export const Route = createFileRoute("/estoque")({
   validateSearch: (search: Record<string, unknown>): EstoqueSearch => ({
-    cat: typeof search.cat === "string" ? (search.cat as Category | "Todos") : undefined,
+    category: parseCategory(search.category),
+    transmission: parseTransmission(search.transmission),
+    maxPrice: parsePositiveNumber(search.maxPrice),
+    maxKm: parsePositiveNumber(search.maxKm),
+    minYear: parsePositiveNumber(search.minYear),
+    cat:
+      typeof search.cat === "string" && search.cat !== "Todos"
+        ? (parseCategory(search.cat) ?? undefined)
+        : undefined,
   }),
   head: () => ({
     meta: [
@@ -51,11 +119,6 @@ export const Route = createFileRoute("/estoque")({
   component: EstoquePage,
 });
 
-const categories: ("Todos" | Category)[] = ["Todos", "Hatch", "Sedan", "SUV", "Picape"];
-const transmissions: ("Todos" | Transmission)[] = ["Todos", "Automático", "Manual"];
-
-type SortKey = "destaque" | "menor-preco" | "maior-preco" | "menor-km" | "novos";
-
 function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["icon"] }) {
   if (icon === "flame") return <Flame className="h-3 w-3" />;
   if (icon === "gauge") return <Gauge className="h-3 w-3" />;
@@ -66,40 +129,35 @@ function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["ic
 
 function EstoquePage() {
   const allCars = useCars().filter((car) => car.active);
-  const { cat } = Route.useSearch();
+  const navigate = useNavigate({ from: "/estoque" });
+  const searchParams = Route.useSearch();
+  const filters = useMemo(() => getFiltersFromSearch(searchParams), [searchParams]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<(typeof categories)[number]>(cat ?? "Todos");
-  const [transmission, setTransmission] = useState<(typeof transmissions)[number]>("Todos");
-  const [maxPrice, setMaxPrice] = useState<number>(200000);
   const [sort, setSort] = useState<SortKey>("destaque");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  useEffect(() => {
-    if (cat && cat !== category) setCategory(cat);
-  }, [cat, category]);
+  const quickFilters = useMemo(() => getStockQuickFilterPresets(), []);
+  const recentMinYear = getRecentVehicleMinYear();
+  const isSuv = filters.category === "SUV";
+  const activeFilterCount = countActiveVehicleFilters(filters);
+  const priceSliderValue = filters.maxPrice ?? STOCK_PRICE_MAX;
+
+  function setFilters(nextFilters: VehicleFilters | ((current: VehicleFilters) => VehicleFilters)) {
+    const resolved = typeof nextFilters === "function" ? nextFilters(filters) : nextFilters;
+
+    void navigate({
+      to: "/estoque",
+      replace: true,
+      search: {
+        ...getVehicleFilterSearch(resolved),
+      },
+    });
+  }
 
   const filtered = useMemo(() => {
-    const list = allCars.filter((car) => {
-      if (category !== "Todos" && car.category !== category) return false;
-      if (transmission !== "Todos" && car.transmission !== transmission) return false;
-      if (car.price > maxPrice) return false;
-
-      if (search.trim()) {
-        const query = search.toLowerCase();
-        if (
-          !car.name.toLowerCase().includes(query) &&
-          !car.brand.toLowerCase().includes(query) &&
-          !car.model.toLowerCase().includes(query) &&
-          !car.color.toLowerCase().includes(query) &&
-          !car.city.toLowerCase().includes(query) &&
-          !car.tags.some((tag) => tag.toLowerCase().includes(query))
-        ) {
-          return false;
-        }
-      }
-
-      return true;
-    });
+    const list = applyVehicleFilters(allCars, filters).filter((car) =>
+      matchesVehicleSearch(car, search),
+    );
 
     const sorted = [...list];
     switch (sort) {
@@ -120,21 +178,17 @@ function EstoquePage() {
         break;
     }
     return sorted;
-  }, [allCars, search, category, transmission, maxPrice, sort]);
+  }, [allCars, filters, search, sort]);
 
-  const reset = () => {
+  function reset() {
     setSearch("");
-    setCategory("Todos");
-    setTransmission("Todos");
-    setMaxPrice(200000);
     setSort("destaque");
-  };
+    setFilters(createDefaultVehicleFilters());
+  }
 
-  const isSuv = category === "SUV";
-  const activeFilterCount =
-    (category !== "Todos" ? 1 : 0) +
-    (transmission !== "Todos" ? 1 : 0) +
-    (maxPrice !== 200000 ? 1 : 0);
+  function toggleQuickFilter(patch: Partial<VehicleFilters>) {
+    setFilters((current) => toggleVehicleFilterPatch(current, patch));
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -195,49 +249,79 @@ function EstoquePage() {
       )}
 
       <section className="sticky top-[68px] z-30 border-b border-border bg-background/90 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por marca, modelo, cidade ou cor..."
-              className="w-full rounded-full border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-            />
+        <div className="mx-auto max-w-7xl px-5 py-3">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar por marca, modelo, cidade ou cor..."
+                className="w-full rounded-full border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={() => setFiltersOpen(true)}
+              className="relative flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtrar
+              {activeFilterCount > 0 && (
+                <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-black text-primary-foreground">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value as SortKey)}
+              className="hidden rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground focus:border-primary focus:outline-none md:block"
+            >
+              <option value="destaque">Destaques</option>
+              <option value="menor-preco">Menor preco</option>
+              <option value="maior-preco">Maior preco</option>
+              <option value="menor-km">Menor KM</option>
+              <option value="novos">Mais novos</option>
+            </select>
           </div>
-          <button
-            onClick={() => setFiltersOpen(true)}
-            className="relative flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filtrar
-            {activeFilterCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-black text-primary-foreground">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-          <select
-            value={sort}
-            onChange={(event) => setSort(event.target.value as SortKey)}
-            className="hidden rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground focus:border-primary focus:outline-none md:block"
-          >
-            <option value="destaque">Destaques</option>
-            <option value="menor-preco">Menor preco</option>
-            <option value="maior-preco">Maior preco</option>
-            <option value="menor-km">Menor KM</option>
-            <option value="novos">Mais novos</option>
-          </select>
+
+          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {quickFilters.map((filter) => {
+              const isActive = isVehicleFilterPatchActive(filters, filter.patch);
+
+              return (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => toggleQuickFilter(filter.patch)}
+                  className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                    isActive
+                      ? "border-primary bg-primary/15 text-primary shadow-[0_0_0_1px_oklch(0.62_0.24_25/0.5)]"
+                      : "border-border/60 bg-card/60 text-muted-foreground hover:border-primary/60 hover:bg-primary/10 hover:text-primary"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             <span className="text-2xl font-black tabular-nums text-primary">{filtered.length}</span>{" "}
             {filtered.length === 1 ? "veiculo encontrado" : "veiculos encontrados"}
           </p>
+          {activeFilterCount > 0 && (
+            <div className="text-xs text-muted-foreground">
+              {filters.maxKm === 40000 && <span className="mr-2">Baixa KM</span>}
+              {filters.minYear === recentMinYear && <span className="mr-2">0 km a 5 anos</span>}
+              {filters.maxPrice && <span className="mr-2">Até {formatPrice(filters.maxPrice)}</span>}
+            </div>
+          )}
         </div>
 
         {filtered.length === 0 ? (
@@ -257,6 +341,7 @@ function EstoquePage() {
             {filtered.map((car, index) => {
               const badgeStyle = getVehicleBadgeStyle(car.badge);
               const primaryImage = getVehiclePrimaryImage(car);
+
               return (
                 <motion.article
                   key={car.id}
@@ -326,7 +411,7 @@ function EstoquePage() {
                     <a
                       href={whatsappLink(
                         `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`,
-                        getVehicleWhatsappNumber(car)
+                        getVehicleWhatsappNumber(car),
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -358,13 +443,11 @@ function EstoquePage() {
               </button>
             </div>
             <FilterPanel
-              category={category}
-              setCategory={setCategory}
-              transmission={transmission}
-              setTransmission={setTransmission}
-              maxPrice={maxPrice}
-              setMaxPrice={setMaxPrice}
+              filters={filters}
+              setFilters={setFilters}
               onReset={reset}
+              priceSliderValue={priceSliderValue}
+              recentMinYear={recentMinYear}
             />
             <button
               onClick={() => setFiltersOpen(false)}
@@ -383,23 +466,19 @@ function EstoquePage() {
 }
 
 interface FilterPanelProps {
-  category: (typeof categories)[number];
-  setCategory: (value: (typeof categories)[number]) => void;
-  transmission: (typeof transmissions)[number];
-  setTransmission: (value: (typeof transmissions)[number]) => void;
-  maxPrice: number;
-  setMaxPrice: (value: number) => void;
+  filters: VehicleFilters;
+  setFilters: (value: VehicleFilters | ((current: VehicleFilters) => VehicleFilters)) => void;
   onReset: () => void;
+  priceSliderValue: number;
+  recentMinYear: number;
 }
 
 function FilterPanel({
-  category,
-  setCategory,
-  transmission,
-  setTransmission,
-  maxPrice,
-  setMaxPrice,
+  filters,
+  setFilters,
   onReset,
+  priceSliderValue,
+  recentMinYear,
 }: FilterPanelProps) {
   return (
     <div className="space-y-6 rounded-2xl border border-border bg-card p-5">
@@ -408,18 +487,18 @@ function FilterPanel({
           Categoria
         </h4>
         <div className="flex flex-wrap gap-2">
+          <FilterChip
+            label="Todos"
+            active={!filters.category}
+            onClick={() => setFilters((current) => ({ ...current, category: null }))}
+          />
           {categories.map((item) => (
-            <button
+            <FilterChip
               key={item}
-              onClick={() => setCategory(item)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                category === item
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-foreground hover:border-primary"
-              }`}
-            >
-              {item}
-            </button>
+              label={item}
+              active={filters.category === item}
+              onClick={() => setFilters((current) => ({ ...current, category: item }))}
+            />
           ))}
         </div>
       </div>
@@ -429,18 +508,18 @@ function FilterPanel({
           Cambio
         </h4>
         <div className="flex flex-wrap gap-2">
+          <FilterChip
+            label="Todos"
+            active={!filters.transmission}
+            onClick={() => setFilters((current) => ({ ...current, transmission: null }))}
+          />
           {transmissions.map((item) => (
-            <button
+            <FilterChip
               key={item}
-              onClick={() => setTransmission(item)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                transmission === item
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-foreground hover:border-primary"
-              }`}
-            >
-              {item}
-            </button>
+              label={item}
+              active={filters.transmission === item}
+              onClick={() => setFilters((current) => ({ ...current, transmission: item }))}
+            />
           ))}
         </div>
       </div>
@@ -450,20 +529,64 @@ function FilterPanel({
           <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
             Preco maximo
           </h4>
-          <span className="text-xs font-bold text-primary">{formatPrice(maxPrice)}</span>
+          <span className="text-xs font-bold text-primary">
+            {filters.maxPrice ? formatPrice(filters.maxPrice) : "Sem limite"}
+          </span>
         </div>
         <input
           type="range"
-          min={30000}
-          max={250000}
+          min={STOCK_PRICE_MIN}
+          max={STOCK_PRICE_MAX}
           step={5000}
-          value={maxPrice}
-          onChange={(event) => setMaxPrice(Number(event.target.value))}
+          value={priceSliderValue}
+          onChange={(event) => {
+            const value = Number(event.target.value);
+            setFilters((current) => ({
+              ...current,
+              maxPrice: value >= STOCK_PRICE_MAX ? null : value,
+            }));
+          }}
           className="w-full accent-[oklch(0.62_0.24_25)]"
         />
         <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
           <span>R$ 30 mil</span>
           <span>R$ 250 mil</span>
+        </div>
+      </div>
+
+      <div>
+        <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
+          Quilometragem
+        </h4>
+        <div className="flex flex-wrap gap-2">
+          <FilterChip
+            label="Todos"
+            active={!filters.maxKm}
+            onClick={() => setFilters((current) => ({ ...current, maxKm: null }))}
+          />
+          <FilterChip
+            label="Baixa KM"
+            active={filters.maxKm === 40000}
+            onClick={() => setFilters((current) => ({ ...current, maxKm: 40000 }))}
+          />
+        </div>
+      </div>
+
+      <div>
+        <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
+          Ano
+        </h4>
+        <div className="flex flex-wrap gap-2">
+          <FilterChip
+            label="Todos"
+            active={!filters.minYear}
+            onClick={() => setFilters((current) => ({ ...current, minYear: null }))}
+          />
+          <FilterChip
+            label="0 km a 5 anos"
+            active={filters.minYear === recentMinYear}
+            onClick={() => setFilters((current) => ({ ...current, minYear: recentMinYear }))}
+          />
         </div>
       </div>
 
@@ -474,5 +597,29 @@ function FilterPanel({
         Limpar filtros
       </button>
     </div>
+  );
+}
+
+function FilterChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-background text-foreground hover:border-primary"
+      }`}
+    >
+      {label}
+    </button>
   );
 }

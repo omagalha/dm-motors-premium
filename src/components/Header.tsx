@@ -9,7 +9,7 @@ export function Header() {
   const links = [
     { label: "Home", to: "/" as const, search: undefined },
     { label: "Estoque", to: "/estoque" as const, search: undefined },
-    { label: "SUV", to: "/estoque" as const, search: { cat: "SUV" } as const },
+    { label: "SUV", to: "/estoque" as const, search: { category: "SUV" } as const },
     { label: "Contato", to: "/" as const, search: undefined },
   ];
 
