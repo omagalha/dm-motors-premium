@@ -233,17 +233,6 @@ function EstoquePage() {
             <span className="text-2xl font-black tabular-nums text-primary">{filtered.length}</span>{" "}
             {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}
           </p>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground focus:border-primary focus:outline-none md:hidden"
-          >
-            <option value="destaque">Destaques</option>
-            <option value="menor-preco">Menor preço</option>
-            <option value="maior-preco">Maior preço</option>
-            <option value="menor-km">Menor KM</option>
-            <option value="novos">Mais novos</option>
-          </select>
         </div>
 
         {filtered.length === 0 ? (
@@ -335,7 +324,7 @@ function EstoquePage() {
                       className="mt-5 flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
                     >
                       <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
-                      📲 Chamar no WhatsApp
+                      Chamar no WhatsApp
                     </a>
                   </div>
                 </motion.article>
