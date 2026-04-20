@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { formatKm, formatPrice, type Car, type CarStatus, type Category, type Fuel, type Transmission } from "@/data/cars";
-import { addCar, deleteCar, resetCars, updateCar, useCars, type CarInput } from "@/data/carsStore";
+import { resetCars, useCars, type CarInput } from "@/data/carsStore";
+import { createVehicle, deleteVehicle, updateVehicle } from "@/services/vehicleService";
 import { getCarInsights } from "@/data/insights";
 import { Pencil, Plus, Trash2, X, Upload, RotateCcw, Eye, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -126,7 +127,7 @@ function AdminVeiculos() {
     reader.readAsDataURL(file);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const name = form.name.trim();
     const price = Number(form.price);
@@ -161,20 +162,28 @@ function AdminVeiculos() {
       features: features.length ? features : undefined,
     };
 
-    if (editingId) {
-      updateCar(editingId, payload);
-      toast.success("Veículo atualizado.");
-    } else {
-      addCar(payload);
-      toast.success("Veículo adicionado.");
+    try {
+      if (editingId) {
+        await updateVehicle(editingId, payload);
+        toast.success("Veículo atualizado.");
+      } else {
+        await createVehicle(payload);
+        toast.success("Veículo adicionado.");
+      }
+      close();
+    } catch {
+      toast.error("Não foi possível salvar. Tente novamente.");
     }
-    close();
   }
 
-  function handleDelete(car: Car) {
+  async function handleDelete(car: Car) {
     if (!window.confirm(`Excluir "${car.name}"?`)) return;
-    deleteCar(car.id);
-    toast.success("Veículo excluído.");
+    try {
+      await deleteVehicle(car.id);
+      toast.success("Veículo excluído.");
+    } catch {
+      toast.error("Falha ao excluir.");
+    }
   }
 
   function handleReset() {
@@ -214,7 +223,7 @@ function AdminVeiculos() {
       </header>
 
       <p className="rounded-lg border border-border/60 bg-card/50 px-4 py-3 text-xs text-muted-foreground">
-        ⚠️ Os dados são salvos apenas neste navegador. Para persistência real entre dispositivos, ative o Lovable Cloud.
+        ⚠️ Sem API conectada, os dados são salvos apenas neste navegador. Configure <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[11px] text-foreground">VITE_API_URL</code> para sincronizar com seu backend.
       </p>
 
       {/* Unified table (responsive with horizontal scroll on mobile) */}

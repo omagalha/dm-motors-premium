@@ -1,5 +1,5 @@
 // Mock insights data for the DM Motors management dashboard.
-// In production, this would come from analytics/Lovable Cloud.
+// In production, this will come from the analytics endpoint of the backend API.
 
 import { allCars } from "./cars";
 

@@ -1,15 +1,17 @@
-import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   BarChart3,
   Car,
   ExternalLink,
   LayoutDashboard,
+  LogOut,
   Menu,
   X,
 } from "lucide-react";
 import { Toaster } from "sonner";
+import { isAuthenticated, logout } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -29,11 +31,47 @@ const navItems = [
 
 function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  // Auth guard: anything under /admin requires login, except /admin/login itself.
+  useEffect(() => {
+    const onLoginPage = location.pathname === "/admin/login";
+    const ok = isAuthenticated();
+    setAuthed(ok);
+    if (!ok && !onLoginPage) {
+      navigate({ to: "/admin/login" });
+    }
+  }, [location.pathname, navigate]);
 
   function isActive(to: string, exact: boolean) {
     if (exact) return location.pathname === to;
     return location.pathname === to || location.pathname.startsWith(to + "/");
+  }
+
+  function handleLogout() {
+    logout();
+    navigate({ to: "/admin/login" });
+  }
+
+  // Render the login route without the chrome (sidebar/topbar).
+  if (location.pathname === "/admin/login") {
+    return (
+      <>
+        <Toaster theme="dark" position="top-center" richColors />
+        <Outlet />
+      </>
+    );
+  }
+
+  // While checking auth, don't flash protected content.
+  if (authed === null || authed === false) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+        Verificando acesso…
+      </div>
+    );
   }
 
   return (
@@ -61,10 +99,6 @@ function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground md:inline-flex">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-whatsapp" />
-              Modo demonstração
-            </span>
             <Link
               to="/"
               className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
@@ -72,6 +106,13 @@ function AdminLayout() {
               <ExternalLink className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Ver site</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
           </div>
         </div>
       </header>
@@ -108,10 +149,10 @@ function AdminLayout() {
 
           <div className="mt-8 rounded-xl border border-border/60 bg-background/50 p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-              Dica
+              Backend
             </p>
             <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-              Conecte o Lovable Cloud para sincronizar dados entre dispositivos.
+              Configure <code className="rounded bg-secondary px-1 py-0.5 text-[10px] text-foreground">VITE_API_URL</code> para conectar a API real.
             </p>
           </div>
 
@@ -154,10 +195,19 @@ function AdminLayout() {
                   );
                 })}
               </nav>
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  handleLogout();
+                }}
+                className="mt-4 flex w-full items-center gap-2 rounded-lg px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Sair
+              </button>
               <Link
                 to="/"
                 onClick={() => setMobileOpen(false)}
-                className="mt-6 flex items-center gap-2 rounded-lg px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                className="mt-2 flex items-center gap-2 rounded-lg px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
               </Link>

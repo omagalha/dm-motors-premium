@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as VeiculoCarIdRouteImport } from './routes/veiculo.$carId'
 import { Route as AdminVeiculosRouteImport } from './routes/admin.veiculos'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInsightsRouteImport } from './routes/admin.insights'
 
 const EstoqueRoute = EstoqueRouteImport.update({
@@ -47,6 +48,11 @@ const AdminVeiculosRoute = AdminVeiculosRouteImport.update({
   path: '/veiculos',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInsightsRoute = AdminInsightsRouteImport.update({
   id: '/insights',
   path: '/insights',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/estoque': typeof EstoqueRoute
   '/admin/insights': typeof AdminInsightsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
   '/admin/insights': typeof AdminInsightsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin': typeof AdminIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/estoque': typeof EstoqueRoute
   '/admin/insights': typeof AdminInsightsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/estoque'
     | '/admin/insights'
+    | '/admin/login'
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin/'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/estoque'
     | '/admin/insights'
+    | '/admin/login'
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/estoque'
     | '/admin/insights'
+    | '/admin/login'
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin/'
@@ -160,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVeiculosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/insights': {
       id: '/admin/insights'
       path: '/insights'
@@ -172,12 +191,14 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminInsightsRoute: typeof AdminInsightsRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminVeiculosRoute: typeof AdminVeiculosRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminInsightsRoute: AdminInsightsRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminVeiculosRoute: AdminVeiculosRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
