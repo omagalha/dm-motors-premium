@@ -77,6 +77,7 @@ function normalizeImage(value) {
     const width = normalizeNumber(value.width, 0);
     const height = normalizeNumber(value.height, 0);
     const format = normalizeString(value.format);
+    const isCover = normalizeBoolean(value.isCover, false);
 
     return {
       url,
@@ -84,26 +85,47 @@ function normalizeImage(value) {
       ...(width > 0 ? { width } : {}),
       ...(height > 0 ? { height } : {}),
       ...(format ? { format } : {}),
+      ...(isCover ? { isCover } : {}),
     };
   }
 
   return null;
 }
 
-function normalizeImageArray(value) {
-  if (Array.isArray(value)) {
-    return value.map((item) => normalizeImage(item)).filter(Boolean);
+function ensureSingleCover(images) {
+  if (!images.length) return images;
+
+  const coverCount = images.filter((image) => image.isCover).length;
+
+  if (coverCount === 1) {
+    return images.map((image) => ({
+      ...image,
+      isCover: Boolean(image.isCover),
+    }));
   }
 
-  if (typeof value === "string") {
-    return value
+  return images.map((image, index) => ({
+    ...image,
+    isCover: index === 0,
+  }));
+}
+
+function normalizeImageArray(value) {
+  let images = [];
+
+  if (Array.isArray(value)) {
+    images = value.map((item) => normalizeImage(item)).filter(Boolean);
+  } else if (typeof value === "string") {
+    images = value
       .split(/[,\n]/)
       .map((item) => normalizeImage(item))
       .filter(Boolean);
+  } else {
+    const image = normalizeImage(value);
+    images = image ? [image] : [];
   }
 
-  const image = normalizeImage(value);
-  return image ? [image] : [];
+  return ensureSingleCover(images);
 }
 
 function normalizeEnum(value, allowed, fallback) {

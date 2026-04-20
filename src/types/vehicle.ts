@@ -13,6 +13,7 @@ export interface VehicleImage {
   width?: number;
   height?: number;
   format?: string;
+  isCover?: boolean;
 }
 
 export interface Vehicle {

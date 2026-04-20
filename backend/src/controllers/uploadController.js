@@ -47,6 +47,55 @@ async function uploadImages(req, res) {
   }
 }
 
+async function deleteImages(req, res) {
+  try {
+    const publicIds = Array.isArray(req.body?.publicIds)
+      ? req.body.publicIds.map((value) => String(value).trim()).filter(Boolean)
+      : [];
+
+    if (!publicIds.length) {
+      return res.status(400).json({ message: "Nenhum publicId valido foi enviado." });
+    }
+
+    const results = await Promise.all(
+      publicIds.map(async (publicId) => {
+        try {
+          const result = await cloudinary.uploader.destroy(publicId, {
+            resource_type: "image",
+            invalidate: true,
+          });
+
+          return {
+            publicId,
+            result: result.result,
+            success: result.result === "ok" || result.result === "not found",
+          };
+        } catch (error) {
+          return {
+            publicId,
+            result: "error",
+            success: false,
+            error: error.message,
+          };
+        }
+      })
+    );
+
+    const failed = results.filter((item) => !item.success);
+
+    return res.status(failed.length ? 207 : 200).json({
+      deleted: results.filter((item) => item.success),
+      failed,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erro ao remover imagens do Cloudinary.",
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
+  deleteImages,
   uploadImages,
 };

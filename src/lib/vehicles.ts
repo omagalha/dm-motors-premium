@@ -61,7 +61,7 @@ function normalizeStringArray(value: unknown) {
   return [];
 }
 
-function normalizeImage(value: unknown): VehicleImage | null {
+function normalizeVehicleImage(value: unknown): VehicleImage | null {
   if (typeof value === "string") {
     const url = normalizeString(value);
     return url ? { url } : null;
@@ -77,6 +77,7 @@ function normalizeImage(value: unknown): VehicleImage | null {
     const width = normalizeNumber(record.width, 0);
     const height = normalizeNumber(record.height, 0);
     const format = normalizeString(record.format);
+    const isCover = normalizeBoolean(record.isCover);
 
     return {
       url,
@@ -84,28 +85,73 @@ function normalizeImage(value: unknown): VehicleImage | null {
       ...(width > 0 ? { width } : {}),
       ...(height > 0 ? { height } : {}),
       ...(format ? { format } : {}),
+      ...(isCover ? { isCover } : {}),
     };
   }
 
   return null;
 }
 
-function normalizeImageArray(value: unknown): VehicleImage[] {
+export function setCoverImage(images: VehicleImage[], index: number): VehicleImage[] {
+  return images.map((image, currentIndex) => ({
+    ...image,
+    isCover: currentIndex === index,
+  }));
+}
+
+export function ensureSingleCover(images: VehicleImage[]): VehicleImage[] {
+  if (!images.length) return images;
+
+  const coverCount = images.filter((image) => image.isCover).length;
+
+  if (coverCount === 1) {
+    return images.map((image) => ({
+      ...image,
+      isCover: Boolean(image.isCover),
+    }));
+  }
+
+  return images.map((image, index) => ({
+    ...image,
+    isCover: index === 0,
+  }));
+}
+
+export function moveImage<T>(items: T[], from: number, to: number): T[] {
+  if (
+    from < 0 ||
+    to < 0 ||
+    from >= items.length ||
+    to >= items.length ||
+    from === to
+  ) {
+    return items;
+  }
+
+  const updated = [...items];
+  const [moved] = updated.splice(from, 1);
+  updated.splice(to, 0, moved);
+  return updated;
+}
+
+export function normalizeVehicleImages(value: unknown): VehicleImage[] {
+  let images: VehicleImage[] = [];
+
   if (Array.isArray(value)) {
-    return value
-      .map((item) => normalizeImage(item))
+    images = value
+      .map((item) => normalizeVehicleImage(item))
       .filter((item): item is VehicleImage => Boolean(item));
-  }
-
-  if (typeof value === "string") {
-    return value
+  } else if (typeof value === "string") {
+    images = value
       .split(/[,\n]/)
-      .map((item) => normalizeImage(item))
+      .map((item) => normalizeVehicleImage(item))
       .filter((item): item is VehicleImage => Boolean(item));
+  } else {
+    const image = normalizeVehicleImage(value);
+    images = image ? [image] : [];
   }
 
-  const image = normalizeImage(value);
-  return image ? [image] : [];
+  return ensureSingleCover(images);
 }
 
 function normalizeFuel(value: unknown): Fuel {
@@ -141,9 +187,9 @@ function normalizeStatus(value: unknown): VehicleStatus {
 }
 
 export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
-  const images = normalizeImageArray(vehicle.images);
-  const legacyImageUrl = normalizeImageArray(vehicle.imageUrl);
-  const legacyImage = normalizeImageArray(vehicle.image);
+  const images = normalizeVehicleImages(vehicle.images);
+  const legacyImageUrl = normalizeVehicleImages(vehicle.imageUrl);
+  const legacyImage = normalizeVehicleImages(vehicle.image);
 
   return {
     id: String(vehicle.id ?? vehicle._id ?? ""),
@@ -172,12 +218,28 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
   };
 }
 
+export function getVehicleCoverImage(vehicle: {
+  images?: VehicleImage[];
+  imageUrl?: unknown;
+}) {
+  const images = normalizeVehicleImages(vehicle.images);
+  const cover = images.find((image) => image.isCover && image.url.trim());
+
+  if (cover?.url) return cover.url;
+  if (images[0]?.url) return images[0].url;
+
+  const legacyImageUrl = normalizeString(vehicle.imageUrl);
+  return legacyImageUrl || DEFAULT_VEHICLE_IMAGE;
+}
+
 export function getVehiclePrimaryImage(vehicle: Pick<Vehicle, "images">) {
-  return vehicle.images.find((image) => image.url.trim())?.url || DEFAULT_VEHICLE_IMAGE;
+  return getVehicleCoverImage(vehicle);
 }
 
 export function getVehicleGallery(vehicle: Pick<Vehicle, "images">) {
-  return vehicle.images.length ? vehicle.images : [{ url: DEFAULT_VEHICLE_IMAGE }];
+  return vehicle.images.length
+    ? ensureSingleCover(vehicle.images)
+    : [{ url: DEFAULT_VEHICLE_IMAGE, isCover: true }];
 }
 
 export function getVehicleImageUrl(image: VehicleImage | null | undefined) {

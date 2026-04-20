@@ -3,7 +3,14 @@ import { useMemo, useRef, useState } from "react";
 import { formatKm, formatPrice } from "@/data/cars";
 import { resetCars, useCars, type Car, type CarInput } from "@/data/carsStore";
 import { getCarInsights } from "@/data/insights";
-import { getVehicleImageUrl, getVehiclePrimaryImage } from "@/lib/vehicles";
+import {
+  ensureSingleCover,
+  getVehicleImageUrl,
+  getVehiclePrimaryImage,
+  moveImage,
+  normalizeVehicleImages,
+  setCoverImage,
+} from "@/lib/vehicles";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { createVehicle, deleteVehicle, updateVehicle } from "@/services/vehicleService";
 import type {
@@ -48,6 +55,22 @@ const transmissions: Transmission[] = ["Automático", "Manual", "Nao informado"]
 const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel", "Nao informado"];
 const categories: Category[] = ["Hatch", "Sedan", "SUV", "Picape", "Nao informado"];
 const statuses: VehicleStatus[] = ["disponivel", "reservado", "vendido"];
+type SubmitStatus = "idle" | "uploading_images" | "saving_vehicle";
+
+interface PendingUploadItem {
+  id: string;
+  file: File;
+  previewUrl: string;
+  image: VehicleImage;
+}
+
+interface AdminImageItem {
+  id: string;
+  kind: "existing" | "pending";
+  image: VehicleImage;
+  previewUrl: string;
+  file?: File;
+}
 
 interface FormState {
   name: string;
@@ -132,10 +155,120 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
   });
 
   if (!response.ok) {
-    throw new Error("Falha ao enviar imagens");
+    let message = "Falha ao enviar imagens";
+
+    try {
+      const errorPayload = await response.json();
+      if (
+        errorPayload &&
+        typeof errorPayload === "object" &&
+        "message" in errorPayload &&
+        typeof errorPayload.message === "string"
+      ) {
+        message = errorPayload.message;
+      }
+    } catch {
+      /* ignore malformed error payloads */
+    }
+
+    throw new Error(message);
   }
 
-  return (await response.json()) as VehicleImage[];
+  let json: unknown;
+
+  try {
+    json = await response.json();
+  } catch {
+    throw new Error("Resposta invalida do servidor de upload.");
+  }
+
+  const uploadedRaw = Array.isArray(json)
+    ? json
+    : json &&
+        typeof json === "object" &&
+        "images" in json &&
+        Array.isArray(json.images)
+      ? json.images
+      : [];
+
+  const uploaded = normalizeVehicleImages(uploadedRaw);
+
+  if (!uploaded.length) {
+    throw new Error("Nenhuma imagem valida foi retornada pelo servidor.");
+  }
+
+  return uploaded;
+}
+
+async function deleteVehicleImages(publicIds: string[]) {
+  const apiUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+
+  if (!apiUrl || !publicIds.length) return;
+
+  const response = await fetch(`${apiUrl}/upload/images`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ publicIds }),
+  });
+
+  let json = null as unknown;
+
+  try {
+    json = await response.json();
+  } catch {
+    /* ignore non-json cleanup responses */
+  }
+
+  const failed =
+    json &&
+    typeof json === "object" &&
+    "failed" in json &&
+    Array.isArray(json.failed)
+      ? json.failed
+      : [];
+
+  if (!response.ok || failed.length) {
+    throw new Error("Nao foi possivel excluir todas as imagens antigas do Cloudinary.");
+  }
+}
+
+function createExistingImageId(image: VehicleImage, index: number) {
+  return image.publicId?.trim() || `existing-${index}-${image.url}`;
+}
+
+function normalizeAdminImageItems(items: AdminImageItem[]) {
+  const normalizedImages = ensureSingleCover(items.map((item) => item.image));
+
+  return items.map((item, index) => ({
+    ...item,
+    image: normalizedImages[index],
+    previewUrl:
+      item.kind === "existing" ? getVehicleImageUrl(normalizedImages[index]) : item.previewUrl,
+  }));
+}
+
+function buildAdminImageItems(
+  existingImages: VehicleImage[],
+  pendingUploads: PendingUploadItem[],
+): AdminImageItem[] {
+  return normalizeAdminImageItems([
+    ...existingImages.map((image, index) => ({
+      id: createExistingImageId(image, index),
+      kind: "existing" as const,
+      image,
+      previewUrl: getVehicleImageUrl(image),
+    })),
+    ...pendingUploads.map((item) => ({
+      id: item.id,
+      kind: "pending" as const,
+      image: item.image,
+      file: item.file,
+      previewUrl: item.previewUrl,
+    })),
+  ]);
 }
 
 function AdminVeiculos() {
@@ -145,9 +278,12 @@ function AdminVeiculos() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [existingImages, setExistingImages] = useState<VehicleImage[]>([]);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
-  const [newFilePreviews, setNewFilePreviews] = useState<string[]>([]);
+  const [pendingUploads, setPendingUploads] = useState<PendingUploadItem[]>([]);
+  const [removedExistingImages, setRemovedExistingImages] = useState<VehicleImage[]>([]);
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
   const fileRef = useRef<HTMLInputElement>(null);
+  const pendingUploadIdRef = useRef(0);
+  const isSubmitting = submitStatus !== "idle";
 
   const stats = useMemo(
     () => ({
@@ -159,12 +295,23 @@ function AdminVeiculos() {
     [cars]
   );
 
-  function openNew() {
+  const imageItems = useMemo(
+    () => buildAdminImageItems(existingImages, pendingUploads),
+    [existingImages, pendingUploads]
+  );
+
+  function resetEditorState() {
+    setOpen(false);
     setEditingId(null);
     setForm(emptyForm);
     setExistingImages([]);
-    setNewFiles([]);
-    setNewFilePreviews([]);
+    setPendingUploads([]);
+    setRemovedExistingImages([]);
+    setSubmitStatus("idle");
+  }
+
+  function openNew() {
+    resetEditorState();
     setOpen(true);
   }
 
@@ -191,22 +338,21 @@ function AdminVeiculos() {
       isFeatured: car.isFeatured,
       active: car.active,
     });
-    setExistingImages(car.images.map((image) => ({ ...image })));
-    setNewFiles([]);
-    setNewFilePreviews([]);
+    setExistingImages(normalizeVehicleImages(car.images).map((image) => ({ ...image })));
+    setPendingUploads([]);
+    setRemovedExistingImages([]);
+    setSubmitStatus("idle");
     setOpen(true);
   }
 
   function close() {
-    setOpen(false);
-    setEditingId(null);
-    setForm(emptyForm);
-    setExistingImages([]);
-    setNewFiles([]);
-    setNewFilePreviews([]);
+    if (isSubmitting) return;
+    resetEditorState();
   }
 
   async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
+    if (isSubmitting) return;
+
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
 
@@ -218,25 +364,96 @@ function AdminVeiculos() {
 
     try {
       const previews = await Promise.all(files.map(readFileAsDataUrl));
-      setNewFiles((current) => [...current, ...files]);
-      setNewFilePreviews((current) => [...current, ...previews]);
+      setPendingUploads((current) => [
+        ...current,
+        ...files.map((file, index) => ({
+          id: `pending-${pendingUploadIdRef.current++}`,
+          file,
+          previewUrl: previews[index],
+          image: { url: previews[index] },
+        })),
+      ]);
       event.target.value = "";
     } catch {
       toast.error("Nao foi possivel carregar as imagens.");
     }
   }
 
-  function removeExistingImageAt(indexToRemove: number) {
-    setExistingImages((current) => current.filter((_, index) => index !== indexToRemove));
+  function applyImageItems(items: AdminImageItem[]) {
+    const normalizedItems = normalizeAdminImageItems(items);
+
+    setExistingImages(
+      normalizedItems
+        .filter((item) => item.kind === "existing")
+        .map((item) => item.image)
+    );
+    setPendingUploads(
+      normalizedItems
+        .filter((item): item is AdminImageItem & { kind: "pending"; file: File } =>
+          item.kind === "pending" && Boolean(item.file)
+        )
+        .map((item) => ({
+          id: item.id,
+          file: item.file,
+          previewUrl: item.previewUrl,
+          image: item.image,
+        }))
+    );
   }
 
-  function removeNewFileAt(indexToRemove: number) {
-    setNewFiles((current) => current.filter((_, index) => index !== indexToRemove));
-    setNewFilePreviews((current) => current.filter((_, index) => index !== indexToRemove));
+  function handleSetCover(id: string) {
+    if (isSubmitting) return;
+
+    const index = imageItems.findIndex((item) => item.id === id);
+    if (index < 0) return;
+
+    const nextImages = setCoverImage(
+      imageItems.map((item) => item.image),
+      index
+    );
+
+    applyImageItems(
+      imageItems.map((item, itemIndex) => ({
+        ...item,
+        image: nextImages[itemIndex],
+      }))
+    );
+  }
+
+  function handleMoveLeft(id: string) {
+    if (isSubmitting) return;
+
+    const index = imageItems.findIndex((item) => item.id === id);
+    if (index <= 0) return;
+
+    applyImageItems(moveImage(imageItems, index, index - 1));
+  }
+
+  function handleMoveRight(id: string) {
+    if (isSubmitting) return;
+
+    const index = imageItems.findIndex((item) => item.id === id);
+    if (index < 0 || index >= imageItems.length - 1) return;
+
+    applyImageItems(moveImage(imageItems, index, index + 1));
+  }
+
+  function handleRemoveImage(id: string) {
+    if (isSubmitting) return;
+
+    const item = imageItems.find((imageItem) => imageItem.id === id);
+    if (!item) return;
+
+    if (item.kind === "existing") {
+      setRemovedExistingImages((current) => [...current, item.image]);
+    }
+
+    applyImageItems(imageItems.filter((imageItem) => imageItem.id !== id));
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (isSubmitting) return;
 
     const name = form.name.trim();
     const brand = form.brand.trim();
@@ -255,17 +472,58 @@ function AdminVeiculos() {
     if (!Number.isFinite(year) || year < 1980 || year > 2100) {
       return toast.error("Ano invalido.");
     }
-    if (!existingImages.length && !newFiles.length) {
+    if (!imageItems.length) {
       return toast.error("Adicione pelo menos uma imagem.");
     }
 
     try {
-      let uploadedImages = [...existingImages];
+      const removedImagesSnapshot = [...removedExistingImages];
+      let nextImageItems = [...imageItems];
 
-      if (newFiles.length > 0) {
-        const newImages = await uploadVehicleImages(newFiles);
-        uploadedImages = [...uploadedImages, ...newImages];
+      if (pendingUploads.length > 0) {
+        setSubmitStatus("uploading_images");
+        const uploadedImages = await uploadVehicleImages(
+          pendingUploads.map((item) => item.file)
+        );
+
+        if (uploadedImages.length !== pendingUploads.length) {
+          throw new Error("Quantidade de imagens retornadas pelo upload nao confere.");
+        }
+
+        const uploadedMap = new Map(
+          pendingUploads.map((item, index) => [
+            item.id,
+            {
+              ...uploadedImages[index],
+              isCover: imageItems.find((imageItem) => imageItem.id === item.id)?.image.isCover,
+            } satisfies VehicleImage,
+          ])
+        );
+
+        nextImageItems = normalizeAdminImageItems(
+          imageItems.map((item) => {
+            if (item.kind === "existing") return item;
+
+            const uploadedImage = uploadedMap.get(item.id);
+            if (!uploadedImage) {
+              throw new Error("Nao foi possivel vincular uma imagem enviada ao item pendente.");
+            }
+
+            return {
+              id: uploadedImage.publicId?.trim() || item.id,
+              kind: "existing" as const,
+              image: uploadedImage,
+              previewUrl: getVehicleImageUrl(uploadedImage),
+            };
+          })
+        );
+
+        applyImageItems(nextImageItems);
       }
+
+      setSubmitStatus("saving_vehicle");
+
+      const finalImages = ensureSingleCover(nextImageItems.map((item) => item.image));
 
       const payload: CarInput = {
         name,
@@ -281,7 +539,7 @@ function AdminVeiculos() {
         transmission: form.transmission,
         color: form.color.trim(),
         description: form.description.trim(),
-        images: uploadedImages,
+        images: finalImages,
         features,
         category: form.category,
         city: form.city.trim(),
@@ -297,8 +555,32 @@ function AdminVeiculos() {
         await createVehicle(payload);
         toast.success("Veiculo adicionado.");
       }
-      close();
+      resetEditorState();
+
+      const activePublicIds = new Set(
+        finalImages
+          .map((image) => image.publicId?.trim())
+          .filter((publicId): publicId is string => Boolean(publicId))
+      );
+      const removablePublicIds = [
+        ...new Set(
+          removedImagesSnapshot
+            .map((image) => image.publicId?.trim())
+            .filter((publicId): publicId is string => Boolean(publicId))
+            .filter((publicId) => !activePublicIds.has(publicId))
+        ),
+      ];
+
+      if (removablePublicIds.length) {
+        void deleteVehicleImages(removablePublicIds).catch((error) => {
+          console.warn("[admin.veiculos] Cloudinary cleanup failed:", error);
+          toast.warning(
+            "Veiculo salvo, mas algumas imagens antigas nao puderam ser removidas do Cloudinary."
+          );
+        });
+      }
     } catch (error) {
+      setSubmitStatus("idle");
       toast.error(error instanceof Error ? error.message : "Nao foi possivel salvar. Tente novamente.");
     }
   }
@@ -486,7 +768,8 @@ function AdminVeiculos() {
               <button
                 type="button"
                 onClick={close}
-                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                disabled={isSubmitting}
+                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition hover:bg-secondary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -709,67 +992,97 @@ function AdminVeiculos() {
 
               <Field label="Imagens">
                 <div className="space-y-3">
-                  {(existingImages.length > 0 || newFilePreviews.length > 0) && (
+                  {imageItems.length > 0 && (
                     <>
                       <p className="text-xs font-medium text-muted-foreground">
-                        {existingImages.length + newFilePreviews.length}{" "}
-                        {existingImages.length + newFilePreviews.length === 1
+                        {imageItems.length}{" "}
+                        {imageItems.length === 1
                           ? "imagem pronta"
                           : "imagens prontas"}
                       </p>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        {imageItems.map((item, index) => {
+                          const isFirst = index === 0;
+                          const isLast = index === imageItems.length - 1;
+                          const isCover = Boolean(item.image.isCover);
 
-                      {existingImages.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            Imagens salvas
-                          </p>
-                          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                            {existingImages.map((image, index) => (
-                              <div key={`${image.url}-${index}`} className="relative">
+                          return (
+                            <div
+                              key={item.id}
+                              className={`relative rounded-xl border p-2 ${
+                                isCover ? "border-primary shadow-red" : "border-border"
+                              }`}
+                            >
+                              <div className="relative overflow-hidden rounded-lg">
                                 <img
-                                  src={getVehicleImageUrl(image)}
-                                  alt={`Imagem salva ${index + 1}`}
-                                  className="h-28 w-full rounded-lg border border-border object-cover"
+                                  src={item.previewUrl}
+                                  alt={`Imagem ${index + 1}`}
+                                  className="h-32 w-full object-cover"
                                 />
+                                <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
+                                  <span
+                                    className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                                      isCover
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-black/70 text-white"
+                                    }`}
+                                  >
+                                    {isCover ? "Capa" : `Imagem ${index + 1}`}
+                                  </span>
+                                  <span className="rounded-full bg-background/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-foreground">
+                                    {item.kind === "existing" ? "Salva" : "Pendente"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="mt-2 flex flex-wrap gap-2">
                                 <button
                                   type="button"
-                                  onClick={() => removeExistingImageAt(index)}
-                                  className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
-                                  aria-label={`Remover imagem salva ${index + 1}`}
+                                  onClick={() => handleSetCover(item.id)}
+                                  disabled={isSubmitting || isCover}
+                                  className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
                                 >
-                                  <X className="h-3.5 w-3.5" />
+                                  {isCover ? "Capa" : "Definir capa"}
                                 </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {newFilePreviews.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            Novas imagens
-                          </p>
-                          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                            {newFilePreviews.map((image, index) => (
-                              <div key={`${image}-${index}`} className="relative">
-                                <img
-                                  src={image}
-                                  alt={`Nova imagem ${index + 1}`}
-                                  className="h-28 w-full rounded-lg border border-border object-cover"
-                                />
                                 <button
                                   type="button"
-                                  onClick={() => removeNewFileAt(index)}
-                                  className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
-                                  aria-label={`Remover nova imagem ${index + 1}`}
+                                  onClick={() => handleMoveLeft(item.id)}
+                                  disabled={isSubmitting || isFirst}
+                                  className="rounded-md border border-border px-2.5 py-1.5 text-sm font-bold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                                  aria-label={`Mover imagem ${index + 1} para a esquerda`}
                                 >
-                                  <X className="h-3.5 w-3.5" />
+                                  ←
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveRight(item.id)}
+                                  disabled={isSubmitting || isLast}
+                                  className="rounded-md border border-border px-2.5 py-1.5 text-sm font-bold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                                  aria-label={`Mover imagem ${index + 1} para a direita`}
+                                >
+                                  →
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(item.id)}
+                                  disabled={isSubmitting}
+                                  className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  Remover
                                 </button>
                               </div>
-                            ))}
-                          </div>
-                        </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {removedExistingImages.length > 0 && (
+                        <p className="text-xs text-amber-600">
+                          {removedExistingImages.length}{" "}
+                          {removedExistingImages.length === 1
+                            ? "imagem marcada para remocao do veiculo."
+                            : "imagens marcadas para remocao do veiculo."}{" "}
+                          A exclusao fisica sera tentada automaticamente apos salvar.
+                        </p>
                       )}
                     </>
                   )}
@@ -778,7 +1091,8 @@ function AdminVeiculos() {
                     <button
                       type="button"
                       onClick={() => fileRef.current?.click()}
-                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary"
+                      disabled={isSubmitting}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <Upload className="h-4 w-4" />
                       Adicionar imagem
@@ -803,15 +1117,25 @@ function AdminVeiculos() {
               <button
                 type="button"
                 onClick={close}
-                className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-foreground transition hover:bg-secondary"
+                disabled={isSubmitting}
+                className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-foreground transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110"
+                disabled={isSubmitting}
+                className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {editingId ? "Salvar" : "Adicionar"}
+                {submitStatus === "uploading_images"
+                  ? "Enviando imagens..."
+                  : submitStatus === "saving_vehicle"
+                    ? editingId
+                      ? "Salvando..."
+                      : "Adicionando..."
+                    : editingId
+                      ? "Salvar"
+                      : "Adicionar"}
               </button>
             </div>
           </form>

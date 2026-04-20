@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
@@ -84,11 +84,22 @@ function VehiclePage() {
   const cars = useCars();
   const car = cars.find((item) => item.id === loaderCar.id) ?? loaderCar;
   const gallery = getVehicleGallery(car);
+  const galleryStateKey = useMemo(
+    () =>
+      gallery
+        .map(
+          (image, index) =>
+            `${image.publicId ?? image.url}-${image.isCover ? "cover" : "image"}-${index}`
+        )
+        .join("|"),
+    [gallery]
+  );
   const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
-    setActiveImage(0);
-  }, [car.id]);
+    const coverIndex = gallery.findIndex((image) => image.isCover);
+    setActiveImage(coverIndex >= 0 ? coverIndex : 0);
+  }, [car.id, galleryStateKey]);
 
   const badgeStyle = getVehicleBadgeStyle(car.badge);
   const whatsappMessage = `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`;
