@@ -28,6 +28,7 @@ build/
 .env
 .env.*
 !.env.example
+!.env.production
 
 # =========================
 # DATABASE / LOCAL FILES
@@ -82,3 +83,13 @@ coverage/
 # TYPESCRIPT
 # =========================
 *.tsbuildinfo
+
+uploads/*
+!uploads/.gitkeep
+
+.env.local
+.env.development
+.env.production.local
+
+*.lock-wscript
+

@@ -2,15 +2,33 @@ import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import dmLogo from "@/assets/dm-motors-logo.png";
+import { whatsappLink } from "@/lib/whatsapp";
+
+type HeaderLink =
+  | {
+      label: string;
+      to: "/" | "/estoque";
+      search?: unknown;
+      href?: never;
+    }
+  | {
+      label: string;
+      href: string;
+      to?: never;
+      search?: never;
+    };
 
 export function Header() {
   const [open, setOpen] = useState(false);
 
-  const links = [
+  const links: HeaderLink[] = [
     { label: "Home", to: "/" as const, search: undefined },
     { label: "Estoque", to: "/estoque" as const, search: undefined },
     { label: "SUV", to: "/estoque" as const, search: { category: "SUV" } as const },
-    { label: "Contato", to: "/" as const, search: undefined },
+    {
+      label: "Contato",
+      href: whatsappLink("Ola! Vim pelo site e quero falar com a DM Motors Imports."),
+    },
   ];
 
   return (
@@ -28,17 +46,29 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.label}
-              to={l.to}
-              search={l.search as never}
-              className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
-              activeProps={{ className: "text-foreground font-semibold" }}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {links.map((l) =>
+            "href" in l ? (
+              <a
+                key={l.label}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+              >
+                {l.label}
+              </a>
+            ) : (
+              <Link
+                key={l.label}
+                to={l.to}
+                search={l.search as never}
+                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                activeProps={{ className: "text-foreground font-semibold" }}
+              >
+                {l.label}
+              </Link>
+            )
+          )}
         </nav>
 
         <button
@@ -53,17 +83,30 @@ export function Header() {
       {open && (
         <nav className="border-t border-border bg-background md:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-1 px-5 py-3">
-            {links.map((l) => (
-              <Link
-                key={l.label}
-                to={l.to}
-                search={l.search as never}
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
-              >
-                {l.label}
-              </Link>
-            ))}
+            {links.map((l) =>
+              "href" in l ? (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                >
+                  {l.label}
+                </a>
+              ) : (
+                <Link
+                  key={l.label}
+                  to={l.to}
+                  search={l.search as never}
+                  onClick={() => setOpen(false)}
+                  className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                >
+                  {l.label}
+                </Link>
+              )
+            )}
           </div>
         </nav>
       )}

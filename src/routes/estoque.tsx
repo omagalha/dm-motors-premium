@@ -25,6 +25,8 @@ import {
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
 import type { VehicleFilters } from "@/types/vehicle";
+import { getVehicles } from "@/services/vehicleService";
+import type { Vehicle } from "@/types/vehicle";
 import {
   BadgePercent,
   Flame,
@@ -157,6 +159,10 @@ function getFiltersFromSearch(search: EstoqueSearch): VehicleFilters {
 }
 
 export const Route = createFileRoute("/estoque")({
+  loader: async () => {
+    const cars = await getVehicles();
+    return { cars };
+  },
   validateSearch: (search: Record<string, unknown>): EstoqueSearch => ({
     category: parseCategory(search.category),
     transmission: parseTransmission(search.transmission),
@@ -195,7 +201,8 @@ function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["ic
 }
 
 function EstoquePage() {
-  const allCars = useCars().filter((car) => car.active);
+  const { cars: initialCars } = Route.useLoaderData() as { cars: Vehicle[] };
+  const allCars = useCars(initialCars).filter((car) => car.active);
   const navigate = useNavigate({ from: "/estoque" });
   const searchParams = Route.useSearch();
   const filters = useMemo(() => getFiltersFromSearch(searchParams), [searchParams]);

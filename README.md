@@ -87,9 +87,17 @@ Este sistema não é apenas um site.
 ## Variaveis de ambiente
 
 ### Frontend
-Copie `.env.example` para `.env` e ajuste:
+Use esta estrategia:
 
-`VITE_API_URL=http://localhost:3000`
+- `.env.example`: referencia do projeto
+- `.env.local`: desenvolvimento local
+- `.env.production`: build/apresentacao
+
+Exemplo:
+
+- `.env.example` -> `VITE_API_URL=https://api.seudominio.com`
+- `.env.local` -> `VITE_API_URL=http://localhost:3000`
+- `.env.production` -> `VITE_API_URL=https://api.seudominio.com`
 
 ### Backend
 Copie `backend/.env.example` para `backend/.env` e ajuste:

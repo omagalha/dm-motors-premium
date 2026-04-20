@@ -6,6 +6,7 @@ import {
   getVehicleWhatsappNumber,
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
+import type { Vehicle } from "@/types/vehicle";
 import {
   MessageCircle,
   Eye,
@@ -26,8 +27,12 @@ function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["ic
   return <Tag className="h-3 w-3" />;
 }
 
-export function FeaturedCars() {
-  const cars = useCars().filter((car) => car.active && car.isFeatured).slice(0, 4);
+interface FeaturedCarsProps {
+  initialCars?: Vehicle[];
+}
+
+export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
+  const cars = useCars(initialCars).filter((car) => car.active && car.isFeatured).slice(0, 4);
 
   if (!cars.length) return null;
 

@@ -2,9 +2,11 @@
 // This works as a fallback when the backend API (VITE_API_URL) is not reachable
 // and as a mirror cache when it is. The vehicleService writes to both.
 
+import { useEffect, useMemo, useState } from "react";
 import { allCars as seedCars } from "./cars";
 import { normalizeVehicleRecord } from "@/lib/vehicles";
 import type { Vehicle, VehicleInput, VehicleUpdateInput } from "@/types/vehicle";
+import { getVehicles } from "@/services/vehicleService";
 
 export type Car = Vehicle;
 export type CarInput = VehicleInput;
@@ -13,6 +15,10 @@ const STORAGE_KEY = "dm-motors:cars:v2";
 
 function isBrowser() {
   return typeof window !== "undefined";
+}
+
+function normalizeVehicleList(cars: Vehicle[]) {
+  return cars.map(normalizeVehicleRecord);
 }
 
 function readState(): Vehicle[] | null {
@@ -25,7 +31,7 @@ function readState(): Vehicle[] | null {
     const parsed = JSON.parse(raw) as Vehicle[];
     if (!Array.isArray(parsed)) return null;
 
-    return parsed.map(normalizeVehicleRecord);
+    return normalizeVehicleList(parsed);
   } catch {
     return null;
   }
@@ -49,7 +55,7 @@ export function getCars(): Vehicle[] {
 }
 
 export function replaceCars(cars: Vehicle[]) {
-  writeState(cars.map(normalizeVehicleRecord));
+  writeState(normalizeVehicleList(cars));
 }
 
 export function getCarById(id: string): Vehicle | undefined {
@@ -109,14 +115,26 @@ export function resetCars() {
   window.dispatchEvent(new CustomEvent("dm-motors:cars-updated"));
 }
 
-import { useEffect, useState } from "react";
-import { getVehicles } from "@/services/vehicleService";
+export function useCars(initialCars?: Vehicle[]): Vehicle[] {
+  const initialSnapshot = useMemo(
+    () => (initialCars ? normalizeVehicleList(initialCars) : seedCars),
+    [initialCars],
+  );
+  const [cars, setCars] = useState<Vehicle[]>(initialSnapshot);
 
-export function useCars(): Vehicle[] {
-  const [cars, setCars] = useState<Vehicle[]>(() => getCars());
+  useEffect(() => {
+    setCars(initialSnapshot);
+  }, [initialSnapshot]);
 
   useEffect(() => {
     let cancelled = false;
+
+    if (!initialCars) {
+      const stored = readState();
+      if (stored?.length) {
+        setCars(stored);
+      }
+    }
 
     getVehicles()
       .then((list) => {
@@ -136,7 +154,7 @@ export function useCars(): Vehicle[] {
       window.removeEventListener("dm-motors:cars-updated", refresh);
       window.removeEventListener("storage", refresh);
     };
-  }, []);
+  }, [initialCars]);
 
   return cars;
 }

@@ -6,8 +6,14 @@ import { Differentials } from "@/components/Differentials";
 import { FinalCTA } from "@/components/FinalCTA";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
+import { getVehicles } from "@/services/vehicleService";
+import type { Vehicle } from "@/types/vehicle";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const cars = await getVehicles();
+    return { cars };
+  },
   head: () => ({
     meta: [
       { title: "DM Motors Imports — Carros com procedência e preço diferenciado" },
@@ -29,12 +35,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { cars } = Route.useLoaderData() as { cars: Vehicle[] };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
         <Hero />
-        <FeaturedCars />
+        <FeaturedCars initialCars={cars} />
         <Differentials />
         <FinalCTA />
       </main>

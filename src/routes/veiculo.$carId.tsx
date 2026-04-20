@@ -13,7 +13,7 @@ import {
   getVehicleWhatsappNumber,
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
-import { getVehicleById } from "@/services/vehicleService";
+import { getVehicleById, getVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "@/types/vehicle";
 import {
   MessageCircle,
@@ -42,9 +42,13 @@ import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/veiculo/$carId")({
   loader: async ({ params }) => {
-    const car = await getVehicleById(params.carId);
+    const cars = await getVehicles();
+    const car = cars.find((item) => item.id === params.carId) ?? (await getVehicleById(params.carId));
     if (!car) throw notFound();
-    return { car };
+    return {
+      car,
+      cars: cars.some((item) => item.id === car.id) ? cars : [car, ...cars],
+    };
   },
   staleTime: 0,
   shouldReload: () => true,
@@ -80,8 +84,11 @@ function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["ic
 }
 
 function VehiclePage() {
-  const { car: loaderCar } = Route.useLoaderData() as { car: Vehicle };
-  const cars = useCars();
+  const { car: loaderCar, cars: initialCars } = Route.useLoaderData() as {
+    car: Vehicle;
+    cars: Vehicle[];
+  };
+  const cars = useCars(initialCars);
   const car = cars.find((item) => item.id === loaderCar.id) ?? loaderCar;
   const gallery = getVehicleGallery(car);
   const galleryStateKey = useMemo(
