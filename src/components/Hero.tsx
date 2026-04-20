@@ -1,108 +1,101 @@
 import dmLogo from "@/assets/dm-motors-logo.png";
+import heroCar from "@/assets/hero-home.jpg";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Link } from "@tanstack/react-router";
-import {
-  createDefaultVehicleFilters,
-  getStockQuickFilterPresets,
-  getVehicleFilterSearch,
-} from "@/lib/stockFilters";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
-
-const quickFilters = getStockQuickFilterPresets();
+import { ArrowRight, ShieldCheck, Sparkles, Repeat } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-hero">
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-red opacity-60 blur-3xl" />
-      <div className="pointer-events-none absolute left-1/4 top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none absolute right-1/4 bottom-10 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
+    <section className="relative isolate overflow-hidden bg-background">
+      {/* Background image — subtle, right-anchored */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <img
+          src={heroCar}
+          alt=""
+          aria-hidden="true"
+          width={1920}
+          height={1080}
+          className="absolute inset-0 h-full w-full object-cover object-[70%_center] opacity-40 md:opacity-55"
+        />
+        {/* Dark left-to-right gradient for text legibility */}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,oklch(0.13_0.008_20)_0%,oklch(0.13_0.008_20/0.85)_45%,oklch(0.13_0.008_20/0.55)_70%,transparent_100%)]" />
+        {/* Vertical fade so the section blends into the page */}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.16_0.01_20/0.6)_0%,transparent_30%,transparent_70%,oklch(0.13_0.008_20)_100%)]" />
+        {/* Soft red glow */}
+        <div className="absolute right-[-10%] top-1/2 h-[700px] w-[700px] -translate-y-1/2 rounded-full bg-gradient-red opacity-40 blur-3xl" />
+        {/* Faint grid */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              "linear-gradient(oklch(0.97 0 0) 1px, transparent 1px), linear-gradient(90deg, oklch(0.97 0 0) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+          }}
+        />
+      </div>
 
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "linear-gradient(oklch(0.97 0 0) 1px, transparent 1px), linear-gradient(90deg, oklch(0.97 0 0) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
-
-      <div className="relative mx-auto flex max-w-3xl flex-col items-center px-5 pb-14 pt-14 text-center md:pb-24 md:pt-24">
+      <div className="relative mx-auto flex min-h-[640px] max-w-7xl flex-col items-center justify-center px-5 py-20 text-center md:min-h-[720px] md:py-28 lg:items-start lg:text-left">
         <motion.img
           src={dmLogo}
           alt="DM Motors Imports"
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="h-20 w-auto drop-shadow-[0_0_30px_oklch(0.62_0.24_25/0.55)] sm:h-28 md:h-32"
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="h-14 w-auto drop-shadow-[0_0_24px_oklch(0.62_0.24_25/0.55)] sm:h-16"
         />
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-          className="relative z-10 flex flex-col items-center"
+          className="flex max-w-2xl flex-col items-center lg:items-start"
         >
-          <span className="mt-8 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+          <span className="mt-8 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary backdrop-blur-sm">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
             Estoque renovado toda semana
           </span>
 
-          <h1 className="mt-6 text-5xl font-black uppercase leading-[0.92] tracking-tight text-foreground sm:text-6xl md:text-7xl">
-            Seu proximo carro
+          <h1 className="mt-6 text-5xl font-black uppercase leading-[0.92] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[5.5rem]">
+            Seu próximo carro
             <br />
-            <span className="text-primary">comeca aqui.</span>
+            <span className="bg-gradient-to-r from-primary to-[oklch(0.70_0.26_25)] bg-clip-text text-transparent">
+              começa aqui.
+            </span>
           </h1>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+            Importados selecionados, procedência garantida e negociação transparente.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
             <Link
               to="/estoque"
-              className="inline-flex items-center justify-center rounded-full bg-gradient-cta px-7 py-4 text-sm font-bold uppercase tracking-wide text-primary-foreground shadow-red transition hover:brightness-110"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-cta px-8 py-4 text-sm font-bold uppercase tracking-wide text-primary-foreground shadow-red transition hover:brightness-110"
             >
               Ver estoque
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <WhatsAppButton size="lg" label="Chamar no WhatsApp" />
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              +500 clientes satisfeitos
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              Procedencia garantida
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              Aceitamos troca
-            </span>
+          <div className="mt-10 grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-3">
+            <TrustItem icon={<Sparkles className="h-4 w-4" />} label="+500 clientes satisfeitos" />
+            <TrustItem icon={<ShieldCheck className="h-4 w-4" />} label="Procedência garantida" />
+            <TrustItem icon={<Repeat className="h-4 w-4" />} label="Aceitamos troca" />
           </div>
         </motion.div>
       </div>
-
-      <div className="relative mx-auto max-w-7xl px-5 pb-10">
-        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Filtros:
-          </span>
-          {quickFilters.map((filter) => (
-            <Link
-              key={filter.key}
-              to="/estoque"
-              search={getVehicleFilterSearch({
-                ...createDefaultVehicleFilters(),
-                ...filter.patch,
-              }) as never}
-              className="flex shrink-0 items-center gap-2 rounded-full border border-border/60 bg-card/60 px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:border-primary/60 hover:bg-primary/10 hover:text-primary"
-            >
-              {filter.key === "price-50" && <Search className="h-3.5 w-3.5" />}
-              {filter.label}
-            </Link>
-          ))}
-        </div>
-      </div>
     </section>
+  );
+}
+
+function TrustItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <div className="flex items-center justify-center gap-2 rounded-full border border-border/60 bg-card/50 px-4 py-2.5 text-xs font-semibold text-foreground/90 backdrop-blur-sm lg:justify-start">
+      <span className="text-primary">{icon}</span>
+      {label}
+    </div>
   );
 }
