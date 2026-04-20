@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
@@ -8,6 +8,7 @@ import { useCars } from "@/data/carsStore";
 import {
   getVehicleBadgeStyle,
   getVehicleGallery,
+  getVehicleImageUrl,
   getVehiclePrimaryImage,
   getVehicleWhatsappNumber,
 } from "@/lib/vehicles";
@@ -85,6 +86,10 @@ function VehiclePage() {
   const gallery = getVehicleGallery(car);
   const [activeImage, setActiveImage] = useState(0);
 
+  useEffect(() => {
+    setActiveImage(0);
+  }, [car.id]);
+
   const badgeStyle = getVehicleBadgeStyle(car.badge);
   const whatsappMessage = `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`;
 
@@ -130,7 +135,7 @@ function VehiclePage() {
                 initial={{ opacity: 0.6, scale: 1.02 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
-                src={gallery[activeImage]}
+                src={getVehicleImageUrl(gallery[activeImage])}
                 alt={`${car.name} - foto ${activeImage + 1}`}
                 width={1024}
                 height={768}
@@ -150,26 +155,30 @@ function VehiclePage() {
                 {activeImage + 1} / {gallery.length}
               </span>
 
-              <button
-                aria-label="Foto anterior"
-                onClick={prev}
-                className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                aria-label="Proxima foto"
-                onClick={next}
-                className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+              {gallery.length > 1 && (
+                <>
+                  <button
+                    aria-label="Foto anterior"
+                    onClick={prev}
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    aria-label="Proxima foto"
+                    onClick={next}
+                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
             </div>
 
-            <div className="mt-3 grid grid-cols-4 gap-3">
+            <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
               {gallery.map((image, index) => (
                 <button
-                  key={`${image}-${index}`}
+                  key={`${image.url}-${index}`}
                   onClick={() => setActiveImage(index)}
                   className={`overflow-hidden rounded-lg border-2 transition ${
                     activeImage === index
@@ -178,7 +187,7 @@ function VehiclePage() {
                   }`}
                 >
                   <img
-                    src={image}
+                    src={getVehicleImageUrl(image)}
                     alt={`Miniatura ${index + 1}`}
                     width={256}
                     height={192}

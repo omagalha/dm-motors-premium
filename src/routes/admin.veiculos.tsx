@@ -3,10 +3,16 @@ import { useMemo, useRef, useState } from "react";
 import { formatKm, formatPrice } from "@/data/cars";
 import { resetCars, useCars, type Car, type CarInput } from "@/data/carsStore";
 import { getCarInsights } from "@/data/insights";
-import { getVehiclePrimaryImage } from "@/lib/vehicles";
+import { getVehicleImageUrl, getVehiclePrimaryImage } from "@/lib/vehicles";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { createVehicle, deleteVehicle, updateVehicle } from "@/services/vehicleService";
-import type { Category, Fuel, Transmission, VehicleStatus } from "@/types/vehicle";
+import type {
+  Category,
+  Fuel,
+  Transmission,
+  VehicleImage,
+  VehicleStatus,
+} from "@/types/vehicle";
 import { Pencil, Plus, Trash2, X, Upload, RotateCcw, Eye, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -61,7 +67,6 @@ interface FormState {
   description: string;
   features: string;
   tags: string;
-  images: string;
   isFeatured: boolean;
   active: boolean;
 }
@@ -84,7 +89,6 @@ const emptyForm: FormState = {
   description: "",
   features: "",
   tags: "",
-  images: "",
   isFeatured: false,
   active: true,
 };
@@ -109,12 +113,40 @@ function readFileAsDataUrl(file: File) {
   });
 }
 
+async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
+  const apiUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+
+  if (!apiUrl) {
+    throw new Error("VITE_API_URL nao configurada para upload.");
+  }
+
+  const formData = new FormData();
+
+  files.forEach((file) => {
+    formData.append("images", file);
+  });
+
+  const response = await fetch(`${apiUrl}/upload/images`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Falha ao enviar imagens");
+  }
+
+  return (await response.json()) as VehicleImage[];
+}
+
 function AdminVeiculos() {
   const cars = useCars();
   const insights = getCarInsights(cars);
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [existingImages, setExistingImages] = useState<VehicleImage[]>([]);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newFilePreviews, setNewFilePreviews] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const stats = useMemo(
@@ -127,11 +159,12 @@ function AdminVeiculos() {
     [cars]
   );
 
-  const previewImages = parseList(form.images);
-
   function openNew() {
     setEditingId(null);
     setForm(emptyForm);
+    setExistingImages([]);
+    setNewFiles([]);
+    setNewFilePreviews([]);
     setOpen(true);
   }
 
@@ -155,10 +188,12 @@ function AdminVeiculos() {
       description: car.description,
       features: joinList(car.features),
       tags: joinList(car.tags),
-      images: joinList(car.images),
       isFeatured: car.isFeatured,
       active: car.active,
     });
+    setExistingImages(car.images.map((image) => ({ ...image })));
+    setNewFiles([]);
+    setNewFilePreviews([]);
     setOpen(true);
   }
 
@@ -166,6 +201,9 @@ function AdminVeiculos() {
     setOpen(false);
     setEditingId(null);
     setForm(emptyForm);
+    setExistingImages([]);
+    setNewFiles([]);
+    setNewFilePreviews([]);
   }
 
   async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
@@ -174,28 +212,27 @@ function AdminVeiculos() {
 
     if (files.some((file) => file.size > 4 * 1024 * 1024)) {
       toast.error("Cada imagem deve ter no maximo 4MB.");
+      event.target.value = "";
       return;
     }
 
     try {
-      const currentImages = parseList(form.images);
-      const newImages = await Promise.all(files.map(readFileAsDataUrl));
-      setForm((current) => ({
-        ...current,
-        images: joinList([...currentImages, ...newImages]),
-      }));
+      const previews = await Promise.all(files.map(readFileAsDataUrl));
+      setNewFiles((current) => [...current, ...files]);
+      setNewFilePreviews((current) => [...current, ...previews]);
       event.target.value = "";
     } catch {
       toast.error("Nao foi possivel carregar as imagens.");
     }
   }
 
-  function removeImageAt(indexToRemove: number) {
-    const nextImages = previewImages.filter((_, index) => index !== indexToRemove);
-    setForm((current) => ({
-      ...current,
-      images: joinList(nextImages),
-    }));
+  function removeExistingImageAt(indexToRemove: number) {
+    setExistingImages((current) => current.filter((_, index) => index !== indexToRemove));
+  }
+
+  function removeNewFileAt(indexToRemove: number) {
+    setNewFiles((current) => current.filter((_, index) => index !== indexToRemove));
+    setNewFilePreviews((current) => current.filter((_, index) => index !== indexToRemove));
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -207,7 +244,6 @@ function AdminVeiculos() {
     const price = Number(form.price);
     const mileage = Number(form.mileage);
     const year = Number(form.year);
-    const images = parseList(form.images);
     const features = parseList(form.features);
     const tags = parseList(form.tags);
 
@@ -219,32 +255,41 @@ function AdminVeiculos() {
     if (!Number.isFinite(year) || year < 1980 || year > 2100) {
       return toast.error("Ano invalido.");
     }
-    if (!images.length) return toast.error("Adicione pelo menos uma imagem.");
-
-    const payload: CarInput = {
-      name,
-      brand,
-      model,
-      price,
-      badge: form.badge.trim(),
-      isFeatured: form.isFeatured,
-      active: form.active,
-      year,
-      mileage,
-      fuel: form.fuel,
-      transmission: form.transmission,
-      color: form.color.trim(),
-      description: form.description.trim(),
-      images,
-      features,
-      category: form.category,
-      city: form.city.trim(),
-      status: form.status,
-      whatsappNumber: form.whatsappNumber.trim() || WHATSAPP_NUMBER,
-      tags,
-    };
+    if (!existingImages.length && !newFiles.length) {
+      return toast.error("Adicione pelo menos uma imagem.");
+    }
 
     try {
+      let uploadedImages = [...existingImages];
+
+      if (newFiles.length > 0) {
+        const newImages = await uploadVehicleImages(newFiles);
+        uploadedImages = [...uploadedImages, ...newImages];
+      }
+
+      const payload: CarInput = {
+        name,
+        brand,
+        model,
+        price,
+        badge: form.badge.trim(),
+        isFeatured: form.isFeatured,
+        active: form.active,
+        year,
+        mileage,
+        fuel: form.fuel,
+        transmission: form.transmission,
+        color: form.color.trim(),
+        description: form.description.trim(),
+        images: uploadedImages,
+        features,
+        category: form.category,
+        city: form.city.trim(),
+        status: form.status,
+        whatsappNumber: form.whatsappNumber.trim() || WHATSAPP_NUMBER,
+        tags,
+      };
+
       if (editingId) {
         await updateVehicle(editingId, payload);
         toast.success("Veiculo atualizado.");
@@ -253,8 +298,8 @@ function AdminVeiculos() {
         toast.success("Veiculo adicionado.");
       }
       close();
-    } catch {
-      toast.error("Nao foi possivel salvar. Tente novamente.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Nao foi possivel salvar. Tente novamente.");
     }
   }
 
@@ -662,32 +707,70 @@ function AdminVeiculos() {
                 </Field>
               </div>
 
-              <Field label="Imagens (uma URL por linha)">
+              <Field label="Imagens">
                 <div className="space-y-3">
-                  {previewImages.length > 0 && (
+                  {(existingImages.length > 0 || newFilePreviews.length > 0) && (
                     <>
                       <p className="text-xs font-medium text-muted-foreground">
-                        {previewImages.length} {previewImages.length === 1 ? "imagem carregada" : "imagens carregadas"}
+                        {existingImages.length + newFilePreviews.length}{" "}
+                        {existingImages.length + newFilePreviews.length === 1
+                          ? "imagem pronta"
+                          : "imagens prontas"}
                       </p>
-                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        {previewImages.map((image, index) => (
-                          <div key={`${image}-${index}`} className="relative">
-                            <img
-                              src={image}
-                              alt={`Pre-visualizacao ${index + 1}`}
-                              className="h-28 w-full rounded-lg border border-border object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeImageAt(index)}
-                              className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
-                              aria-label={`Remover imagem ${index + 1}`}
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
+
+                      {existingImages.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            Imagens salvas
+                          </p>
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                            {existingImages.map((image, index) => (
+                              <div key={`${image.url}-${index}`} className="relative">
+                                <img
+                                  src={getVehicleImageUrl(image)}
+                                  alt={`Imagem salva ${index + 1}`}
+                                  className="h-28 w-full rounded-lg border border-border object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeExistingImageAt(index)}
+                                  className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
+                                  aria-label={`Remover imagem salva ${index + 1}`}
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
+
+                      {newFilePreviews.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            Novas imagens
+                          </p>
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                            {newFilePreviews.map((image, index) => (
+                              <div key={`${image}-${index}`} className="relative">
+                                <img
+                                  src={image}
+                                  alt={`Nova imagem ${index + 1}`}
+                                  className="h-28 w-full rounded-lg border border-border object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeNewFileAt(index)}
+                                  className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
+                                  aria-label={`Remover nova imagem ${index + 1}`}
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
 
@@ -709,14 +792,9 @@ function AdminVeiculos() {
                       onChange={handleFile}
                     />
                   </div>
-
-                  <textarea
-                    value={form.images}
-                    onChange={(event) => setForm({ ...form, images: event.target.value })}
-                    placeholder={"https://.../foto-1.jpg\nhttps://.../foto-2.jpg"}
-                    className="adm-input min-h-[110px] resize-y"
-                    rows={5}
-                  />
+                  <p className="text-xs text-muted-foreground">
+                    As novas imagens serao enviadas para o backend quando voce salvar o veiculo.
+                  </p>
                 </div>
               </Field>
             </div>

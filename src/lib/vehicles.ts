@@ -3,13 +3,19 @@ import type {
   Fuel,
   Transmission,
   Vehicle,
+  VehicleImage,
   VehicleStatus,
 } from "@/types/vehicle";
 import { WHATSAPP_NUMBER } from "./whatsapp";
 
 export const DEFAULT_VEHICLE_IMAGE = "https://via.placeholder.com/800x600?text=DM+Motors";
 
-type VehicleRecordLike = Partial<Vehicle> & { _id?: string };
+type VehicleRecordLike = Partial<Vehicle> & {
+  _id?: string;
+  imageUrl?: unknown;
+  image?: unknown;
+  images?: unknown;
+};
 
 function normalizeString(value: unknown, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
@@ -55,6 +61,53 @@ function normalizeStringArray(value: unknown) {
   return [];
 }
 
+function normalizeImage(value: unknown): VehicleImage | null {
+  if (typeof value === "string") {
+    const url = normalizeString(value);
+    return url ? { url } : null;
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const url = normalizeString(record.url ?? record.secure_url ?? record.src);
+
+    if (!url) return null;
+
+    const publicId = normalizeString(record.publicId ?? record.public_id);
+    const width = normalizeNumber(record.width, 0);
+    const height = normalizeNumber(record.height, 0);
+    const format = normalizeString(record.format);
+
+    return {
+      url,
+      ...(publicId ? { publicId } : {}),
+      ...(width > 0 ? { width } : {}),
+      ...(height > 0 ? { height } : {}),
+      ...(format ? { format } : {}),
+    };
+  }
+
+  return null;
+}
+
+function normalizeImageArray(value: unknown): VehicleImage[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeImage(item))
+      .filter((item): item is VehicleImage => Boolean(item));
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(/[,\n]/)
+      .map((item) => normalizeImage(item))
+      .filter((item): item is VehicleImage => Boolean(item));
+  }
+
+  const image = normalizeImage(value);
+  return image ? [image] : [];
+}
+
 function normalizeFuel(value: unknown): Fuel {
   const normalized = normalizeLooseString(value);
   if (normalized.includes("diesel")) return "Diesel";
@@ -88,6 +141,10 @@ function normalizeStatus(value: unknown): VehicleStatus {
 }
 
 export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
+  const images = normalizeImageArray(vehicle.images);
+  const legacyImageUrl = normalizeImageArray(vehicle.imageUrl);
+  const legacyImage = normalizeImageArray(vehicle.image);
+
   return {
     id: String(vehicle.id ?? vehicle._id ?? ""),
     name: normalizeString(vehicle.name),
@@ -103,7 +160,7 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
     transmission: normalizeTransmission(vehicle.transmission),
     color: normalizeString(vehicle.color),
     description: normalizeString(vehicle.description),
-    images: normalizeStringArray(vehicle.images),
+    images: images.length ? images : legacyImageUrl.length ? legacyImageUrl : legacyImage,
     features: normalizeStringArray(vehicle.features),
     category: normalizeCategory(vehicle.category),
     city: normalizeString(vehicle.city),
@@ -116,11 +173,15 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
 }
 
 export function getVehiclePrimaryImage(vehicle: Pick<Vehicle, "images">) {
-  return vehicle.images.find((image) => image.trim()) || DEFAULT_VEHICLE_IMAGE;
+  return vehicle.images.find((image) => image.url.trim())?.url || DEFAULT_VEHICLE_IMAGE;
 }
 
 export function getVehicleGallery(vehicle: Pick<Vehicle, "images">) {
-  return vehicle.images.length ? vehicle.images : [DEFAULT_VEHICLE_IMAGE];
+  return vehicle.images.length ? vehicle.images : [{ url: DEFAULT_VEHICLE_IMAGE }];
+}
+
+export function getVehicleImageUrl(image: VehicleImage | null | undefined) {
+  return image?.url?.trim() || DEFAULT_VEHICLE_IMAGE;
 }
 
 export function getVehicleWhatsappNumber(vehicle: Pick<Vehicle, "whatsappNumber">) {

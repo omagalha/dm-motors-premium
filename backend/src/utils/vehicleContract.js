@@ -63,6 +63,49 @@ function normalizeStringArray(value) {
   return [];
 }
 
+function normalizeImage(value) {
+  if (typeof value === "string") {
+    const url = normalizeString(value);
+    return url ? { url } : null;
+  }
+
+  if (value && typeof value === "object") {
+    const url = normalizeString(value.url ?? value.secure_url ?? value.src);
+    if (!url) return null;
+
+    const publicId = normalizeString(value.publicId ?? value.public_id);
+    const width = normalizeNumber(value.width, 0);
+    const height = normalizeNumber(value.height, 0);
+    const format = normalizeString(value.format);
+
+    return {
+      url,
+      ...(publicId ? { publicId } : {}),
+      ...(width > 0 ? { width } : {}),
+      ...(height > 0 ? { height } : {}),
+      ...(format ? { format } : {}),
+    };
+  }
+
+  return null;
+}
+
+function normalizeImageArray(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeImage(item)).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(/[,\n]/)
+      .map((item) => normalizeImage(item))
+      .filter(Boolean);
+  }
+
+  const image = normalizeImage(value);
+  return image ? [image] : [];
+}
+
 function normalizeEnum(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback;
 }
@@ -100,10 +143,13 @@ function normalizeStatus(value) {
 }
 
 function normalizeImages(body) {
-  const images = normalizeStringArray(body.images);
+  const images = normalizeImageArray(body.images);
   if (images.length) return images;
 
-  return normalizeStringArray([body.imageUrl, body.image]);
+  const legacyImageUrl = normalizeImageArray(body.imageUrl);
+  if (legacyImageUrl.length) return legacyImageUrl;
+
+  return normalizeImageArray(body.image);
 }
 
 function normalizeTags(body) {
@@ -186,8 +232,8 @@ function normalizeVehiclePayload(body = {}, options = {}) {
 }
 
 function serializeVehicle(vehicle) {
-  const images = normalizeStringArray(vehicle.images);
-  const legacyImages = normalizeStringArray(vehicle.imageUrl);
+  const images = normalizeImageArray(vehicle.images);
+  const legacyImages = normalizeImageArray(vehicle.imageUrl);
   const tags = normalizeStringArray(vehicle.tags);
   const legacyTags = normalizeStringArray(vehicle.highlights);
 

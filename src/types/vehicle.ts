@@ -7,6 +7,14 @@ export type Category = "Hatch" | "Sedan" | "SUV" | "Picape" | "Nao informado";
 export type Fuel = "Flex" | "Diesel" | "Gasolina" | "Nao informado";
 export type VehicleStatus = "disponivel" | "reservado" | "vendido";
 
+export interface VehicleImage {
+  url: string;
+  publicId?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+}
+
 export interface Vehicle {
   // Identidade
   id: string;
@@ -29,7 +37,7 @@ export interface Vehicle {
 
   // Apresentacao
   description: string;
-  images: string[];
+  images: VehicleImage[];
   features: string[];
   category: Category;
   city: string;

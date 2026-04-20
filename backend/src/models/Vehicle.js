@@ -63,7 +63,7 @@ const vehicleSchema = new mongoose.Schema(
       trim: true,
     },
     images: {
-      type: [String],
+      type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
     features: {
