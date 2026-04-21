@@ -26,9 +26,7 @@ const items = [
 
 export function Differentials() {
   return (
-    <section className="relative overflow-hidden bg-card py-16 md:py-24">
-      <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-
+    <section className="relative overflow-hidden bg-background py-16 md:py-24">
       <div className="relative mx-auto max-w-7xl px-5">
         {/* Social proof strip */}
         <motion.div
@@ -36,54 +34,47 @@ export function Differentials() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mb-12 grid grid-cols-1 gap-4 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6 sm:grid-cols-3 md:p-8"
+          className="mb-16 grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-primary/25 sm:grid-cols-3"
         >
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary">
-              <Users className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-black tabular-nums text-foreground md:text-3xl">+500</p>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Clientes satisfeitos
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary">
-              <Trophy className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-2xl font-black tabular-nums text-foreground md:text-3xl">+800</p>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Veículos vendidos
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
-              <Star className="h-6 w-6 fill-current" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1 text-amber-400">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-current" />
-                ))}
-                <span className="ml-1 text-lg font-black text-foreground">4,9</span>
+          {[
+            { icon: Users, value: "+500", label: "Clientes satisfeitos" },
+            { icon: Trophy, value: "+800", label: "Veículos vendidos" },
+            { icon: Star, value: "4,9", label: "Avaliação dos clientes", gold: true },
+          ].map((stat, i) => (
+            <div
+              key={stat.label}
+              className={`flex items-center gap-4 bg-gradient-to-br from-primary/10 via-card to-card p-6 md:p-8 ${
+                i < 2 ? "border-b border-primary/15 sm:border-b-0 sm:border-r" : ""
+              }`}
+            >
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
+                  stat.gold ? "bg-amber-500/20 text-amber-400" : "bg-primary/20 text-primary"
+                }`}
+              >
+                <stat.icon className={`h-6 w-6 ${stat.gold ? "fill-current" : ""}`} />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Avaliação dos clientes
-              </p>
+              <div>
+                <p className="text-2xl font-black tabular-nums text-foreground md:text-3xl">
+                  {stat.value}
+                </p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {stat.label}
+                </p>
+              </div>
             </div>
-          </div>
+          ))}
         </motion.div>
 
         <div className="mb-12 text-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">
+          <span className="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-primary">
+            <span className="inline-block h-px w-10 bg-primary" />
             Por que comprar com a gente
+            <span className="inline-block h-px w-10 bg-primary" />
           </span>
-          <h2 className="mt-2 text-4xl font-black uppercase text-foreground md:text-5xl">
-            Por que escolher a <span className="text-primary">DM Motors</span>?
+          <h2 className="mt-3 text-4xl font-black uppercase text-foreground md:text-5xl">
+            Por que escolher a{" "}
+            <span className="text-primary">DM Motors</span>?
           </h2>
         </div>
 
@@ -95,15 +86,18 @@ export function Differentials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-background p-6 transition hover:border-primary/50"
+              className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/50"
             >
-              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                <item.icon className="h-6 w-6" />
+              <div className="h-[3px] w-full bg-gradient-to-r from-primary/0 via-primary/0 to-primary/0 transition-all duration-300 group-hover:from-primary group-hover:via-primary/80 group-hover:to-primary" />
+              <div className="p-6">
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                  <item.icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-bold uppercase tracking-tight text-foreground">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
               </div>
-              <h3 className="text-lg font-bold uppercase tracking-tight text-foreground">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
             </motion.div>
           ))}
         </div>

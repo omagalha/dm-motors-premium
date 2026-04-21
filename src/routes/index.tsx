@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { FeaturedCars } from "@/components/FeaturedCars";
+import { HowItWorks } from "@/components/HowItWorks";
 import { Differentials } from "@/components/Differentials";
 import { FinalCTA } from "@/components/FinalCTA";
 import { Footer } from "@/components/Footer";
@@ -36,13 +37,15 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { cars } = Route.useLoaderData() as { cars: Vehicle[] };
+  const activeCarCount = cars.filter((c) => c.active).length;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <Hero />
+        <Hero activeCarCount={activeCarCount} />
         <FeaturedCars initialCars={cars} />
+        <HowItWorks />
         <Differentials />
         <FinalCTA />
       </main>
