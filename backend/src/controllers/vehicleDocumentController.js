@@ -108,6 +108,8 @@ async function startSaleContractWorkflow(req, res) {
 function validateCallbackSecret(req) {
   const expected = process.env.N8N_CALLBACK_SECRET;
   const received = req.headers["x-callback-secret"];
+  console.log("[n8n callback] EXPECTED:", expected);
+  console.log("[n8n callback] RECEIVED:", received);
 
   if (!expected || received !== expected) {
     const error = new Error("Unauthorized callback");
