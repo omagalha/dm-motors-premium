@@ -23,15 +23,14 @@ export function FinalCTA() {
           </span>
 
           <h2 className="mt-4 text-4xl font-black uppercase leading-[0.9] text-foreground md:text-5xl">
-            Curtiu essa direcao?
+            Achou o carro certo?
             <br />
-            Agora a home ja conversa mais com uma loja premium.
+            Fale com a DM Motors agora.
           </h2>
 
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            O proximo passo pode ser lapidar ainda mais os detalhes finos, mas ja saimos de uma
-            pagina correta para uma home com mais impacto comercial e mais proximidade com a
-            referencia que voce mandou.
+            Tire duvidas, simule financiamento, envie seu usado para avaliacao e receba
+            atendimento direto para fechar com mais agilidade.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">

@@ -252,9 +252,8 @@ export function Hero({ activeCarCount }: HeroProps) {
           </h1>
 
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/72 sm:text-lg">
-            Uma home mais forte como a referencia que voce trouxe pede isso: estoque
-            selecionado, confianca logo acima da dobra e atendimento que passa seguranca
-            antes mesmo do clique no WhatsApp.
+            Veiculos selecionados com procedencia, atendimento direto e condicoes reais
+            para voce negociar com seguranca, do primeiro clique ate a entrega.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">

@@ -71,9 +71,8 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
               Estoque com cara de vitrine premium.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
-              A referencia que voce trouxe valoriza muito o carro em destaque. Aqui a gente
-              puxou essa sensacao para a DM Motors com mais protagonismo visual e CTAs mais
-              claros.
+              Oportunidades selecionadas com procedencia, boa apresentacao e condicoes
+              competitivas para quem quer comprar bem.
             </p>
           </div>
 

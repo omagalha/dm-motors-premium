@@ -36,9 +36,9 @@ const items = [
 
 const commitments = [
   "Loja fisica para ver, comparar e decidir com mais seguranca.",
-  "Atendimento consultivo sem cara de pagina generica.",
+  "Atendimento consultivo do primeiro contato ate o fechamento.",
   "Fotos fortes, preco claro e contato rapido no mesmo bloco.",
-  "Padrao visual mais proximo de showroom premium como na referencia.",
+  "Confianca, transparencia e condicoes claras na negociacao.",
 ];
 
 const stats = [
@@ -66,9 +66,8 @@ export function Differentials() {
               Uma experiencia mais proxima de showroom.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-              O que aproxima seu site da referencia nao e copiar layout. E passar peso de
-              marca, clareza comercial e seguranca logo nas primeiras secoes. Esta parte da
-              home foi puxada exatamente nessa direcao.
+              Aqui voce encontra uma experiencia mais segura, com estoque atualizado,
+              informacoes claras e atendimento que acompanha voce em cada etapa da compra.
             </p>
           </div>
 
@@ -110,13 +109,13 @@ export function Differentials() {
               Padrao DM Motors
             </span>
             <h3 className="mt-3 text-3xl font-black uppercase leading-[0.94] text-foreground md:text-4xl">
-              Menos cara de landing page.
+              Confianca para comprar
               <br />
-              Mais cara de loja desejada.
+              com mais tranquilidade.
             </h3>
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
-              A home agora sustenta melhor a percepcao de marca: hero mais forte, vitrine mais
-              autoritaria e argumentos comerciais melhor distribuidos ao longo da navegacao.
+              A DM Motors reune atendimento direto, estoque selecionado e uma apresentacao
+              pensada para facilitar sua decisao na hora de fechar negocio.
             </p>
 
             <div className="mt-7 grid gap-3">
