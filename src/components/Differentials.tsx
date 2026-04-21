@@ -26,78 +26,68 @@ const items = [
 
 export function Differentials() {
   return (
-    <section className="relative overflow-hidden bg-background py-16 md:py-24">
-      <div className="relative mx-auto max-w-7xl px-5">
-        {/* Social proof strip */}
+    <section className="bg-card py-16 md:py-24">
+      <div className="mx-auto max-w-7xl px-5">
+
+        {/* Stats strip */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mb-16 grid grid-cols-1 gap-0 overflow-hidden rounded-2xl border border-primary/25 sm:grid-cols-3"
+          className="mb-16 grid grid-cols-1 divide-y divide-border overflow-hidden rounded-2xl border border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0"
         >
           {[
-            { icon: Users, value: "+500", label: "Clientes satisfeitos" },
-            { icon: Trophy, value: "+800", label: "Veículos vendidos" },
-            { icon: Star, value: "4,9", label: "Avaliação dos clientes", gold: true },
-          ].map((stat, i) => (
-            <div
-              key={stat.label}
-              className={`flex items-center gap-4 bg-gradient-to-br from-primary/10 via-card to-card p-6 md:p-8 ${
-                i < 2 ? "border-b border-primary/15 sm:border-b-0 sm:border-r" : ""
-              }`}
-            >
+            { icon: Users, value: "+500", label: "Clientes satisfeitos", gold: false },
+            { icon: Trophy, value: "+800", label: "Veículos vendidos", gold: false },
+            { icon: Star,  value: "4,9",  label: "Avaliação no Google",  gold: true },
+          ].map((stat) => (
+            <div key={stat.label} className="flex items-center gap-4 bg-card p-6 md:p-8">
               <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
-                  stat.gold ? "bg-amber-500/20 text-amber-400" : "bg-primary/20 text-primary"
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+                  stat.gold ? "bg-amber-500/15 text-amber-400" : "bg-primary/15 text-primary"
                 }`}
               >
-                <stat.icon className={`h-6 w-6 ${stat.gold ? "fill-current" : ""}`} />
+                <stat.icon className={`h-5 w-5 ${stat.gold ? "fill-current" : ""}`} />
               </div>
               <div>
                 <p className="text-2xl font-black tabular-nums text-foreground md:text-3xl">
                   {stat.value}
                 </p>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {stat.label}
-                </p>
+                <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
               </div>
             </div>
           ))}
         </motion.div>
 
-        <div className="mb-12 text-center">
-          <span className="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-primary">
-            <span className="inline-block h-px w-10 bg-primary" />
+        {/* Header */}
+        <div className="mb-10 text-center">
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">
             Por que comprar com a gente
-            <span className="inline-block h-px w-10 bg-primary" />
           </span>
-          <h2 className="mt-3 text-4xl font-black uppercase text-foreground md:text-5xl">
-            Por que escolher a{" "}
-            <span className="text-primary">DM Motors</span>?
+          <h2 className="mt-2 text-4xl font-black uppercase text-foreground md:text-5xl">
+            Por que escolher a <span className="text-primary">DM Motors</span>?
           </h2>
         </div>
 
+        {/* Feature cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item, i) => (
             <motion.div
               key={item.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/50"
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="group rounded-2xl border border-border bg-background p-6 transition hover:border-primary/40"
             >
-              <div className="h-[3px] w-full bg-gradient-to-r from-primary/0 via-primary/0 to-primary/0 transition-all duration-300 group-hover:from-primary group-hover:via-primary/80 group-hover:to-primary" />
-              <div className="p-6">
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                  <item.icon className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg font-bold uppercase tracking-tight text-foreground">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                <item.icon className="h-5 w-5" />
               </div>
+              <h3 className="text-base font-bold uppercase tracking-tight text-foreground">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
             </motion.div>
           ))}
         </div>

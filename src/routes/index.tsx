@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
+import { CategoryBar } from "@/components/CategoryBar";
 import { FeaturedCars } from "@/components/FeaturedCars";
-import { HowItWorks } from "@/components/HowItWorks";
 import { Differentials } from "@/components/Differentials";
 import { FinalCTA } from "@/components/FinalCTA";
 import { Footer } from "@/components/Footer";
@@ -44,8 +44,8 @@ function Index() {
       <Header />
       <main>
         <Hero activeCarCount={activeCarCount} />
+        <CategoryBar />
         <FeaturedCars initialCars={cars} />
-        <HowItWorks />
         <Differentials />
         <FinalCTA />
       </main>

@@ -76,9 +76,6 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
                   transition={{ duration: 0.5, delay: index * 0.08 }}
                   className="group snap-start shrink-0 w-[76vw] max-w-[300px] overflow-hidden rounded-2xl border border-border bg-background shadow-card transition hover:border-primary/50 hover:shadow-red sm:w-auto sm:max-w-none"
                 >
-                  {/* Red top accent */}
-                  <div className="h-[3px] w-full bg-gradient-to-r from-primary to-[oklch(0.70_0.26_25)]" />
-
                   <Link
                     to="/veiculo/$carId"
                     params={{ carId: car.id }}
@@ -93,17 +90,12 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     />
                     {car.badge && (
-                      <div className="absolute left-3 top-3 flex flex-col overflow-hidden rounded-[3px] border border-white/20 shadow-card">
-                        <div className="bg-[#002868] px-2 py-[1px] text-center text-[5px] font-black tracking-[0.4em] text-yellow-300">
-                          ★BR★
-                        </div>
-                        <div className={`${badgeStyle.bg} px-2.5 py-[3px]`}>
-                          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-white">
-                            <BadgeIcon icon={badgeStyle.icon} />
-                            {car.badge}
-                          </span>
-                        </div>
-                      </div>
+                      <span
+                        className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
+                      >
+                        <BadgeIcon icon={badgeStyle.icon} />
+                        {car.badge}
+                      </span>
                     )}
                   </Link>
 
