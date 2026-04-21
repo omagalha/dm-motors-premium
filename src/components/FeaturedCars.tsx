@@ -33,7 +33,7 @@ interface FeaturedCarsProps {
 }
 
 export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
-  const cars = useCars(initialCars).filter((car) => car.active && car.isFeatured).slice(0, 4);
+  const cars = useCars(initialCars).filter((car) => car.active && car.isFeatured).slice(0, 8);
 
   if (!cars.length) return null;
 
@@ -43,14 +43,14 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
         <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div>
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary">
-              <Flame className="h-4 w-4" /> Destaques
+              <Flame className="h-4 w-4" /> Estoque
             </span>
             <h2 className="mt-2 text-4xl font-black uppercase text-foreground md:text-5xl">
-              Oportunidades
-              <br className="md:hidden" /> da semana
+              Veículos
+              <br className="md:hidden" /> disponíveis
             </h2>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Carros selecionados a dedo, com preço abaixo do mercado e prontos para entrega.
+              Todos revisados, com procedência garantida e prontos para entrega.
             </p>
           </div>
           <Link

@@ -1,9 +1,10 @@
 import heroCar from "@/assets/hero-home.jpg";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
-import type { ReactNode } from "react";
+import { Search, ShieldCheck, RefreshCw } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import type { Category } from "@/types/vehicle";
 
 interface HeroProps {
   activeCarCount?: number;
@@ -32,6 +33,59 @@ function DealerPlateBadge() {
   );
 }
 
+function HeroSearch() {
+  const [category, setCategory] = useState<Category | "">("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const navigate = useNavigate();
+
+  return (
+    <div className="mt-8 w-full max-w-xl rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur-md">
+      <p className="mb-3 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
+        Encontre seu veículo
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value as Category | "")}
+          className="flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none"
+        >
+          <option value="">Todas as categorias</option>
+          <option value="SUV">SUV</option>
+          <option value="Sedan">Sedan</option>
+          <option value="Hatch">Hatch</option>
+          <option value="Picape">Picape</option>
+        </select>
+        <select
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+          className="flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:border-primary focus:outline-none"
+        >
+          <option value="">Qualquer preço</option>
+          <option value="50000">Até R$ 50 mil</option>
+          <option value="80000">Até R$ 80 mil</option>
+          <option value="100000">Até R$ 100 mil</option>
+          <option value="150000">Até R$ 150 mil</option>
+        </select>
+        <button
+          onClick={() => {
+            void navigate({
+              to: "/estoque",
+              search: {
+                ...(category ? { category } : {}),
+                ...(maxPrice ? { maxPrice: Number(maxPrice) } : {}),
+              },
+            });
+          }}
+          className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-black uppercase tracking-wide text-primary-foreground transition hover:brightness-110"
+        >
+          <Search className="h-4 w-4" />
+          Buscar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Hero({ activeCarCount }: HeroProps) {
   return (
     <section className="relative isolate overflow-hidden bg-background">
@@ -48,7 +102,7 @@ export function Hero({ activeCarCount }: HeroProps) {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.13_0.008_20/0.4)_0%,transparent_20%,transparent_80%,oklch(0.13_0.008_20)_100%)]" />
       </div>
 
-      <div className="relative mx-auto flex min-h-[620px] max-w-7xl flex-col items-center justify-center px-5 py-20 text-center md:min-h-[700px] md:py-28 lg:items-start lg:text-left">
+      <div className="relative mx-auto flex min-h-[680px] max-w-7xl flex-col items-center justify-center px-5 py-20 text-center md:min-h-[760px] md:py-28 lg:items-start lg:text-left">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,18 +124,13 @@ export function Hero({ activeCarCount }: HeroProps) {
             Financiamento em todos os bancos, troca na hora.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-            <Link
-              to="/estoque"
-              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-cta px-8 py-4 text-sm font-bold uppercase tracking-wide text-primary-foreground shadow-red transition hover:brightness-110 active:scale-95"
-            >
-              Ver estoque completo
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+          <HeroSearch />
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
             <WhatsAppButton size="lg" label="Chamar no WhatsApp" />
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
             {activeCarCount != null && activeCarCount > 0 && (
               <TrustItem label={`${activeCarCount} veículos disponíveis`} />
             )}
