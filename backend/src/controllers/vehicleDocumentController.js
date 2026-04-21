@@ -67,10 +67,13 @@ async function startSaleContractWorkflow(req, res) {
       } else {
         try {
           const executionId = `sale-contract_${vehicleDoc._id}_${Date.now()}`;
+          const vehicleId = vehicleDoc._id.toString();
+          const callbackUrl = `${process.env.BACKEND_URL}/vehicles/${vehicleId}/document-workflows/sale-contract/callback`;
           await triggerN8n({
             executionId,
-            vehicleId: vehicleDoc._id.toString(),
+            vehicleId,
             workflow: "sale-contract",
+            callbackUrl,
             draft: workflowResult.draft,
           });
           automationTriggered = true;
