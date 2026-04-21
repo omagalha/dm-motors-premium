@@ -44,9 +44,15 @@ function Index() {
       <Header />
       <main>
         <Hero activeCarCount={activeCarCount} />
-        <CategoryBar />
-        <FeaturedCars initialCars={cars} />
-        <Differentials />
+        <div className="flex flex-col">
+          <div className="lg:order-2">
+            <CategoryBar />
+            <FeaturedCars initialCars={cars} />
+          </div>
+          <div className="lg:order-1">
+            <Differentials />
+          </div>
+        </div>
         <FinalCTA />
       </main>
       <Footer />
