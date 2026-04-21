@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  VehicleDocumentStatusCard,
+  type VehicleDocumentStatusBadge,
+} from "@/components/admin/VehicleDocumentStatusCard";
+import { VehicleSaleContractDraftModal } from "@/components/admin/VehicleSaleContractDraftModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatKm, formatPrice } from "@/data/cars";
 import { resetCars, useCars, type Car, type CarInput } from "@/data/carsStore";
@@ -14,6 +19,14 @@ import {
   setCoverImage,
 } from "@/lib/vehicles";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import {
+  getVehicleDocumentPayload,
+  getVehicleDocumentReadiness,
+  startSaleContractWorkflow,
+  type VehicleDocumentReadiness,
+  type VehicleSaleDocumentPayload,
+  type VehicleSaleContractWorkflowResult,
+} from "@/services/vehicleDocumentService";
 import { createVehicle, deleteVehicle, updateVehicle } from "@/services/vehicleService";
 import type {
   Category,
@@ -150,11 +163,64 @@ interface ActionNotice {
   description: string;
 }
 
-interface DocumentBadge {
-  done: boolean;
+type DocumentBadge = VehicleDocumentStatusBadge;
+
+const documentRequirementBadges: Array<{
+  path: string;
   doneLabel: string;
   pendingLabel: string;
-}
+}> = [
+  {
+    path: "internal.plate",
+    doneLabel: "Placa ok",
+    pendingLabel: "Placa faltando",
+  },
+  {
+    path: "internal.renavam",
+    doneLabel: "Renavam ok",
+    pendingLabel: "Renavam faltando",
+  },
+  {
+    path: "internal.chassis",
+    doneLabel: "Chassi ok",
+    pendingLabel: "Chassi faltando",
+  },
+  {
+    path: "internal.engineNumber",
+    doneLabel: "Motor ok",
+    pendingLabel: "Motor faltando",
+  },
+  {
+    path: "internal.buyerName",
+    doneLabel: "Comprador ok",
+    pendingLabel: "Comprador faltando",
+  },
+  {
+    path: "internal.buyerDocument",
+    doneLabel: "Documento do comprador ok",
+    pendingLabel: "Documento do comprador faltando",
+  },
+  {
+    path: "internal.previousOwnerName",
+    doneLabel: "Proprietario anterior ok",
+    pendingLabel: "Proprietario anterior faltando",
+  },
+  {
+    path: "internal.previousOwnerDocument",
+    doneLabel: "Documento do proprietario ok",
+    pendingLabel: "Documento do proprietario faltando",
+  },
+  {
+    path: "price",
+    doneLabel: "Valor de venda ok",
+    pendingLabel: "Valor de venda faltando",
+  },
+  {
+    path: "internal.acquisitionDate",
+    doneLabel: "Data da operacao ok",
+    pendingLabel: "Data da operacao faltando",
+  },
+];
 
 const emptyInternalForm: InternalFormState = {
   plate: "",
@@ -374,6 +440,85 @@ function buildDocumentBadges(internal: InternalFormState): DocumentBadge[] {
   ];
 }
 
+function buildDocumentReadinessBadges(
+  readiness: VehicleDocumentReadiness | null,
+): DocumentBadge[] {
+  if (!readiness) {
+    return documentRequirementBadges.map((item) => ({
+      done: false,
+      doneLabel: item.doneLabel,
+      pendingLabel: item.pendingLabel,
+    }));
+  }
+
+  const missingFields = new Set(readiness?.missingFields ?? []);
+
+  return documentRequirementBadges.map((item) => ({
+    done: !missingFields.has(item.path),
+    doneLabel: item.doneLabel,
+    pendingLabel: item.pendingLabel,
+  }));
+}
+
+function getDocumentRequirementLabel(path: string) {
+  const requirement = documentRequirementBadges.find((item) => item.path === path);
+  return requirement?.pendingLabel ?? path;
+}
+
+function buildDocumentPayloadSummary(payload: VehicleSaleDocumentPayload | null) {
+  if (!payload) return [];
+
+  return [
+    {
+      label: "Veiculo",
+      value: `${payload.vehicle.name} ${payload.vehicle.year}`.trim(),
+    },
+    {
+      label: "Placa",
+      value: payload.vehicle.plate || "Nao informada",
+    },
+    {
+      label: "Venda",
+      value: formatPrice(payload.transaction.salePrice),
+    },
+    {
+      label: "Data",
+      value: payload.transaction.acquisitionDate || "Nao informada",
+    },
+    {
+      label: "Comprador",
+      value: payload.buyer.name || "Nao informado",
+    },
+    {
+      label: "Documento",
+      value: payload.buyer.document || "Nao informado",
+    },
+    {
+      label: "Anterior",
+      value: payload.previousOwner.name || "Nao informado",
+    },
+    {
+      label: "Procedencia",
+      value: payload.documentation.provenance || "Nao informada",
+    },
+  ];
+}
+
+function buildDocumentFormStateKey(form: FormState) {
+  return JSON.stringify({
+    name: form.name.trim(),
+    brand: form.brand.trim(),
+    model: form.model.trim(),
+    price: form.price.trim(),
+    year: form.year.trim(),
+    mileage: form.mileage.trim(),
+    fuel: form.fuel,
+    transmission: form.transmission,
+    color: form.color.trim(),
+    internal: buildInternalPayload(form.internal),
+  });
+}
+
 function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -558,6 +703,22 @@ function AdminVeiculos() {
   const [rowAction, setRowAction] = useState<RowActionState | null>(null);
   const [actionNotice, setActionNotice] = useState<ActionNotice | null>(null);
   const [highlightedCarId, setHighlightedCarId] = useState<string | null>(null);
+  const [documentReadiness, setDocumentReadiness] = useState<VehicleDocumentReadiness | null>(
+    null,
+  );
+  const [documentReadinessRequestedForId, setDocumentReadinessRequestedForId] = useState<
+    string | null
+  >(null);
+  const [documentReadinessLoading, setDocumentReadinessLoading] = useState(false);
+  const [documentWorkflowLoading, setDocumentWorkflowLoading] = useState(false);
+  const [documentServiceError, setDocumentServiceError] = useState<string | null>(null);
+  const [documentWorkflowResult, setDocumentWorkflowResult] =
+    useState<VehicleSaleContractWorkflowResult | null>(null);
+  const [documentDrawerOpen, setDocumentDrawerOpen] = useState(false);
+  const [documentPayloadPreview, setDocumentPayloadPreview] =
+    useState<VehicleSaleDocumentPayload | null>(null);
+  const [documentPayloadPreviewLoading, setDocumentPayloadPreviewLoading] = useState(false);
+  const [savedDocumentStateKey, setSavedDocumentStateKey] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingUploadIdRef = useRef(0);
   const isSubmitting = submitStatus !== "idle";
@@ -583,6 +744,40 @@ function AdminVeiculos() {
 
   const documentBadges = useMemo(() => buildDocumentBadges(form.internal), [form.internal]);
   const completedDocumentBadges = documentBadges.filter((item) => item.done).length;
+  const documentReadinessBadges = useMemo(
+    () => buildDocumentReadinessBadges(documentReadiness),
+    [documentReadiness],
+  );
+  const completedReadinessBadges = documentReadinessBadges.filter((item) => item.done).length;
+  const currentDocumentStateKey = useMemo(() => buildDocumentFormStateKey(form), [form]);
+  const documentNeedsSave = Boolean(
+    editingId && savedDocumentStateKey && currentDocumentStateKey !== savedDocumentStateKey,
+  );
+  const activeDocumentValidation = documentWorkflowResult?.validation ?? documentReadiness;
+  const activeDocumentPayload = documentWorkflowResult?.payload ?? documentPayloadPreview;
+  const activeDocumentMissingFields = activeDocumentValidation?.missingFields ?? [];
+  const activeDocumentWarnings = activeDocumentValidation?.warnings ?? [];
+  const documentPayloadSummary = useMemo(
+    () => buildDocumentPayloadSummary(activeDocumentPayload),
+    [activeDocumentPayload],
+  );
+  const documentWorkflowButtonState = documentWorkflowLoading
+    ? "loading"
+    : !documentNeedsSave && documentWorkflowResult?.ready
+      ? "ready"
+      : !documentNeedsSave &&
+          ((documentWorkflowResult && !documentWorkflowResult.ready) ||
+            (!documentWorkflowResult && documentReadiness && !documentReadiness.ready))
+        ? "pending"
+        : "idle";
+  const documentWorkflowButtonLabel =
+    documentWorkflowButtonState === "loading"
+      ? "Validando..."
+      : documentWorkflowButtonState === "ready"
+        ? "Pre-contrato pronto"
+        : documentWorkflowButtonState === "pending"
+          ? "Campos pendentes"
+          : "Gerar pre-contrato";
 
   const filteredCars = useMemo(() => {
     const normalizedSearch = normalizeText(searchQuery);
@@ -627,6 +822,25 @@ function AdminVeiculos() {
     return () => window.clearTimeout(timeoutId);
   }, [highlightedCarId]);
 
+  useEffect(() => {
+    if (!open || editorTab !== "internal" || !editingId || documentNeedsSave) {
+      return;
+    }
+
+    if (documentReadinessRequestedForId === editingId || documentReadinessLoading) {
+      return;
+    }
+
+    void refreshDocumentReadiness(editingId, { silent: true });
+  }, [
+    documentNeedsSave,
+    documentReadinessLoading,
+    documentReadinessRequestedForId,
+    editingId,
+    editorTab,
+    open,
+  ]);
+
   function resetEditorState() {
     setOpen(false);
     setEditorMode("create");
@@ -637,6 +851,16 @@ function AdminVeiculos() {
     setPendingUploads([]);
     setRemovedExistingImages([]);
     setSubmitStatus("idle");
+    setDocumentReadiness(null);
+    setDocumentReadinessRequestedForId(null);
+    setDocumentReadinessLoading(false);
+    setDocumentWorkflowLoading(false);
+    setDocumentServiceError(null);
+    setDocumentWorkflowResult(null);
+    setDocumentDrawerOpen(false);
+    setDocumentPayloadPreview(null);
+    setDocumentPayloadPreviewLoading(false);
+    setSavedDocumentStateKey(null);
   }
 
   function openNew() {
@@ -646,41 +870,188 @@ function AdminVeiculos() {
   }
 
   function openEdit(car: Car) {
+    const nextForm = buildFormFromCar(car);
     setEditorMode("edit");
     setEditorTab("commercial");
     setEditingId(car.id);
-    setForm(buildFormFromCar(car));
+    setForm(nextForm);
     setExistingImages(cloneDraftImages(car.images));
     setPendingUploads([]);
     setRemovedExistingImages([]);
     setSubmitStatus("idle");
+    setDocumentReadiness(null);
+    setDocumentReadinessRequestedForId(null);
+    setDocumentServiceError(null);
+    setDocumentWorkflowResult(null);
+    setDocumentDrawerOpen(false);
+    setDocumentPayloadPreview(null);
+    setDocumentPayloadPreviewLoading(false);
+    setSavedDocumentStateKey(buildDocumentFormStateKey(nextForm));
     setOpen(true);
   }
 
   function openDuplicate(car: Car) {
     resetEditorState();
+    const nextForm = buildFormFromCar(car, {
+      name: getDuplicateName(car.name),
+      active: false,
+      isFeatured: false,
+      status: "disponivel",
+      internal: emptyInternalForm,
+    });
     setEditorMode("duplicate");
     setEditorTab("commercial");
     setEditingId(null);
-    setForm(
-      buildFormFromCar(car, {
-        name: getDuplicateName(car.name),
-        active: false,
-        isFeatured: false,
-        status: "disponivel",
-        internal: emptyInternalForm,
-      }),
-    );
+    setForm(nextForm);
     setExistingImages(cloneDraftImages(car.images));
     setPendingUploads([]);
     setRemovedExistingImages([]);
     setSubmitStatus("idle");
+    setSavedDocumentStateKey(null);
     setOpen(true);
   }
 
   function close() {
     if (isSubmitting) return;
     resetEditorState();
+  }
+
+  async function refreshDocumentReadiness(
+    vehicleId: string,
+    options: { silent?: boolean } = {},
+  ) {
+    setDocumentReadinessLoading(true);
+    setDocumentServiceError(null);
+    setDocumentReadinessRequestedForId(vehicleId);
+    setDocumentWorkflowResult(null);
+
+    try {
+      const readiness = await getVehicleDocumentReadiness(vehicleId);
+      setDocumentReadiness(readiness);
+
+      if (!options.silent) {
+        if (readiness.ready) {
+          toast.success("Documentacao pronta para contrato.");
+        } else {
+          toast.warning(
+            `Faltam ${readiness.missingFields.length} campo(s) para gerar o pre-contrato.`,
+          );
+        }
+      }
+
+      return readiness;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel validar a documentacao do veiculo.";
+
+      setDocumentReadiness(null);
+      setDocumentServiceError(message);
+
+      if (!options.silent) {
+        toast.error(message);
+      }
+
+      return null;
+    } finally {
+      setDocumentReadinessLoading(false);
+    }
+  }
+
+  async function loadDocumentPayloadPreview(
+    vehicleId: string,
+    options: { silent?: boolean } = {},
+  ) {
+    setDocumentPayloadPreviewLoading(true);
+
+    try {
+      const payload = await getVehicleDocumentPayload(vehicleId);
+      setDocumentPayloadPreview(payload);
+      return payload;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel carregar o resumo documental do veiculo.";
+
+      setDocumentPayloadPreview(null);
+      setDocumentServiceError(message);
+
+      if (!options.silent) {
+        toast.error(message);
+      }
+
+      return null;
+    } finally {
+      setDocumentPayloadPreviewLoading(false);
+    }
+  }
+
+  async function openDocumentDrawerForVehicle(
+    vehicleId: string,
+    payloadOverride?: VehicleSaleDocumentPayload | null,
+  ) {
+    setDocumentDrawerOpen(true);
+
+    if (payloadOverride) {
+      setDocumentPayloadPreviewLoading(false);
+      setDocumentPayloadPreview(payloadOverride);
+      return payloadOverride;
+    }
+
+    return loadDocumentPayloadPreview(vehicleId, { silent: true });
+  }
+
+  async function handleValidateDocumentation() {
+    if (!editingId) {
+      return toast.error("Salve o veiculo primeiro para validar a documentacao.");
+    }
+
+    if (documentNeedsSave) {
+      return toast.error("Salve as alteracoes antes de validar a documentacao.");
+    }
+
+    const readiness = await refreshDocumentReadiness(editingId);
+
+    if (readiness) {
+      await openDocumentDrawerForVehicle(editingId);
+    }
+  }
+
+  async function handleStartSaleContract() {
+    if (!editingId) {
+      return toast.error("Salve o veiculo primeiro para gerar o pre-contrato.");
+    }
+
+    if (documentNeedsSave) {
+      return toast.error("Salve as alteracoes antes de gerar o pre-contrato.");
+    }
+
+    setDocumentWorkflowLoading(true);
+    setDocumentServiceError(null);
+
+    try {
+      const workflowResult = await startSaleContractWorkflow(editingId);
+      setDocumentWorkflowResult(workflowResult);
+      setDocumentReadiness(workflowResult.validation);
+      await openDocumentDrawerForVehicle(editingId, workflowResult.payload);
+
+      if (workflowResult.ready) {
+        toast.success("Pre-contrato preparado com sucesso.");
+      } else {
+        toast.warning(
+          `Campos pendentes para seguir com o pre-contrato: ${workflowResult.validation.missingFields.length}.`,
+        );
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Nao foi possivel iniciar o pre-contrato.";
+      setDocumentServiceError(message);
+      toast.error(message);
+    } finally {
+      setDocumentWorkflowLoading(false);
+    }
   }
 
   async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
@@ -1493,7 +1864,7 @@ function AdminVeiculos() {
                       onChange={(event) => setForm({ ...form, price: event.target.value })}
                       className="adm-input"
                       min={0}
-                      step={100}
+                      step={1}
                       required
                     />
                   </Field>
@@ -1835,6 +2206,24 @@ function AdminVeiculos() {
                   </div>
                 </section>
 
+                <VehicleDocumentStatusCard
+                  hasPersistedVehicle={Boolean(editingId)}
+                  documentNeedsSave={documentNeedsSave}
+                  documentServiceError={documentServiceError}
+                  documentReadiness={documentReadiness}
+                  documentReadinessLoading={documentReadinessLoading}
+                  documentReadinessBadges={documentReadinessBadges}
+                  completedReadinessBadges={completedReadinessBadges}
+                  documentWorkflowLoading={documentWorkflowLoading}
+                  documentWorkflowButtonState={documentWorkflowButtonState}
+                  documentWorkflowButtonLabel={documentWorkflowButtonLabel}
+                  documentWorkflowResult={documentWorkflowResult}
+                  isSubmitting={isSubmitting}
+                  onValidate={() => void handleValidateDocumentation()}
+                  onStartWorkflow={() => void handleStartSaleContract()}
+                  onOpenSummary={() => setDocumentDrawerOpen(true)}
+                />
+
                 <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
                   <div>
                     <p className="text-sm font-bold text-foreground">Identificacao veicular</p>
@@ -1973,7 +2362,7 @@ function AdminVeiculos() {
                         }
                         className="adm-input"
                         min={0}
-                        step={100}
+                        step={1}
                       />
                     </Field>
                     <Field label="Valor minimo de venda (R$)">
@@ -1985,7 +2374,7 @@ function AdminVeiculos() {
                         }
                         className="adm-input"
                         min={0}
-                        step={100}
+                        step={1}
                       />
                     </Field>
                     <Field label="Valor financiado (R$)">
@@ -1997,7 +2386,7 @@ function AdminVeiculos() {
                         }
                         className="adm-input"
                         min={0}
-                        step={100}
+                        step={1}
                       />
                     </Field>
                   </div>
@@ -2117,6 +2506,21 @@ function AdminVeiculos() {
           </form>
         </div>
       )}
+
+      <VehicleSaleContractDraftModal
+        open={documentDrawerOpen}
+        onOpenChange={setDocumentDrawerOpen}
+        onClose={() => setDocumentDrawerOpen(false)}
+        documentNeedsSave={documentNeedsSave}
+        activeDocumentValidation={activeDocumentValidation}
+        activeDocumentMissingFields={activeDocumentMissingFields}
+        activeDocumentWarnings={activeDocumentWarnings}
+        activeDocumentPayload={activeDocumentPayload}
+        documentPayloadPreviewLoading={documentPayloadPreviewLoading}
+        documentPayloadSummary={documentPayloadSummary}
+        documentWorkflowResult={documentWorkflowResult}
+        getDocumentRequirementLabel={getDocumentRequirementLabel}
+      />
 
       <style>{`
         .adm-input {
