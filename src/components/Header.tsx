@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import dmLogo from "@/assets/dm-motors-logo.png";
+import dmLogo from "@/assets/branding/dm-motors-logo-header.png";
 import { whatsappLink } from "@/lib/whatsapp";
 
 type HeaderLink =
@@ -33,19 +33,20 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-        <Link to="/" className="flex items-center gap-2" aria-label="DM Motors Imports — Home">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3">
+        <Link
+          to="/"
+          className="flex items-center rounded-2xl py-1 pr-2 transition-transform duration-300 hover:scale-[1.01]"
+          aria-label="DM Motors Imports - Home"
+        >
           <img
             src={dmLogo}
             alt="DM Motors Imports"
-            className="h-8 w-auto sm:h-10 md:h-12 drop-shadow-[0_0_12px_oklch(0.62_0.24_25/0.35)]"
+            className="w-[172px] shrink-0 object-contain object-left sm:w-[210px] lg:w-[238px] drop-shadow-[0_0_18px_oklch(0.62_0.24_25/0.24)]"
           />
-          <span className="hidden text-[10px] font-semibold tracking-[0.3em] text-muted-foreground sm:inline">
-            IMPORTS
-          </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           {links.map((l) =>
             "href" in l ? (
               <a

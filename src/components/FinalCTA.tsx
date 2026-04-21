@@ -1,12 +1,13 @@
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { MapPin, Clock } from "lucide-react";
+import { ArrowRight, Clock, MapPin } from "lucide-react";
 
 export function FinalCTA() {
   return (
-    <section className="relative overflow-hidden bg-background py-20 md:py-28">
+    <section className="relative overflow-hidden bg-card py-20 md:py-28">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-red opacity-15 blur-3xl" />
+        <div className="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-red opacity-12 blur-3xl" />
       </div>
 
       <motion.div
@@ -14,37 +15,65 @@ export function FinalCTA() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        className="relative mx-auto max-w-2xl px-5 text-center"
+        className="relative mx-auto grid max-w-7xl gap-5 px-5 lg:grid-cols-[1.02fr_0.98fr]"
       >
-        <span className="text-xs font-bold uppercase tracking-widest text-primary">
-          Atendimento direto
-        </span>
+        <div className="rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,oklch(0.14_0.01_20)_0%,oklch(0.10_0.008_20)_100%)] p-8 md:p-10">
+          <span className="text-xs font-bold uppercase tracking-[0.24em] text-primary">
+            Atendimento direto
+          </span>
 
-        <h2 className="mt-3 text-4xl font-black uppercase leading-tight text-foreground md:text-5xl">
-          Achou o carro?
-          <br />
-          <span className="text-primary">Chama no WhatsApp</span>
-          <br />
-          e a gente fecha hoje.
-        </h2>
+          <h2 className="mt-4 text-4xl font-black uppercase leading-[0.9] text-foreground md:text-5xl">
+            Curtiu essa direcao?
+            <br />
+            Agora a home ja conversa mais com uma loja premium.
+          </h2>
 
-        <p className="mx-auto mt-4 max-w-md text-base text-muted-foreground">
-          Resposta rápida, condições especiais e atendimento direto com o vendedor.
-        </p>
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            O proximo passo pode ser lapidar ainda mais os detalhes finos, mas ja saimos de uma
+            pagina correta para uma home com mais impacto comercial e mais proximidade com a
+            referencia que voce mandou.
+          </p>
 
-        <div className="mt-8 flex justify-center">
-          <WhatsAppButton size="lg" label="Chamar no WhatsApp agora" />
+          <div className="mt-8 flex flex-wrap gap-3">
+            <WhatsAppButton size="lg" label="Chamar no WhatsApp agora" />
+            <Link
+              to="/estoque"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-foreground transition hover:border-primary hover:text-primary"
+            >
+              Ver estoque completo
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-primary" />
-            Seg–Sex 8h–19h · Sáb 8h–17h · Dom 9h–13h
-          </span>
-          <span className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-primary" />
-            Santo Antônio de Pádua — RJ
-          </span>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="rounded-[30px] border border-white/8 bg-background p-7">
+            <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-foreground">
+              <MapPin className="h-4 w-4 text-primary" />
+              Endereco da loja
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+              Estrada Padua x Pirapetinga, KM 1
+              <br />
+              Santa Afra
+              <br />
+              Santo Antonio de Padua - RJ
+            </p>
+          </div>
+
+          <div className="rounded-[30px] border border-white/8 bg-background p-7">
+            <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-foreground">
+              <Clock className="h-4 w-4 text-primary" />
+              Horario de atendimento
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+              Seg-Sex 8h-19h
+              <br />
+              Sab 8h-17h
+              <br />
+              Dom 9h-13h
+            </p>
+          </div>
         </div>
       </motion.div>
     </section>
