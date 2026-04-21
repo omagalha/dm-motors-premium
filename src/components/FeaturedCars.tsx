@@ -68,7 +68,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
               Showroom em destaque
             </span>
             <h2 className="mt-3 text-4xl font-black uppercase leading-[0.92] text-foreground md:text-5xl">
-              Estoque com cara de vitrine premium.
+              Estoque.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
               Oportunidades selecionadas com procedencia, boa apresentacao e condicoes
