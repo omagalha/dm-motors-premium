@@ -1,14 +1,29 @@
 const Vehicle = require("../models/Vehicle");
+const { normalizeVehiclePayload, serializeVehicle } = require("../utils/vehicleContract");
 const {
-  normalizeVehiclePayload,
-  serializeVehicle,
-} = require("../utils/vehicleContract");
+  deleteVehicleAnalyticsSummary,
+  getVehicleAnalyticsMap,
+  getVehicleAnalyticsSummary,
+} = require("../utils/vehicleAnalytics");
 
 async function getVehicles(req, res) {
   try {
     const query = req.admin ? {} : { active: true };
     const vehicles = await Vehicle.find(query).sort({ createdAt: -1 });
-    return res.status(200).json(vehicles.map(serializeVehicle));
+    const analyticsMap = req.admin
+      ? await getVehicleAnalyticsMap(vehicles.map((vehicle) => vehicle._id))
+      : {};
+
+    return res
+      .status(200)
+      .json(
+        vehicles.map((vehicle) =>
+          serializeVehicle(vehicle, {
+            isAdmin: Boolean(req.admin),
+            metricsOverride: analyticsMap[String(vehicle._id)] ?? vehicle.metrics,
+          }),
+        ),
+      );
   } catch (error) {
     return res.status(500).json({ message: "Erro ao buscar veiculos." });
   }
@@ -22,7 +37,16 @@ async function getVehicleById(req, res) {
       return res.status(404).json({ message: "Veiculo nao encontrado." });
     }
 
-    return res.status(200).json(serializeVehicle(vehicle));
+    const metricsOverride = req.admin
+      ? await getVehicleAnalyticsSummary(vehicle._id)
+      : undefined;
+
+    return res.status(200).json(
+      serializeVehicle(vehicle, {
+        isAdmin: Boolean(req.admin),
+        metricsOverride,
+      }),
+    );
   } catch (error) {
     return res.status(500).json({ message: "Erro ao buscar veiculo." });
   }
@@ -31,7 +55,7 @@ async function getVehicleById(req, res) {
 async function createVehicle(req, res) {
   try {
     const vehicle = await Vehicle.create(normalizeVehiclePayload(req.body));
-    return res.status(201).json(serializeVehicle(vehicle));
+    return res.status(201).json(serializeVehicle(vehicle, { isAdmin: Boolean(req.admin) }));
   } catch (error) {
     return res.status(400).json({
       message: "Erro ao criar veiculo.",
@@ -45,14 +69,23 @@ async function updateVehicle(req, res) {
     const updatedVehicle = await Vehicle.findByIdAndUpdate(
       req.params.id,
       normalizeVehiclePayload(req.body, { partial: true }),
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!updatedVehicle) {
       return res.status(404).json({ message: "Veiculo nao encontrado." });
     }
 
-    return res.status(200).json(serializeVehicle(updatedVehicle));
+    const metricsOverride = req.admin
+      ? await getVehicleAnalyticsSummary(updatedVehicle._id)
+      : undefined;
+
+    return res.status(200).json(
+      serializeVehicle(updatedVehicle, {
+        isAdmin: Boolean(req.admin),
+        metricsOverride,
+      }),
+    );
   } catch (error) {
     return res.status(400).json({
       message: "Erro ao atualizar veiculo.",
@@ -68,6 +101,8 @@ async function deleteVehicle(req, res) {
     if (!deletedVehicle) {
       return res.status(404).json({ message: "Veiculo nao encontrado." });
     }
+
+    await deleteVehicleAnalyticsSummary(deletedVehicle._id);
 
     return res.status(200).json({ message: "Veiculo removido com sucesso." });
   } catch (error) {

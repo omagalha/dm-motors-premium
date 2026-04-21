@@ -24,6 +24,7 @@ import {
   getVehicleWhatsappNumber,
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
+import { trackVehicleWhatsappClick } from "@/services/analyticsService";
 import type { VehicleFilters } from "@/types/vehicle";
 import { getVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "@/types/vehicle";
@@ -501,6 +502,9 @@ function EstoquePage() {
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => {
+                        void trackVehicleWhatsappClick(car.id, { source: "listing" });
+                      }}
                       className="mt-5 flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
                     >
                       <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />

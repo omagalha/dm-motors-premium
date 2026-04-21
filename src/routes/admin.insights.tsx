@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { formatPrice } from "@/data/cars";
 import { useCars } from "@/data/carsStore";
-import { getCarInsights } from "@/data/insights";
-import { getVehiclePrimaryImage } from "@/lib/vehicles";
+import { getVehicleMetricsSummary, getVehiclePrimaryImage } from "@/lib/vehicles";
 import { Eye, MessageCircle, Flame, Car as CarIcon } from "lucide-react";
 
 export const Route = createFileRoute("/admin/insights")({
@@ -17,7 +16,7 @@ export const Route = createFileRoute("/admin/insights")({
 
 function AdminInsights() {
   const cars = useCars();
-  const carInsights = getCarInsights(cars);
+  const carInsights = Object.fromEntries(cars.map((car) => [car.id, getVehicleMetricsSummary(car)]));
   const ranked = [...cars].sort(
     (a, b) => (carInsights[b.id]?.views ?? 0) - (carInsights[a.id]?.views ?? 0),
   );

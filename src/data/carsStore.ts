@@ -4,7 +4,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { allCars as seedCars } from "./cars";
-import { normalizeVehicleRecord } from "@/lib/vehicles";
+import { normalizeVehicleRecord, stripVehicleAdminData } from "@/lib/vehicles";
+import { getStoredAdminToken } from "@/lib/adminSession";
 import type { Vehicle, VehicleInput, VehicleUpdateInput } from "@/types/vehicle";
 import { getVehicles } from "@/services/vehicleService";
 
@@ -12,6 +13,7 @@ export type Car = Vehicle;
 export type CarInput = VehicleInput;
 
 const STORAGE_KEY = "dm-motors:cars:v2";
+let volatileCars: Vehicle[] | null = null;
 
 function isBrowser() {
   return typeof window !== "undefined";
@@ -19,6 +21,17 @@ function isBrowser() {
 
 function normalizeVehicleList(cars: Vehicle[]) {
   return cars.map(normalizeVehicleRecord);
+}
+
+function sanitizeVehicleList(cars: Vehicle[]) {
+  return cars.map(stripVehicleAdminData);
+}
+
+function getVolatileCars() {
+  if (volatileCars === null) return null;
+
+  const normalized = normalizeVehicleList(volatileCars);
+  return getStoredAdminToken() ? normalized : sanitizeVehicleList(normalized);
 }
 
 function readState(): Vehicle[] | null {
@@ -31,7 +44,7 @@ function readState(): Vehicle[] | null {
     const parsed = JSON.parse(raw) as Vehicle[];
     if (!Array.isArray(parsed)) return null;
 
-    return normalizeVehicleList(parsed);
+    return sanitizeVehicleList(normalizeVehicleList(parsed));
   } catch {
     return null;
   }
@@ -41,7 +54,7 @@ function writeState(cars: Vehicle[]) {
   if (!isBrowser()) return;
 
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cars));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizeVehicleList(cars)));
     window.dispatchEvent(new CustomEvent("dm-motors:cars-updated"));
   } catch {
     /* ignore quota errors */
@@ -49,13 +62,17 @@ function writeState(cars: Vehicle[]) {
 }
 
 export function getCars(): Vehicle[] {
+  const volatileState = getVolatileCars();
+  if (volatileState) return volatileState;
+
   const stored = readState();
   if (stored) return stored;
   return seedCars;
 }
 
 export function replaceCars(cars: Vehicle[]) {
-  writeState(normalizeVehicleList(cars));
+  volatileCars = normalizeVehicleList(cars);
+  writeState(volatileCars);
 }
 
 export function getCarById(id: string): Vehicle | undefined {
@@ -83,6 +100,7 @@ export function addCar(input: VehicleInput | Vehicle): Vehicle {
   if (index >= 0) list[index] = car;
   else list.unshift(car);
 
+  volatileCars = normalizeVehicleList(list);
   writeState(list);
   return car;
 }
@@ -101,15 +119,19 @@ export function updateCar(id: string, input: VehicleUpdateInput): Vehicle | unde
     return updatedCar;
   });
 
+  volatileCars = normalizeVehicleList(list);
   writeState(list);
   return updatedCar;
 }
 
 export function deleteCar(id: string) {
-  writeState(getCars().filter((car) => car.id !== id));
+  const nextCars = getCars().filter((car) => car.id !== id);
+  volatileCars = normalizeVehicleList(nextCars);
+  writeState(nextCars);
 }
 
 export function resetCars() {
+  volatileCars = null;
   if (!isBrowser()) return;
   window.localStorage.removeItem(STORAGE_KEY);
   window.dispatchEvent(new CustomEvent("dm-motors:cars-updated"));

@@ -13,6 +13,7 @@ import {
   getVehicleWhatsappNumber,
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
+import { trackVehicleView, trackVehicleWhatsappClick } from "@/services/analyticsService";
 import { getVehicleById, getVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "@/types/vehicle";
 import {
@@ -108,8 +109,15 @@ function VehiclePage() {
     setActiveImage(coverIndex >= 0 ? coverIndex : 0);
   }, [car.id, galleryStateKey]);
 
+  useEffect(() => {
+    void trackVehicleView(car.id, { source: "detail" });
+  }, [car.id]);
+
   const badgeStyle = getVehicleBadgeStyle(car.badge);
   const whatsappMessage = `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`;
+  const handleWhatsappClick = () => {
+    void trackVehicleWhatsappClick(car.id, { source: "detail" });
+  };
 
   const specs = [
     { icon: Calendar, label: "Ano", value: String(car.year) },
@@ -289,6 +297,7 @@ function VehiclePage() {
                   href={whatsappLink(whatsappMessage, getVehicleWhatsappNumber(car))}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handleWhatsappClick}
                   className="animate-pulse-whatsapp flex w-full items-center justify-center gap-2 rounded-full bg-whatsapp py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card transition hover:brightness-110"
                 >
                   <MessageCircle className="h-5 w-5 fill-current" strokeWidth={0} />
@@ -414,6 +423,7 @@ function VehiclePage() {
           href={whatsappLink(whatsappMessage, getVehicleWhatsappNumber(car))}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={handleWhatsappClick}
           className="animate-pulse-whatsapp flex w-full items-center justify-center gap-2 rounded-full bg-whatsapp py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card"
         >
           <MessageCircle className="h-5 w-5 fill-current" strokeWidth={0} />

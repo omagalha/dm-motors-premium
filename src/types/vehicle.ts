@@ -16,6 +16,39 @@ export interface VehicleImage {
   isCover?: boolean;
 }
 
+export interface VehicleInternalData {
+  plate: string;
+  renavam: string;
+  chassis: string;
+  engineNumber: string;
+  buyerDocument: string;
+  buyerName: string;
+  previousOwnerDocument: string;
+  previousOwnerName: string;
+  acquisitionDate: string;
+  acquisitionValue: number;
+  minimumSaleValue: number;
+  financedValue: number;
+  internalNotes: string;
+  provenance: string;
+  spareKeyCount: string;
+  manualCount: string;
+  hasInspectionReport: boolean;
+  hasPaidIpva: boolean;
+  hasFines: boolean;
+  hasLien: boolean;
+  legalNotes: string;
+}
+
+export interface VehicleMetricsSummary {
+  views: number;
+  whatsappClicks: number;
+  lastViewAt?: string;
+  lastWhatsappClickAt?: string;
+  sources?: Record<string, number>;
+  leads?: number;
+}
+
 export interface Vehicle {
   // Identidade
   id: string;
@@ -45,6 +78,8 @@ export interface Vehicle {
   status: VehicleStatus;
   whatsappNumber: string;
   tags: string[];
+  internal?: VehicleInternalData;
+  metrics?: VehicleMetricsSummary;
 
   // Operacao
   createdAt: string;

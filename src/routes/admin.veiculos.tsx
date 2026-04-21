@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatKm, formatPrice } from "@/data/cars";
 import { resetCars, useCars, type Car, type CarInput } from "@/data/carsStore";
-import { getCarInsights } from "@/data/insights";
 import { getStoredAdminToken } from "@/lib/adminSession";
 import {
   ensureSingleCover,
   getVehicleImageUrl,
+  getVehicleMetricsSummary,
   getVehiclePrimaryImage,
   moveImage,
   normalizeVehicleImages,
@@ -18,6 +19,7 @@ import type {
   Category,
   Fuel,
   Transmission,
+  VehicleInternalData,
   VehicleImage,
   VehicleStatus,
 } from "@/types/vehicle";
@@ -73,6 +75,7 @@ type SubmitStatus = "idle" | "uploading_images" | "saving_vehicle";
 type ActiveFilter = "all" | "active" | "inactive";
 type FeaturedFilter = "all" | "featured" | "regular";
 type EditorMode = "create" | "edit" | "duplicate";
+type EditorTab = "commercial" | "images" | "internal";
 
 interface PendingUploadItem {
   id: string;
@@ -87,6 +90,30 @@ interface AdminImageItem {
   image: VehicleImage;
   previewUrl: string;
   file?: File;
+}
+
+interface InternalFormState {
+  plate: string;
+  renavam: string;
+  chassis: string;
+  engineNumber: string;
+  buyerDocument: string;
+  buyerName: string;
+  previousOwnerDocument: string;
+  previousOwnerName: string;
+  acquisitionDate: string;
+  acquisitionValue: string;
+  minimumSaleValue: string;
+  financedValue: string;
+  internalNotes: string;
+  provenance: string;
+  spareKeyCount: string;
+  manualCount: string;
+  hasInspectionReport: boolean;
+  hasPaidIpva: boolean;
+  hasFines: boolean;
+  hasLien: boolean;
+  legalNotes: string;
 }
 
 interface FormState {
@@ -109,6 +136,7 @@ interface FormState {
   tags: string;
   isFeatured: boolean;
   active: boolean;
+  internal: InternalFormState;
 }
 
 interface RowActionState {
@@ -121,6 +149,36 @@ interface ActionNotice {
   title: string;
   description: string;
 }
+
+interface DocumentBadge {
+  done: boolean;
+  doneLabel: string;
+  pendingLabel: string;
+}
+
+const emptyInternalForm: InternalFormState = {
+  plate: "",
+  renavam: "",
+  chassis: "",
+  engineNumber: "",
+  buyerDocument: "",
+  buyerName: "",
+  previousOwnerDocument: "",
+  previousOwnerName: "",
+  acquisitionDate: "",
+  acquisitionValue: "",
+  minimumSaleValue: "",
+  financedValue: "",
+  internalNotes: "",
+  provenance: "",
+  spareKeyCount: "",
+  manualCount: "",
+  hasInspectionReport: false,
+  hasPaidIpva: false,
+  hasFines: false,
+  hasLien: false,
+  legalNotes: "",
+};
 
 const emptyForm: FormState = {
   name: "",
@@ -142,6 +200,7 @@ const emptyForm: FormState = {
   tags: "",
   isFeatured: false,
   active: true,
+  internal: emptyInternalForm,
 };
 
 function normalizeText(value: string) {
@@ -167,11 +226,13 @@ function buildVehicleSearchValue(car: Car) {
       car.tags.join(" "),
       car.features.join(" "),
       String(car.year),
-    ].join(" ")
+    ].join(" "),
   );
 }
 
 function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormState {
+  const internal = car.internal;
+
   return {
     name: car.name,
     brand: car.brand,
@@ -192,6 +253,38 @@ function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormSta
     tags: joinList(car.tags),
     isFeatured: car.isFeatured,
     active: car.active,
+    internal: {
+      plate: internal?.plate ?? "",
+      renavam: internal?.renavam ?? "",
+      chassis: internal?.chassis ?? "",
+      engineNumber: internal?.engineNumber ?? "",
+      buyerDocument: internal?.buyerDocument ?? "",
+      buyerName: internal?.buyerName ?? "",
+      previousOwnerDocument: internal?.previousOwnerDocument ?? "",
+      previousOwnerName: internal?.previousOwnerName ?? "",
+      acquisitionDate: internal?.acquisitionDate ?? "",
+      acquisitionValue:
+        typeof internal?.acquisitionValue === "number" && internal.acquisitionValue > 0
+          ? String(internal.acquisitionValue)
+          : "",
+      minimumSaleValue:
+        typeof internal?.minimumSaleValue === "number" && internal.minimumSaleValue > 0
+          ? String(internal.minimumSaleValue)
+          : "",
+      financedValue:
+        typeof internal?.financedValue === "number" && internal.financedValue > 0
+          ? String(internal.financedValue)
+          : "",
+      internalNotes: internal?.internalNotes ?? "",
+      provenance: internal?.provenance ?? "",
+      spareKeyCount: internal?.spareKeyCount ?? "",
+      manualCount: internal?.manualCount ?? "",
+      hasInspectionReport: Boolean(internal?.hasInspectionReport),
+      hasPaidIpva: Boolean(internal?.hasPaidIpva),
+      hasFines: Boolean(internal?.hasFines),
+      hasLien: Boolean(internal?.hasLien),
+      legalNotes: internal?.legalNotes ?? "",
+    },
     ...overrides,
   };
 }
@@ -213,6 +306,72 @@ function parseList(value: string) {
 
 function joinList(items: string[]) {
   return items.join("\n");
+}
+
+function parseOptionalNumber(value: string) {
+  const parsed = Number(value.trim());
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function buildInternalPayload(internal: InternalFormState): VehicleInternalData {
+  return {
+    plate: internal.plate.trim(),
+    renavam: internal.renavam.trim(),
+    chassis: internal.chassis.trim(),
+    engineNumber: internal.engineNumber.trim(),
+    buyerDocument: internal.buyerDocument.trim(),
+    buyerName: internal.buyerName.trim(),
+    previousOwnerDocument: internal.previousOwnerDocument.trim(),
+    previousOwnerName: internal.previousOwnerName.trim(),
+    acquisitionDate: internal.acquisitionDate.trim(),
+    acquisitionValue: parseOptionalNumber(internal.acquisitionValue),
+    minimumSaleValue: parseOptionalNumber(internal.minimumSaleValue),
+    financedValue: parseOptionalNumber(internal.financedValue),
+    internalNotes: internal.internalNotes.trim(),
+    provenance: internal.provenance.trim(),
+    spareKeyCount: internal.spareKeyCount.trim(),
+    manualCount: internal.manualCount.trim(),
+    hasInspectionReport: internal.hasInspectionReport,
+    hasPaidIpva: internal.hasPaidIpva,
+    hasFines: internal.hasFines,
+    hasLien: internal.hasLien,
+    legalNotes: internal.legalNotes.trim(),
+  };
+}
+
+function buildDocumentBadges(internal: InternalFormState): DocumentBadge[] {
+  return [
+    {
+      done: Boolean(internal.plate.trim()),
+      doneLabel: "Placa preenchida",
+      pendingLabel: "Placa faltando",
+    },
+    {
+      done: Boolean(internal.renavam.trim()),
+      doneLabel: "Renavam preenchido",
+      pendingLabel: "Renavam faltando",
+    },
+    {
+      done: Boolean(internal.chassis.trim()),
+      doneLabel: "Chassi preenchido",
+      pendingLabel: "Chassi faltando",
+    },
+    {
+      done: Boolean(internal.acquisitionDate.trim() || internal.acquisitionValue.trim()),
+      doneLabel: "Aquisicao registrada",
+      pendingLabel: "Aquisicao faltando",
+    },
+    {
+      done: internal.hasPaidIpva,
+      doneLabel: "IPVA marcado",
+      pendingLabel: "IPVA nao marcado",
+    },
+    {
+      done: internal.hasInspectionReport,
+      doneLabel: "Laudo marcado",
+      pendingLabel: "Laudo nao marcado",
+    },
+  ];
 }
 
 function readFileAsDataUrl(file: File) {
@@ -287,10 +446,7 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
 
   const uploadedRaw = Array.isArray(json)
     ? json
-    : json &&
-        typeof json === "object" &&
-        "images" in json &&
-        Array.isArray(json.images)
+    : json && typeof json === "object" && "images" in json && Array.isArray(json.images)
       ? json.images
       : [];
 
@@ -339,10 +495,7 @@ async function deleteVehicleImages(publicIds: string[]) {
   }
 
   const failed =
-    json &&
-    typeof json === "object" &&
-    "failed" in json &&
-    Array.isArray(json.failed)
+    json && typeof json === "object" && "failed" in json && Array.isArray(json.failed)
       ? json.failed
       : [];
 
@@ -389,9 +542,9 @@ function buildAdminImageItems(
 
 function AdminVeiculos() {
   const cars = useCars();
-  const insights = getCarInsights(cars);
   const [open, setOpen] = useState(false);
   const [editorMode, setEditorMode] = useState<EditorMode>("create");
+  const [editorTab, setEditorTab] = useState<EditorTab>("commercial");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [existingImages, setExistingImages] = useState<VehicleImage[]>([]);
@@ -420,13 +573,16 @@ function AdminVeiculos() {
         ? Math.round(cars.reduce((sum, car) => sum + car.price, 0) / cars.length)
         : 0,
     }),
-    [cars]
+    [cars],
   );
 
   const imageItems = useMemo(
     () => buildAdminImageItems(existingImages, pendingUploads),
-    [existingImages, pendingUploads]
+    [existingImages, pendingUploads],
   );
+
+  const documentBadges = useMemo(() => buildDocumentBadges(form.internal), [form.internal]);
+  const completedDocumentBadges = documentBadges.filter((item) => item.done).length;
 
   const filteredCars = useMemo(() => {
     const normalizedSearch = normalizeText(searchQuery);
@@ -435,8 +591,7 @@ function AdminVeiculos() {
       const matchesSearch =
         !normalizedSearch || buildVehicleSearchValue(car).includes(normalizedSearch);
       const matchesActive =
-        activeFilter === "all" ||
-        (activeFilter === "active" ? car.active : !car.active);
+        activeFilter === "all" || (activeFilter === "active" ? car.active : !car.active);
       const matchesFeatured =
         featuredFilter === "all" ||
         (featuredFilter === "featured" ? car.isFeatured : !car.isFeatured);
@@ -475,6 +630,7 @@ function AdminVeiculos() {
   function resetEditorState() {
     setOpen(false);
     setEditorMode("create");
+    setEditorTab("commercial");
     setEditingId(null);
     setForm(emptyForm);
     setExistingImages([]);
@@ -491,6 +647,7 @@ function AdminVeiculos() {
 
   function openEdit(car: Car) {
     setEditorMode("edit");
+    setEditorTab("commercial");
     setEditingId(car.id);
     setForm(buildFormFromCar(car));
     setExistingImages(cloneDraftImages(car.images));
@@ -503,6 +660,7 @@ function AdminVeiculos() {
   function openDuplicate(car: Car) {
     resetEditorState();
     setEditorMode("duplicate");
+    setEditorTab("commercial");
     setEditingId(null);
     setForm(
       buildFormFromCar(car, {
@@ -510,7 +668,8 @@ function AdminVeiculos() {
         active: false,
         isFeatured: false,
         status: "disponivel",
-      })
+        internal: emptyInternalForm,
+      }),
     );
     setExistingImages(cloneDraftImages(car.images));
     setPendingUploads([]);
@@ -557,21 +716,20 @@ function AdminVeiculos() {
     const normalizedItems = normalizeAdminImageItems(items);
 
     setExistingImages(
-      normalizedItems
-        .filter((item) => item.kind === "existing")
-        .map((item) => item.image)
+      normalizedItems.filter((item) => item.kind === "existing").map((item) => item.image),
     );
     setPendingUploads(
       normalizedItems
-        .filter((item): item is AdminImageItem & { kind: "pending"; file: File } =>
-          item.kind === "pending" && Boolean(item.file)
+        .filter(
+          (item): item is AdminImageItem & { kind: "pending"; file: File } =>
+            item.kind === "pending" && Boolean(item.file),
         )
         .map((item) => ({
           id: item.id,
           file: item.file,
           previewUrl: item.previewUrl,
           image: item.image,
-        }))
+        })),
     );
   }
 
@@ -583,14 +741,14 @@ function AdminVeiculos() {
 
     const nextImages = setCoverImage(
       imageItems.map((item) => item.image),
-      index
+      index,
     );
 
     applyImageItems(
       imageItems.map((item, itemIndex) => ({
         ...item,
         image: nextImages[itemIndex],
-      }))
+      })),
     );
   }
 
@@ -625,6 +783,19 @@ function AdminVeiculos() {
     applyImageItems(imageItems.filter((imageItem) => imageItem.id !== id));
   }
 
+  function updateInternalField<Key extends keyof InternalFormState>(
+    key: Key,
+    value: InternalFormState[Key],
+  ) {
+    setForm((current) => ({
+      ...current,
+      internal: {
+        ...current.internal,
+        [key]: value,
+      },
+    }));
+  }
+
   function clearFilters() {
     setSearchQuery("");
     setActiveFilter("all");
@@ -651,9 +822,7 @@ function AdminVeiculos() {
       toast.success(nextActive ? "Veiculo ativado." : "Veiculo desativado.");
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Nao foi possivel atualizar o status do veiculo."
+        error instanceof Error ? error.message : "Nao foi possivel atualizar o status do veiculo.",
       );
     } finally {
       setRowAction(null);
@@ -673,15 +842,32 @@ function AdminVeiculos() {
     const features = parseList(form.features);
     const tags = parseList(form.tags);
 
-    if (!name) return toast.error("Informe o nome do veiculo.");
-    if (!brand) return toast.error("Informe a marca.");
-    if (!model) return toast.error("Informe o modelo.");
-    if (!Number.isFinite(price) || price <= 0) return toast.error("Preco invalido.");
-    if (!Number.isFinite(mileage) || mileage < 0) return toast.error("Quilometragem invalida.");
+    if (!name) {
+      setEditorTab("commercial");
+      return toast.error("Informe o nome do veiculo.");
+    }
+    if (!brand) {
+      setEditorTab("commercial");
+      return toast.error("Informe a marca.");
+    }
+    if (!model) {
+      setEditorTab("commercial");
+      return toast.error("Informe o modelo.");
+    }
+    if (!Number.isFinite(price) || price <= 0) {
+      setEditorTab("commercial");
+      return toast.error("Preco invalido.");
+    }
+    if (!Number.isFinite(mileage) || mileage < 0) {
+      setEditorTab("commercial");
+      return toast.error("Quilometragem invalida.");
+    }
     if (!Number.isFinite(year) || year < 1980 || year > 2100) {
+      setEditorTab("commercial");
       return toast.error("Ano invalido.");
     }
     if (!imageItems.length) {
+      setEditorTab("images");
       return toast.error("Adicione pelo menos uma imagem.");
     }
 
@@ -692,9 +878,7 @@ function AdminVeiculos() {
 
       if (pendingUploads.length > 0) {
         setSubmitStatus("uploading_images");
-        const uploadedImages = await uploadVehicleImages(
-          pendingUploads.map((item) => item.file)
-        );
+        const uploadedImages = await uploadVehicleImages(pendingUploads.map((item) => item.file));
 
         if (uploadedImages.length !== pendingUploads.length) {
           throw new Error("Quantidade de imagens retornadas pelo upload nao confere.");
@@ -707,7 +891,7 @@ function AdminVeiculos() {
               ...uploadedImages[index],
               isCover: imageItems.find((imageItem) => imageItem.id === item.id)?.image.isCover,
             } satisfies VehicleImage,
-          ])
+          ]),
         );
 
         nextImageItems = normalizeAdminImageItems(
@@ -725,7 +909,7 @@ function AdminVeiculos() {
               image: uploadedImage,
               previewUrl: getVehicleImageUrl(uploadedImage),
             };
-          })
+          }),
         );
 
         applyImageItems(nextImageItems);
@@ -756,6 +940,7 @@ function AdminVeiculos() {
         status: form.status,
         whatsappNumber: form.whatsappNumber.trim() || WHATSAPP_NUMBER,
         tags,
+        internal: buildInternalPayload(form.internal),
       };
 
       let savedVehicle: Car | undefined;
@@ -790,14 +975,14 @@ function AdminVeiculos() {
       const activePublicIds = new Set(
         finalImages
           .map((image) => image.publicId?.trim())
-          .filter((publicId): publicId is string => Boolean(publicId))
+          .filter((publicId): publicId is string => Boolean(publicId)),
       );
       const removablePublicIds = [
         ...new Set(
           removedImagesSnapshot
             .map((image) => image.publicId?.trim())
             .filter((publicId): publicId is string => Boolean(publicId))
-            .filter((publicId) => !activePublicIds.has(publicId))
+            .filter((publicId) => !activePublicIds.has(publicId)),
         ),
       ];
 
@@ -805,13 +990,15 @@ function AdminVeiculos() {
         void deleteVehicleImages(removablePublicIds).catch((error) => {
           console.warn("[admin.veiculos] Cloudinary cleanup failed:", error);
           toast.warning(
-            "Veiculo salvo, mas algumas imagens antigas nao puderam ser removidas do Cloudinary."
+            "Veiculo salvo, mas algumas imagens antigas nao puderam ser removidas do Cloudinary.",
           );
         });
       }
     } catch (error) {
       setSubmitStatus("idle");
-      toast.error(error instanceof Error ? error.message : "Nao foi possivel salvar. Tente novamente.");
+      toast.error(
+        error instanceof Error ? error.message : "Nao foi possivel salvar. Tente novamente.",
+      );
     }
   }
 
@@ -823,7 +1010,7 @@ function AdminVeiculos() {
       ...new Set(
         normalizeVehicleImages(car.images)
           .map((image) => image.publicId?.trim())
-          .filter((publicId): publicId is string => Boolean(publicId))
+          .filter((publicId): publicId is string => Boolean(publicId)),
       ),
     ];
 
@@ -842,7 +1029,7 @@ function AdminVeiculos() {
         void deleteVehicleImages(removablePublicIds).catch((error) => {
           console.warn("[admin.veiculos] Cloudinary cleanup after delete failed:", error);
           toast.warning(
-            "Veiculo removido, mas algumas imagens nao puderam ser limpas do Cloudinary."
+            "Veiculo removido, mas algumas imagens nao puderam ser limpas do Cloudinary.",
           );
         });
       }
@@ -894,7 +1081,11 @@ function AdminVeiculos() {
       </header>
 
       <p className="rounded-lg border border-border/60 bg-card/50 px-4 py-3 text-xs text-muted-foreground">
-        Configure <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[11px] text-foreground">VITE_API_URL</code> no frontend para apontar para a API correta em cada ambiente.
+        Configure{" "}
+        <code className="rounded bg-secondary px-1 py-0.5 font-mono text-[11px] text-foreground">
+          VITE_API_URL
+        </code>{" "}
+        no frontend para apontar para a API correta em cada ambiente.
       </p>
 
       {actionNotice && (
@@ -972,7 +1163,9 @@ function AdminVeiculos() {
             <select
               value={categoryFilter}
               onChange={(event) =>
-                setCategoryFilter(event.target.value === "all" ? "all" : (event.target.value as Category))
+                setCategoryFilter(
+                  event.target.value === "all" ? "all" : (event.target.value as Category),
+                )
               }
               className="adm-input"
             >
@@ -1022,10 +1215,10 @@ function AdminVeiculos() {
               </tr>
             </thead>
             <tbody>
-              {filteredCars.map((car) => {
-                const status = statusMeta[car.status];
-                const metrics = insights[car.id];
-                const isRowBusy = rowAction?.id === car.id;
+                {filteredCars.map((car) => {
+                  const status = statusMeta[car.status];
+                  const metrics = getVehicleMetricsSummary(car);
+                  const isRowBusy = rowAction?.id === car.id;
                 const isHighlighted = highlightedCarId === car.id;
                 return (
                   <tr
@@ -1173,7 +1366,9 @@ function AdminVeiculos() {
 
       {cars.length > 0 && filteredCars.length === 0 && (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-          <p className="font-semibold text-foreground">Nenhum veiculo encontrado com esses filtros.</p>
+          <p className="font-semibold text-foreground">
+            Nenhum veiculo encontrado com esses filtros.
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Ajuste a busca ou limpe os filtros para voltar ao inventario completo.
           </p>
@@ -1197,16 +1392,22 @@ function AdminVeiculos() {
           <form
             onClick={(event) => event.stopPropagation()}
             onSubmit={handleSubmit}
-            className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl border border-border bg-card shadow-card sm:rounded-2xl"
+            className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-t-2xl border border-border bg-card shadow-card sm:rounded-2xl"
           >
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <h2 className="text-lg font-bold text-foreground">
-                {editorMode === "edit"
-                  ? "Editar veiculo"
-                  : editorMode === "duplicate"
-                    ? "Duplicar veiculo"
-                    : "Novo veiculo"}
-              </h2>
+            <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">
+                  {editorMode === "edit"
+                    ? "Editar veiculo"
+                    : editorMode === "duplicate"
+                      ? "Duplicar veiculo"
+                      : "Novo veiculo"}
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Comece pela aba comercial, salve rapido com imagens e volte depois para completar
+                  os dados internos e documentais.
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={close}
@@ -1217,343 +1418,672 @@ function AdminVeiculos() {
               </button>
             </div>
 
-            <div className="space-y-4 px-5 py-5">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <Field label="Nome de exibicao">
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(event) => setForm({ ...form, name: event.target.value })}
-                    placeholder="Ex: Honda Civic EXL"
-                    className="adm-input"
-                    required
-                  />
-                </Field>
-                <Field label="Marca">
-                  <input
-                    type="text"
-                    value={form.brand}
-                    onChange={(event) => setForm({ ...form, brand: event.target.value })}
-                    placeholder="Ex: Honda"
-                    className="adm-input"
-                    required
-                  />
-                </Field>
-                <Field label="Modelo">
-                  <input
-                    type="text"
-                    value={form.model}
-                    onChange={(event) => setForm({ ...form, model: event.target.value })}
-                    placeholder="Ex: Civic"
-                    className="adm-input"
-                    required
-                  />
-                </Field>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Field label="Preco (R$)">
-                  <input
-                    type="number"
-                    value={form.price}
-                    onChange={(event) => setForm({ ...form, price: event.target.value })}
-                    className="adm-input"
-                    min={0}
-                    step={100}
-                    required
-                  />
-                </Field>
-                <Field label="KM">
-                  <input
-                    type="number"
-                    value={form.mileage}
-                    onChange={(event) => setForm({ ...form, mileage: event.target.value })}
-                    className="adm-input"
-                    min={0}
-                    required
-                  />
-                </Field>
-                <Field label="Ano">
-                  <input
-                    type="number"
-                    value={form.year}
-                    onChange={(event) => setForm({ ...form, year: event.target.value })}
-                    className="adm-input"
-                    min={1980}
-                    max={2100}
-                    required
-                  />
-                </Field>
-                <Field label="Selo principal">
-                  <input
-                    type="text"
-                    value={form.badge}
-                    onChange={(event) => setForm({ ...form, badge: event.target.value })}
-                    placeholder="Ex: BAIXA KM"
-                    className="adm-input"
-                  />
-                </Field>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Field label="Cambio">
-                  <select
-                    value={form.transmission}
-                    onChange={(event) =>
-                      setForm({ ...form, transmission: event.target.value as Transmission })
-                    }
-                    className="adm-input"
+            <Tabs
+              value={editorTab}
+              onValueChange={(value) => setEditorTab(value as EditorTab)}
+              className="px-5 py-5"
+            >
+              <div className="space-y-4">
+                <TabsList className="grid h-auto w-full grid-cols-3 rounded-xl bg-secondary/60 p-1">
+                  <TabsTrigger
+                    value="commercial"
+                    className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider"
                   >
-                    {transmissions.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Combustivel">
-                  <select
-                    value={form.fuel}
-                    onChange={(event) => setForm({ ...form, fuel: event.target.value as Fuel })}
-                    className="adm-input"
+                    Informacoes comerciais
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="images"
+                    className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider"
                   >
-                    {fuels.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Categoria">
-                  <select
-                    value={form.category}
-                    onChange={(event) =>
-                      setForm({ ...form, category: event.target.value as Category })
-                    }
-                    className="adm-input"
+                    Imagens
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="internal"
+                    className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider"
                   >
-                    {categories.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Status">
-                  <select
-                    value={form.status}
-                    onChange={(event) =>
-                      setForm({ ...form, status: event.target.value as VehicleStatus })
-                    }
-                    className="adm-input"
-                  >
-                    {statuses.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                    Dados internos
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="rounded-xl border border-border/60 bg-background/40 px-4 py-3 text-xs text-muted-foreground">
+                  Salve com comercial e imagens para publicar rapido. Os dados documentais ficam
+                  isolados no admin e podem ser preenchidos depois sem quebrar a vitrine.
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <Field label="Cor">
-                  <input
-                    type="text"
-                    value={form.color}
-                    onChange={(event) => setForm({ ...form, color: event.target.value })}
-                    placeholder="Ex: Prata"
-                    className="adm-input"
-                  />
-                </Field>
-                <Field label="Cidade">
-                  <input
-                    type="text"
-                    value={form.city}
-                    onChange={(event) => setForm({ ...form, city: event.target.value })}
-                    placeholder="Ex: Juiz de Fora - MG"
-                    className="adm-input"
-                  />
-                </Field>
-                <Field label="WhatsApp da loja">
-                  <input
-                    type="text"
-                    value={form.whatsappNumber}
-                    onChange={(event) =>
-                      setForm({ ...form, whatsappNumber: event.target.value })
-                    }
-                    placeholder="5532999264848"
-                    className="adm-input"
-                  />
-                </Field>
-              </div>
+              <TabsContent value="commercial" className="mt-5 space-y-4">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <Field label="Nome de exibicao">
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(event) => setForm({ ...form, name: event.target.value })}
+                      placeholder="Ex: Honda Civic EXL"
+                      className="adm-input"
+                      required
+                    />
+                  </Field>
+                  <Field label="Marca">
+                    <input
+                      type="text"
+                      value={form.brand}
+                      onChange={(event) => setForm({ ...form, brand: event.target.value })}
+                      placeholder="Ex: Honda"
+                      className="adm-input"
+                      required
+                    />
+                  </Field>
+                  <Field label="Modelo">
+                    <input
+                      type="text"
+                      value={form.model}
+                      onChange={(event) => setForm({ ...form, model: event.target.value })}
+                      placeholder="Ex: Civic"
+                      className="adm-input"
+                      required
+                    />
+                  </Field>
+                </div>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <ToggleField
-                  label="Destaque"
-                  checked={form.isFeatured}
-                  onChange={(checked) => setForm({ ...form, isFeatured: checked })}
-                />
-                <ToggleField
-                  label="Ativo no estoque"
-                  checked={form.active}
-                  onChange={(checked) => setForm({ ...form, active: checked })}
-                />
-              </div>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  <Field label="Preco (R$)">
+                    <input
+                      type="number"
+                      value={form.price}
+                      onChange={(event) => setForm({ ...form, price: event.target.value })}
+                      className="adm-input"
+                      min={0}
+                      step={100}
+                      required
+                    />
+                  </Field>
+                  <Field label="KM">
+                    <input
+                      type="number"
+                      value={form.mileage}
+                      onChange={(event) => setForm({ ...form, mileage: event.target.value })}
+                      className="adm-input"
+                      min={0}
+                      required
+                    />
+                  </Field>
+                  <Field label="Ano">
+                    <input
+                      type="number"
+                      value={form.year}
+                      onChange={(event) => setForm({ ...form, year: event.target.value })}
+                      className="adm-input"
+                      min={1980}
+                      max={2100}
+                      required
+                    />
+                  </Field>
+                  <Field label="Selo principal">
+                    <input
+                      type="text"
+                      value={form.badge}
+                      onChange={(event) => setForm({ ...form, badge: event.target.value })}
+                      placeholder="Ex: BAIXA KM"
+                      className="adm-input"
+                    />
+                  </Field>
+                </div>
 
-              <Field label="Descricao do veiculo">
-                <textarea
-                  value={form.description}
-                  onChange={(event) => setForm({ ...form, description: event.target.value })}
-                  placeholder="Descreva o estado, historico e diferenciais do veiculo."
-                  className="adm-input min-h-[110px] resize-y"
-                  rows={5}
-                />
-              </Field>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  <Field label="Cambio">
+                    <select
+                      value={form.transmission}
+                      onChange={(event) =>
+                        setForm({ ...form, transmission: event.target.value as Transmission })
+                      }
+                      className="adm-input"
+                    >
+                      {transmissions.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Combustivel">
+                    <select
+                      value={form.fuel}
+                      onChange={(event) => setForm({ ...form, fuel: event.target.value as Fuel })}
+                      className="adm-input"
+                    >
+                      {fuels.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Categoria">
+                    <select
+                      value={form.category}
+                      onChange={(event) =>
+                        setForm({ ...form, category: event.target.value as Category })
+                      }
+                      className="adm-input"
+                    >
+                      {categories.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Status">
+                    <select
+                      value={form.status}
+                      onChange={(event) =>
+                        setForm({ ...form, status: event.target.value as VehicleStatus })
+                      }
+                      className="adm-input"
+                    >
+                      {statuses.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <Field label="Itens e opcionais (virgula ou quebra de linha)">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <Field label="Cor">
+                    <input
+                      type="text"
+                      value={form.color}
+                      onChange={(event) => setForm({ ...form, color: event.target.value })}
+                      placeholder="Ex: Prata"
+                      className="adm-input"
+                    />
+                  </Field>
+                  <Field label="Cidade">
+                    <input
+                      type="text"
+                      value={form.city}
+                      onChange={(event) => setForm({ ...form, city: event.target.value })}
+                      placeholder="Ex: Juiz de Fora - MG"
+                      className="adm-input"
+                    />
+                  </Field>
+                  <Field label="WhatsApp da loja">
+                    <input
+                      type="text"
+                      value={form.whatsappNumber}
+                      onChange={(event) => setForm({ ...form, whatsappNumber: event.target.value })}
+                      placeholder="5532999264848"
+                      className="adm-input"
+                    />
+                  </Field>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <ToggleField
+                    label="Destaque"
+                    checked={form.isFeatured}
+                    onChange={(checked) => setForm({ ...form, isFeatured: checked })}
+                  />
+                  <ToggleField
+                    label="Ativo no estoque"
+                    checked={form.active}
+                    onChange={(checked) => setForm({ ...form, active: checked })}
+                  />
+                </div>
+
+                <Field label="Descricao do veiculo">
                   <textarea
-                    value={form.features}
-                    onChange={(event) => setForm({ ...form, features: event.target.value })}
-                    placeholder="Ex: Ar-condicionado, Camera de re, Multimidia"
-                    className="adm-input min-h-[100px] resize-y"
-                    rows={4}
+                    value={form.description}
+                    onChange={(event) => setForm({ ...form, description: event.target.value })}
+                    placeholder="Descreva o estado, historico e diferenciais do veiculo."
+                    className="adm-input min-h-[110px] resize-y"
+                    rows={5}
                   />
                 </Field>
-                <Field label="Tags comerciais (virgula ou quebra de linha)">
-                  <textarea
-                    value={form.tags}
-                    onChange={(event) => setForm({ ...form, tags: event.target.value })}
-                    placeholder="Ex: Unico dono, Revisado, IPVA pago"
-                    className="adm-input min-h-[100px] resize-y"
-                    rows={4}
-                  />
-                </Field>
-              </div>
 
-              <Field label="Imagens">
-                <div className="space-y-3">
-                  {imageItems.length > 0 && (
-                    <>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {imageItems.length}{" "}
-                        {imageItems.length === 1
-                          ? "imagem pronta"
-                          : "imagens prontas"}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <Field label="Itens e opcionais (virgula ou quebra de linha)">
+                    <textarea
+                      value={form.features}
+                      onChange={(event) => setForm({ ...form, features: event.target.value })}
+                      placeholder="Ex: Ar-condicionado, Camera de re, Multimidia"
+                      className="adm-input min-h-[100px] resize-y"
+                      rows={4}
+                    />
+                  </Field>
+                  <Field label="Tags comerciais (virgula ou quebra de linha)">
+                    <textarea
+                      value={form.tags}
+                      onChange={(event) => setForm({ ...form, tags: event.target.value })}
+                      placeholder="Ex: Unico dono, Revisado, IPVA pago"
+                      className="adm-input min-h-[100px] resize-y"
+                      rows={4}
+                    />
+                  </Field>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="images" className="mt-5 space-y-4">
+                <section className="rounded-2xl border border-border/60 bg-background/30 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Galeria do veiculo</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Defina a capa, ordene a sequencia e remova imagens antigas sem sair do fluxo
+                        rapido de cadastro.
                       </p>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        {imageItems.map((item, index) => {
-                          const isFirst = index === 0;
-                          const isLast = index === imageItems.length - 1;
-                          const isCover = Boolean(item.image.isCover);
+                    </div>
+                    <span className="rounded-full bg-secondary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-foreground">
+                      {imageItems.length} {imageItems.length === 1 ? "imagem" : "imagens"}
+                    </span>
+                  </div>
+                </section>
 
-                          return (
-                            <div
-                              key={item.id}
-                              className={`relative rounded-xl border p-2 ${
-                                isCover ? "border-primary shadow-red" : "border-border"
-                              }`}
-                            >
-                              <div className="relative overflow-hidden rounded-lg">
-                                <img
-                                  src={item.previewUrl}
-                                  alt={`Imagem ${index + 1}`}
-                                  className="h-32 w-full object-cover"
-                                />
-                                <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
-                                  <span
-                                    className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                                      isCover
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-black/70 text-white"
-                                    }`}
+                <Field label="Imagens">
+                  <div className="space-y-3">
+                    {imageItems.length > 0 && (
+                      <>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          {imageItems.length}{" "}
+                          {imageItems.length === 1 ? "imagem pronta" : "imagens prontas"}
+                        </p>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                          {imageItems.map((item, index) => {
+                            const isFirst = index === 0;
+                            const isLast = index === imageItems.length - 1;
+                            const isCover = Boolean(item.image.isCover);
+
+                            return (
+                              <div
+                                key={item.id}
+                                className={`relative rounded-xl border p-2 ${
+                                  isCover ? "border-primary shadow-red" : "border-border"
+                                }`}
+                              >
+                                <div className="relative overflow-hidden rounded-lg">
+                                  <img
+                                    src={item.previewUrl}
+                                    alt={`Imagem ${index + 1}`}
+                                    className="h-32 w-full object-cover"
+                                  />
+                                  <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
+                                    <span
+                                      className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                                        isCover
+                                          ? "bg-primary text-primary-foreground"
+                                          : "bg-black/70 text-white"
+                                      }`}
+                                    >
+                                      {isCover ? "Capa" : `Imagem ${index + 1}`}
+                                    </span>
+                                    <span className="rounded-full bg-background/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-foreground">
+                                      {item.kind === "existing" ? "Salva" : "Pendente"}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetCover(item.id)}
+                                    disabled={isSubmitting || isCover}
+                                    className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
                                   >
-                                    {isCover ? "Capa" : `Imagem ${index + 1}`}
-                                  </span>
-                                  <span className="rounded-full bg-background/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-foreground">
-                                    {item.kind === "existing" ? "Salva" : "Pendente"}
-                                  </span>
+                                    {isCover ? "Capa" : "Definir capa"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveLeft(item.id)}
+                                    disabled={isSubmitting || isFirst}
+                                    className="rounded-md border border-border px-2.5 py-1.5 text-sm font-bold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                                    aria-label={`Mover imagem ${index + 1} para a esquerda`}
+                                  >
+                                    ←
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveRight(item.id)}
+                                    disabled={isSubmitting || isLast}
+                                    className="rounded-md border border-border px-2.5 py-1.5 text-sm font-bold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                                    aria-label={`Mover imagem ${index + 1} para a direita`}
+                                  >
+                                    →
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveImage(item.id)}
+                                    disabled={isSubmitting}
+                                    className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
+                                  >
+                                    Remover
+                                  </button>
                                 </div>
                               </div>
+                            );
+                          })}
+                        </div>
+                        {removedExistingImages.length > 0 && (
+                          <p className="text-xs text-amber-600">
+                            {removedExistingImages.length}{" "}
+                            {removedExistingImages.length === 1
+                              ? "imagem marcada para remocao do veiculo."
+                              : "imagens marcadas para remocao do veiculo."}{" "}
+                            A exclusao fisica sera tentada automaticamente apos salvar.
+                          </p>
+                        )}
+                      </>
+                    )}
 
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleSetCover(item.id)}
-                                  disabled={isSubmitting || isCover}
-                                  className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  {isCover ? "Capa" : "Definir capa"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleMoveLeft(item.id)}
-                                  disabled={isSubmitting || isFirst}
-                                  className="rounded-md border border-border px-2.5 py-1.5 text-sm font-bold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-                                  aria-label={`Mover imagem ${index + 1} para a esquerda`}
-                                >
-                                  ←
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleMoveRight(item.id)}
-                                  disabled={isSubmitting || isLast}
-                                  className="rounded-md border border-border px-2.5 py-1.5 text-sm font-bold text-foreground transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-                                  aria-label={`Mover imagem ${index + 1} para a direita`}
-                                >
-                                  →
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveImage(item.id)}
-                                  disabled={isSubmitting}
-                                  className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  Remover
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {removedExistingImages.length > 0 && (
-                        <p className="text-xs text-amber-600">
-                          {removedExistingImages.length}{" "}
-                          {removedExistingImages.length === 1
-                            ? "imagem marcada para remocao do veiculo."
-                            : "imagens marcadas para remocao do veiculo."}{" "}
-                          A exclusao fisica sera tentada automaticamente apos salvar.
-                        </p>
-                      )}
-                    </>
-                  )}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={isSubmitting}
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Adicionar imagem
+                      </button>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleFile}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      As novas imagens serao enviadas para o backend quando voce salvar o veiculo.
+                    </p>
+                  </div>
+                </Field>
+              </TabsContent>
 
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={isSubmitting}
-                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <Upload className="h-4 w-4" />
-                      Adicionar imagem
-                    </button>
+              <TabsContent value="internal" className="mt-5 space-y-4">
+                <section className="rounded-2xl border border-dashed border-border bg-background/30 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">
+                        Opcional agora, util para contrato e automacoes futuras
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Esses dados nao aparecem na vitrine publica. Voce pode salvar o comercial
+                        agora e completar a documentacao depois.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-secondary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-foreground">
+                      {completedDocumentBadges}/{documentBadges.length} marcadores
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {documentBadges.map((item) => (
+                      <span
+                        key={item.doneLabel}
+                        className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                          item.done
+                            ? "bg-emerald-500/15 text-emerald-600"
+                            : "bg-amber-500/15 text-amber-600"
+                        }`}
+                      >
+                        {item.done ? item.doneLabel : item.pendingLabel}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Identificacao veicular</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Campos-base para conferencia e preparacao contratual.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <Field label="Placa">
+                      <input
+                        type="text"
+                        value={form.internal.plate}
+                        onChange={(event) => updateInternalField("plate", event.target.value)}
+                        placeholder="Ex: ABC1D23"
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Renavam">
+                      <input
+                        type="text"
+                        value={form.internal.renavam}
+                        onChange={(event) => updateInternalField("renavam", event.target.value)}
+                        placeholder="Numero do renavam"
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Chassi">
+                      <input
+                        type="text"
+                        value={form.internal.chassis}
+                        onChange={(event) => updateInternalField("chassis", event.target.value)}
+                        placeholder="Numero do chassi"
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Numero do motor">
+                      <input
+                        type="text"
+                        value={form.internal.engineNumber}
+                        onChange={(event) =>
+                          updateInternalField("engineNumber", event.target.value)
+                        }
+                        placeholder="Numero do motor"
+                        className="adm-input"
+                      />
+                    </Field>
+                  </div>
+                </section>
+
+                <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Partes e procedencia</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Informacoes de comprador, proprietario anterior e origem do veiculo.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <Field label="Nome do comprador">
+                      <input
+                        type="text"
+                        value={form.internal.buyerName}
+                        onChange={(event) => updateInternalField("buyerName", event.target.value)}
+                        placeholder="Nome completo"
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Documento do comprador">
+                      <input
+                        type="text"
+                        value={form.internal.buyerDocument}
+                        onChange={(event) =>
+                          updateInternalField("buyerDocument", event.target.value)
+                        }
+                        placeholder="CPF ou CNPJ"
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Nome do proprietario anterior">
+                      <input
+                        type="text"
+                        value={form.internal.previousOwnerName}
+                        onChange={(event) =>
+                          updateInternalField("previousOwnerName", event.target.value)
+                        }
+                        placeholder="Nome completo"
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Documento do proprietario anterior">
+                      <input
+                        type="text"
+                        value={form.internal.previousOwnerDocument}
+                        onChange={(event) =>
+                          updateInternalField("previousOwnerDocument", event.target.value)
+                        }
+                        placeholder="CPF ou CNPJ"
+                        className="adm-input"
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Procedencia">
                     <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleFile}
+                      type="text"
+                      value={form.internal.provenance}
+                      onChange={(event) => updateInternalField("provenance", event.target.value)}
+                      placeholder="Ex: Troca, repasse, compra direta, consignado"
+                      className="adm-input"
+                    />
+                  </Field>
+                </section>
+
+                <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Compra e limites internos</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Use esses campos para controle financeiro e margem minima de operacao.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <Field label="Data de aquisicao">
+                      <input
+                        type="date"
+                        value={form.internal.acquisitionDate}
+                        onChange={(event) =>
+                          updateInternalField("acquisitionDate", event.target.value)
+                        }
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Valor de aquisicao (R$)">
+                      <input
+                        type="number"
+                        value={form.internal.acquisitionValue}
+                        onChange={(event) =>
+                          updateInternalField("acquisitionValue", event.target.value)
+                        }
+                        className="adm-input"
+                        min={0}
+                        step={100}
+                      />
+                    </Field>
+                    <Field label="Valor minimo de venda (R$)">
+                      <input
+                        type="number"
+                        value={form.internal.minimumSaleValue}
+                        onChange={(event) =>
+                          updateInternalField("minimumSaleValue", event.target.value)
+                        }
+                        className="adm-input"
+                        min={0}
+                        step={100}
+                      />
+                    </Field>
+                    <Field label="Valor financiado (R$)">
+                      <input
+                        type="number"
+                        value={form.internal.financedValue}
+                        onChange={(event) =>
+                          updateInternalField("financedValue", event.target.value)
+                        }
+                        className="adm-input"
+                        min={0}
+                        step={100}
+                      />
+                    </Field>
+                  </div>
+                </section>
+
+                <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">
+                      Itens, situacao e observacoes
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Controle rapido do pacote documental e eventuais pendencias juridicas.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <Field label="Quantidade de chaves">
+                      <input
+                        type="text"
+                        value={form.internal.spareKeyCount}
+                        onChange={(event) =>
+                          updateInternalField("spareKeyCount", event.target.value)
+                        }
+                        placeholder="Ex: 1 reserva"
+                        className="adm-input"
+                      />
+                    </Field>
+                    <Field label="Manual">
+                      <input
+                        type="text"
+                        value={form.internal.manualCount}
+                        onChange={(event) => updateInternalField("manualCount", event.target.value)}
+                        placeholder="Ex: Original"
+                        className="adm-input"
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <ToggleField
+                      label="Laudo cautelar"
+                      checked={form.internal.hasInspectionReport}
+                      onChange={(checked) => updateInternalField("hasInspectionReport", checked)}
+                    />
+                    <ToggleField
+                      label="IPVA pago"
+                      checked={form.internal.hasPaidIpva}
+                      onChange={(checked) => updateInternalField("hasPaidIpva", checked)}
+                    />
+                    <ToggleField
+                      label="Possui multas"
+                      checked={form.internal.hasFines}
+                      onChange={(checked) => updateInternalField("hasFines", checked)}
+                    />
+                    <ToggleField
+                      label="Possui gravame"
+                      checked={form.internal.hasLien}
+                      onChange={(checked) => updateInternalField("hasLien", checked)}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    As novas imagens serao enviadas para o backend quando voce salvar o veiculo.
-                  </p>
-                </div>
-              </Field>
-            </div>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <Field label="Observacoes internas">
+                      <textarea
+                        value={form.internal.internalNotes}
+                        onChange={(event) =>
+                          updateInternalField("internalNotes", event.target.value)
+                        }
+                        placeholder="Notas operacionais, combinados internos e pontos de atencao."
+                        className="adm-input min-h-[120px] resize-y"
+                        rows={5}
+                      />
+                    </Field>
+                    <Field label="Observacoes legais">
+                      <textarea
+                        value={form.internal.legalNotes}
+                        onChange={(event) => updateInternalField("legalNotes", event.target.value)}
+                        placeholder="Restricoes, pendencias ou observacoes juridicas do contrato."
+                        className="adm-input min-h-[120px] resize-y"
+                        rows={5}
+                      />
+                    </Field>
+                  </div>
+                </section>
+              </TabsContent>
+            </Tabs>
 
             <div className="flex gap-2 border-t border-border bg-background/40 px-5 py-4">
               <button

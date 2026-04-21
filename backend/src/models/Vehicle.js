@@ -1,5 +1,47 @@
 const mongoose = require("mongoose");
 
+const vehicleInternalSchema = new mongoose.Schema(
+  {
+    plate: { type: String, default: "", trim: true },
+    renavam: { type: String, default: "", trim: true },
+    chassis: { type: String, default: "", trim: true },
+    engineNumber: { type: String, default: "", trim: true },
+    buyerDocument: { type: String, default: "", trim: true },
+    buyerName: { type: String, default: "", trim: true },
+    previousOwnerDocument: { type: String, default: "", trim: true },
+    previousOwnerName: { type: String, default: "", trim: true },
+    acquisitionDate: { type: String, default: "", trim: true },
+    acquisitionValue: { type: Number, default: 0 },
+    minimumSaleValue: { type: Number, default: 0 },
+    financedValue: { type: Number, default: 0 },
+    internalNotes: { type: String, default: "", trim: true },
+    provenance: { type: String, default: "", trim: true },
+    spareKeyCount: { type: String, default: "", trim: true },
+    manualCount: { type: String, default: "", trim: true },
+    hasInspectionReport: { type: Boolean, default: false },
+    hasPaidIpva: { type: Boolean, default: false },
+    hasFines: { type: Boolean, default: false },
+    hasLien: { type: Boolean, default: false },
+    legalNotes: { type: String, default: "", trim: true },
+  },
+  { _id: false },
+);
+
+const vehicleMetricsSchema = new mongoose.Schema(
+  {
+    views: { type: Number, default: 0 },
+    whatsappClicks: { type: Number, default: 0 },
+    lastViewAt: { type: String, default: "", trim: true },
+    lastWhatsappClickAt: { type: String, default: "", trim: true },
+    sources: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
+  },
+  { _id: false },
+);
+
 const vehicleSchema = new mongoose.Schema(
   {
     name: {
@@ -94,6 +136,14 @@ const vehicleSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    internal: {
+      type: vehicleInternalSchema,
+      required: false,
+    },
+    metrics: {
+      type: vehicleMetricsSchema,
+      required: false,
+    },
     // Legacy compatibility fields.
     imageUrl: {
       type: String,
@@ -107,7 +157,7 @@ const vehicleSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 module.exports = mongoose.model("Vehicle", vehicleSchema);

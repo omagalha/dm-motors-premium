@@ -3,7 +3,9 @@ import type {
   Fuel,
   Transmission,
   Vehicle,
+  VehicleInternalData,
   VehicleImage,
+  VehicleMetricsSummary,
   VehicleStatus,
 } from "@/types/vehicle";
 import { WHATSAPP_NUMBER } from "./whatsapp";
@@ -15,7 +17,17 @@ type VehicleRecordLike = Partial<Vehicle> & {
   imageUrl?: unknown;
   image?: unknown;
   images?: unknown;
+  internal?: unknown;
+  metrics?: unknown;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasOwn(record: Record<string, unknown>, key: string) {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
 
 function normalizeString(value: unknown, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
@@ -44,6 +56,99 @@ function normalizeNumber(value: unknown, fallback = 0) {
 
 function normalizeBoolean(value: unknown, fallback = false) {
   return typeof value === "boolean" ? value : fallback;
+}
+
+function normalizeCounterRecord(value: unknown) {
+  if (!isRecord(value)) return undefined;
+
+  const counters = Object.entries(value).reduce<Record<string, number>>((acc, [key, count]) => {
+    const normalizedKey = normalizeString(key);
+    const normalizedCount = normalizeNumber(count, 0);
+
+    if (!normalizedKey || normalizedCount <= 0) {
+      return acc;
+    }
+
+    acc[normalizedKey] = normalizedCount;
+    return acc;
+  }, {});
+
+  return Object.keys(counters).length ? counters : undefined;
+}
+
+function normalizeDateString(value: unknown) {
+  const normalized = normalizeString(value);
+  if (!normalized) return undefined;
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  return parsed.toISOString();
+}
+
+export function createEmptyVehicleMetricsSummary(): VehicleMetricsSummary {
+  return {
+    views: 0,
+    whatsappClicks: 0,
+  };
+}
+
+function normalizeVehicleInternalData(value: unknown): VehicleInternalData | undefined {
+  if (!isRecord(value)) return undefined;
+
+  return {
+    plate: normalizeString(value.plate),
+    renavam: normalizeString(value.renavam),
+    chassis: normalizeString(value.chassis),
+    engineNumber: normalizeString(value.engineNumber),
+    buyerDocument: normalizeString(value.buyerDocument),
+    buyerName: normalizeString(value.buyerName),
+    previousOwnerDocument: normalizeString(value.previousOwnerDocument),
+    previousOwnerName: normalizeString(value.previousOwnerName),
+    acquisitionDate: normalizeString(value.acquisitionDate),
+    acquisitionValue: normalizeNumber(value.acquisitionValue),
+    minimumSaleValue: normalizeNumber(value.minimumSaleValue),
+    financedValue: normalizeNumber(value.financedValue),
+    internalNotes: normalizeString(value.internalNotes),
+    provenance: normalizeString(value.provenance),
+    spareKeyCount: normalizeString(value.spareKeyCount),
+    manualCount: normalizeString(value.manualCount),
+    hasInspectionReport: normalizeBoolean(value.hasInspectionReport),
+    hasPaidIpva: normalizeBoolean(value.hasPaidIpva),
+    hasFines: normalizeBoolean(value.hasFines),
+    hasLien: normalizeBoolean(value.hasLien),
+    legalNotes: normalizeString(value.legalNotes),
+  };
+}
+
+function normalizeVehicleMetricsSummary(value: unknown): VehicleMetricsSummary | undefined {
+  if (!isRecord(value)) return undefined;
+
+  const metrics: VehicleMetricsSummary = {
+    views: normalizeNumber(value.views),
+    whatsappClicks: normalizeNumber(value.whatsappClicks),
+  };
+
+  const lastViewAt = normalizeDateString(value.lastViewAt);
+  const lastWhatsappClickAt = normalizeDateString(value.lastWhatsappClickAt);
+  const sources = normalizeCounterRecord(value.sources);
+
+  if (hasOwn(value, "leads")) {
+    metrics.leads = normalizeNumber(value.leads);
+  }
+
+  if (lastViewAt) {
+    metrics.lastViewAt = lastViewAt;
+  }
+
+  if (lastWhatsappClickAt) {
+    metrics.lastWhatsappClickAt = lastWhatsappClickAt;
+  }
+
+  if (sources) {
+    metrics.sources = sources;
+  }
+
+  return metrics;
 }
 
 function normalizeStringArray(value: unknown) {
@@ -118,13 +223,7 @@ export function ensureSingleCover(images: VehicleImage[]): VehicleImage[] {
 }
 
 export function moveImage<T>(items: T[], from: number, to: number): T[] {
-  if (
-    from < 0 ||
-    to < 0 ||
-    from >= items.length ||
-    to >= items.length ||
-    from === to
-  ) {
+  if (from < 0 || to < 0 || from >= items.length || to >= items.length || from === to) {
     return items;
   }
 
@@ -190,6 +289,8 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
   const images = normalizeVehicleImages(vehicle.images);
   const legacyImageUrl = normalizeVehicleImages(vehicle.imageUrl);
   const legacyImage = normalizeVehicleImages(vehicle.image);
+  const internal = normalizeVehicleInternalData(vehicle.internal);
+  const metrics = normalizeVehicleMetricsSummary(vehicle.metrics);
 
   return {
     id: String(vehicle.id ?? vehicle._id ?? ""),
@@ -213,15 +314,24 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
     status: normalizeStatus(vehicle.status),
     whatsappNumber: normalizePhone(vehicle.whatsappNumber),
     tags: normalizeStringArray(vehicle.tags),
+    ...(internal ? { internal } : {}),
+    ...(metrics ? { metrics } : {}),
     createdAt: normalizeString(vehicle.createdAt),
     updatedAt: normalizeString(vehicle.updatedAt),
   };
 }
 
-export function getVehicleCoverImage(vehicle: {
-  images?: VehicleImage[];
-  imageUrl?: unknown;
-}) {
+export function stripVehicleAdminData(vehicle: Vehicle): Vehicle {
+  const normalized = normalizeVehicleRecord(vehicle);
+  const { internal: _internal, metrics: _metrics, ...publicVehicle } = normalized;
+  return publicVehicle;
+}
+
+export function getVehicleMetricsSummary(vehicle: Pick<Vehicle, "metrics">) {
+  return normalizeVehicleMetricsSummary(vehicle.metrics) ?? createEmptyVehicleMetricsSummary();
+}
+
+export function getVehicleCoverImage(vehicle: { images?: VehicleImage[]; imageUrl?: unknown }) {
   const images = normalizeVehicleImages(vehicle.images);
   const cover = images.find((image) => image.isCover && image.url.trim());
 

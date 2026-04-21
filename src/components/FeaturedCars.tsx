@@ -6,6 +6,7 @@ import {
   getVehicleWhatsappNumber,
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
+import { trackVehicleWhatsappClick } from "@/services/analyticsService";
 import type { Vehicle } from "@/types/vehicle";
 import {
   MessageCircle,
@@ -130,6 +131,9 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => {
+                        void trackVehicleWhatsappClick(car.id, { source: "featured" });
+                      }}
                       className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-whatsapp px-3 py-2.5 text-xs font-black uppercase text-whatsapp-foreground transition hover:brightness-110"
                     >
                       <MessageCircle className="h-3.5 w-3.5 fill-current" strokeWidth={0} />

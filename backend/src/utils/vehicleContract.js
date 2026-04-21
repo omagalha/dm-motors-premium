@@ -19,7 +19,45 @@ const DEFAULTS = {
   status: "disponivel",
   whatsappNumber: "",
   tags: [],
+  internal: {
+    plate: "",
+    renavam: "",
+    chassis: "",
+    engineNumber: "",
+    buyerDocument: "",
+    buyerName: "",
+    previousOwnerDocument: "",
+    previousOwnerName: "",
+    acquisitionDate: "",
+    acquisitionValue: 0,
+    minimumSaleValue: 0,
+    financedValue: 0,
+    internalNotes: "",
+    provenance: "",
+    spareKeyCount: "",
+    manualCount: "",
+    hasInspectionReport: false,
+    hasPaidIpva: false,
+    hasFines: false,
+    hasLien: false,
+    legalNotes: "",
+  },
+  metrics: {
+    views: 0,
+    whatsappClicks: 0,
+    lastViewAt: "",
+    lastWhatsappClickAt: "",
+    sources: {},
+  },
 };
+
+function isRecord(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasOwn(record, key) {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
 
 function normalizeString(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
@@ -181,6 +219,70 @@ function normalizeTags(body) {
   return normalizeStringArray(body.highlights);
 }
 
+function normalizeVehicleInternalData(value, options = {}) {
+  const partial = options.partial === true;
+  if (!isRecord(value)) return null;
+
+  const internal = {};
+  const assign = (key, normalizer) => {
+    if (!partial || hasOwn(value, key)) {
+      internal[key] = normalizer(value[key]);
+    }
+  };
+
+  assign("plate", (entry) => normalizeString(entry, DEFAULTS.internal.plate));
+  assign("renavam", (entry) => normalizeString(entry, DEFAULTS.internal.renavam));
+  assign("chassis", (entry) => normalizeString(entry, DEFAULTS.internal.chassis));
+  assign("engineNumber", (entry) => normalizeString(entry, DEFAULTS.internal.engineNumber));
+  assign("buyerDocument", (entry) => normalizeString(entry, DEFAULTS.internal.buyerDocument));
+  assign("buyerName", (entry) => normalizeString(entry, DEFAULTS.internal.buyerName));
+  assign("previousOwnerDocument", (entry) =>
+    normalizeString(entry, DEFAULTS.internal.previousOwnerDocument),
+  );
+  assign("previousOwnerName", (entry) =>
+    normalizeString(entry, DEFAULTS.internal.previousOwnerName),
+  );
+  assign("acquisitionDate", (entry) => normalizeString(entry, DEFAULTS.internal.acquisitionDate));
+  assign("acquisitionValue", (entry) => normalizeNumber(entry, DEFAULTS.internal.acquisitionValue));
+  assign("minimumSaleValue", (entry) => normalizeNumber(entry, DEFAULTS.internal.minimumSaleValue));
+  assign("financedValue", (entry) => normalizeNumber(entry, DEFAULTS.internal.financedValue));
+  assign("internalNotes", (entry) => normalizeString(entry, DEFAULTS.internal.internalNotes));
+  assign("provenance", (entry) => normalizeString(entry, DEFAULTS.internal.provenance));
+  assign("spareKeyCount", (entry) => normalizeString(entry, DEFAULTS.internal.spareKeyCount));
+  assign("manualCount", (entry) => normalizeString(entry, DEFAULTS.internal.manualCount));
+  assign("hasInspectionReport", (entry) =>
+    normalizeBoolean(entry, DEFAULTS.internal.hasInspectionReport),
+  );
+  assign("hasPaidIpva", (entry) => normalizeBoolean(entry, DEFAULTS.internal.hasPaidIpva));
+  assign("hasFines", (entry) => normalizeBoolean(entry, DEFAULTS.internal.hasFines));
+  assign("hasLien", (entry) => normalizeBoolean(entry, DEFAULTS.internal.hasLien));
+  assign("legalNotes", (entry) => normalizeString(entry, DEFAULTS.internal.legalNotes));
+
+  return internal;
+}
+
+function normalizeVehicleMetrics(value, options = {}) {
+  const partial = options.partial === true;
+  if (!isRecord(value)) return null;
+
+  const metrics = {};
+  const assign = (key, normalizer) => {
+    if (!partial || hasOwn(value, key)) {
+      metrics[key] = normalizer(value[key]);
+    }
+  };
+
+  assign("views", (entry) => normalizeNumber(entry, DEFAULTS.metrics.views));
+  assign("whatsappClicks", (entry) => normalizeNumber(entry, DEFAULTS.metrics.whatsappClicks));
+  assign("lastViewAt", (entry) => normalizeString(entry, DEFAULTS.metrics.lastViewAt));
+  assign("lastWhatsappClickAt", (entry) =>
+    normalizeString(entry, DEFAULTS.metrics.lastWhatsappClickAt),
+  );
+  assign("sources", (entry) => (isRecord(entry) ? entry : DEFAULTS.metrics.sources));
+
+  return metrics;
+}
+
 function normalizeVehiclePayload(body = {}, options = {}) {
   const partial = options.partial === true;
   const payload = {};
@@ -197,67 +299,59 @@ function normalizeVehiclePayload(body = {}, options = {}) {
   assign(
     "isFeatured",
     "isFeatured" in body || "featured" in body,
-    normalizeBoolean(body.isFeatured ?? body.featured, DEFAULTS.isFeatured)
+    normalizeBoolean(body.isFeatured ?? body.featured, DEFAULTS.isFeatured),
   );
   assign("active", "active" in body, normalizeBoolean(body.active, DEFAULTS.active));
   assign("year", "year" in body, normalizeNumber(body.year));
   assign(
     "mileage",
     "mileage" in body || "km" in body,
-    normalizeNumber(body.mileage ?? body.km, DEFAULTS.mileage)
+    normalizeNumber(body.mileage ?? body.km, DEFAULTS.mileage),
   );
-  assign(
-    "fuel",
-    "fuel" in body,
-    normalizeFuel(body.fuel)
-  );
-  assign(
-    "transmission",
-    "transmission" in body,
-    normalizeTransmission(body.transmission)
-  );
+  assign("fuel", "fuel" in body, normalizeFuel(body.fuel));
+  assign("transmission", "transmission" in body, normalizeTransmission(body.transmission));
   assign("color", "color" in body, normalizeString(body.color, DEFAULTS.color));
   assign(
     "description",
     "description" in body,
-    normalizeString(body.description, DEFAULTS.description)
+    normalizeString(body.description, DEFAULTS.description),
   );
   assign(
     "images",
     "images" in body || "imageUrl" in body || "image" in body,
-    normalizeImages(body)
+    normalizeImages(body),
   );
   assign("features", "features" in body, normalizeStringArray(body.features));
-  assign(
-    "category",
-    "category" in body,
-    normalizeCategory(body.category)
-  );
+  assign("category", "category" in body, normalizeCategory(body.category));
   assign("city", "city" in body, normalizeString(body.city, DEFAULTS.city));
-  assign(
-    "status",
-    "status" in body,
-    normalizeStatus(body.status)
-  );
+  assign("status", "status" in body, normalizeStatus(body.status));
   assign(
     "whatsappNumber",
     "whatsappNumber" in body,
-    normalizeString(body.whatsappNumber, DEFAULTS.whatsappNumber)
+    normalizeString(body.whatsappNumber, DEFAULTS.whatsappNumber),
   );
-  assign(
-    "tags",
-    "tags" in body || "highlights" in body,
-    normalizeTags(body)
-  );
+  assign("tags", "tags" in body || "highlights" in body, normalizeTags(body));
+
+  if (hasOwn(body, "internal")) {
+    payload.internal = normalizeVehicleInternalData(body.internal, { partial });
+  }
+
+  if (hasOwn(body, "metrics")) {
+    payload.metrics = normalizeVehicleMetrics(body.metrics, { partial });
+  }
 
   return payload;
 }
 
-function serializeVehicle(vehicle) {
+function serializeVehicle(vehicle, options = {}) {
+  const isAdmin = options.isAdmin === true;
+  const metricsSource = options.metricsOverride ?? vehicle.metrics;
   const images = normalizeImageArray(vehicle.images);
   const legacyImages = normalizeImageArray(vehicle.imageUrl);
   const tags = normalizeStringArray(vehicle.tags);
   const legacyTags = normalizeStringArray(vehicle.highlights);
+  const internal = normalizeVehicleInternalData(vehicle.internal);
+  const metrics = normalizeVehicleMetrics(metricsSource) ?? DEFAULTS.metrics;
 
   return {
     id: String(vehicle._id),
@@ -266,10 +360,7 @@ function serializeVehicle(vehicle) {
     model: normalizeString(vehicle.model),
     price: normalizeNumber(vehicle.price),
     badge: normalizeString(vehicle.badge, DEFAULTS.badge),
-    isFeatured: normalizeBoolean(
-      vehicle.isFeatured ?? vehicle.featured,
-      DEFAULTS.isFeatured
-    ),
+    isFeatured: normalizeBoolean(vehicle.isFeatured ?? vehicle.featured, DEFAULTS.isFeatured),
     active: normalizeBoolean(vehicle.active, DEFAULTS.active),
     year: normalizeNumber(vehicle.year),
     mileage: normalizeNumber(vehicle.mileage, DEFAULTS.mileage),
@@ -284,6 +375,8 @@ function serializeVehicle(vehicle) {
     status: normalizeStatus(vehicle.status),
     whatsappNumber: normalizeString(vehicle.whatsappNumber, DEFAULTS.whatsappNumber),
     tags: tags.length ? tags : legacyTags,
+    ...(isAdmin && internal ? { internal } : {}),
+    ...(isAdmin ? { metrics } : {}),
     createdAt: vehicle.createdAt instanceof Date ? vehicle.createdAt.toISOString() : "",
     updatedAt: vehicle.updatedAt instanceof Date ? vehicle.updatedAt.toISOString() : "",
   };
