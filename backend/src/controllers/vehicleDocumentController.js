@@ -69,6 +69,7 @@ async function startSaleContractWorkflow(req, res) {
           const executionId = `sale-contract_${vehicleDoc._id}_${Date.now()}`;
           const vehicleId = vehicleDoc._id.toString();
           const callbackUrl = `${process.env.BACKEND_URL}/vehicles/${vehicleId}/document-workflows/sale-contract/callback`;
+          console.log("[n8n] Disparando webhook. vehicleId:", vehicleId, "callbackUrl:", callbackUrl);
           await triggerN8n({
             executionId,
             vehicleId,
