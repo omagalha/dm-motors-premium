@@ -15,22 +15,22 @@ const items = [
   {
     icon: ShieldCheck,
     title: "Procedencia garantida",
-    desc: "Todos os veiculos passam por checagem de historico e apresentacao antes de entrar na vitrine.",
+    desc: "Historico e apresentacao avaliados antes de cada carro entrar na vitrine.",
   },
   {
     icon: Wrench,
     title: "Revisao antes da entrega",
-    desc: "Cada carro vai para a loja com padrao visual e mecanico mais alinhado ao perfil premium.",
+    desc: "Cada carro segue para a loja com um padrao mais alinhado de cuidado e entrega.",
   },
   {
     icon: Banknote,
     title: "Credito com agilidade",
-    desc: "Financiamento com varios bancos para acelerar analise e melhorar as condicoes.",
+    desc: "Analise com diferentes bancos para buscar agilidade e melhores condicoes.",
   },
   {
     icon: RefreshCw,
     title: "Troca facilitada",
-    desc: "Seu carro atual entra na conversa com avaliacao justa e menos atrito na negociacao.",
+    desc: "Seu carro atual entra na negociacao com avaliacao clara e mais praticidade.",
   },
 ];
 
@@ -62,12 +62,14 @@ export function Differentials() {
               <Building2 className="h-4 w-4" />
               Confianca antes da visita
             </span>
-            <h2 className="mt-3 text-4xl font-black uppercase leading-[0.92] text-foreground md:text-5xl">
-              Uma experiencia mais proxima de showroom.
+            <h2 className="mt-3 text-[2.15rem] font-black uppercase leading-[0.95] text-foreground md:text-[3rem]">
+              Confianca para visitar,
+              <br className="hidden md:block" />
+              avaliar e decidir.
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-              Aqui voce encontra uma experiencia mais segura, com estoque atualizado,
-              informacoes claras e atendimento que acompanha voce em cada etapa da compra.
+            <p className="mt-4 max-w-[38rem] text-sm leading-[1.68] text-muted-foreground md:text-base">
+              Estoque atualizado, informacoes claras e atendimento que acompanha voce em
+              cada etapa da compra.
             </p>
           </div>
 
@@ -108,12 +110,12 @@ export function Differentials() {
             <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
               Padrao DM Motors
             </span>
-            <h3 className="mt-3 text-3xl font-black uppercase leading-[0.94] text-foreground md:text-4xl">
+            <h3 className="mt-3 text-[2rem] font-black uppercase leading-[0.96] text-foreground md:text-[2.55rem]">
               Confianca para comprar
               <br />
               com mais tranquilidade.
             </h3>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+            <p className="mt-4 max-w-2xl text-sm leading-[1.7] text-muted-foreground md:text-base">
               A DM Motors reune atendimento direto, estoque selecionado e uma apresentacao
               pensada para facilitar sua decisao na hora de fechar negocio.
             </p>
@@ -122,7 +124,7 @@ export function Differentials() {
               {commitments.map((commitment) => (
                 <div
                   key={commitment}
-                  className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-white/78"
+                  className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-[1.6] text-white/78"
                 >
                   {commitment}
                 </div>
@@ -143,10 +145,10 @@ export function Differentials() {
                 <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/14 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
                   <item.icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold uppercase tracking-[0.08em] text-foreground">
+                <h3 className="text-[15px] font-bold uppercase tracking-[0.08em] text-foreground">
                   {item.title}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+                <p className="mt-3 text-sm leading-[1.65] text-muted-foreground">{item.desc}</p>
               </motion.div>
             ))}
           </div>

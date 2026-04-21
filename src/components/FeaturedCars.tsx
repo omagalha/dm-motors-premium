@@ -61,18 +61,18 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top,oklch(0.62_0.24_25/0.10),transparent_55%)]" />
 
       <div className="mx-auto max-w-7xl px-5">
-        <div className="mb-10 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
+        <div className="mb-9 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-primary">
               <Flame className="h-4 w-4" />
               Showroom em destaque
             </span>
-            <h2 className="mt-3 text-4xl font-black uppercase leading-[0.92] text-foreground md:text-5xl">
-              Estoque.
+            <h2 className="mt-3 text-[2.15rem] font-black uppercase leading-[0.95] text-foreground md:text-[3rem]">
+              Estoque
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
-              Oportunidades selecionadas com procedencia, boa apresentacao e condicoes
-              competitivas para quem quer comprar bem.
+            <p className="mt-3 max-w-[38rem] text-sm leading-[1.68] text-muted-foreground md:text-base">
+              Modelos escolhidos para quem busca procedencia, boa apresentacao e negociacao
+              objetiva.
             </p>
           </div>
 
@@ -126,7 +126,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/72">
                     {spotlightCar.brand}
                   </p>
-                  <h3 className="mt-2 text-3xl font-black uppercase text-white md:text-4xl">
+                  <h3 className="mt-2 text-[1.9rem] font-black uppercase leading-[0.96] text-white md:text-[2.4rem]">
                     {spotlightCar.name}
                   </h3>
                 </div>
@@ -143,17 +143,17 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
 
             <div className="p-6 md:p-8 lg:p-10">
               <span className="text-xs font-bold uppercase tracking-[0.24em] text-primary">
-                Curadoria da semana
+                Destaque da semana
               </span>
 
-              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-[15px] leading-[1.72] text-muted-foreground sm:text-base">
                 {spotlightCar.description ||
-                  "Veiculo selecionado para abrir a vitrine da DM Motors com mais impacto e confianca."}
+                  "Um dos modelos mais interessantes do nosso estoque, com boa apresentacao e negociacao direta."}
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <SpotlightInfo label={`${spotlightCar.year} • ${spotlightCar.transmission}`} />
-                <SpotlightInfo label={`${spotlightCar.fuel} • ${formatKm(spotlightCar.mileage)}`} />
+                <SpotlightInfo label={`${spotlightCar.year} / ${spotlightCar.transmission}`} />
+                <SpotlightInfo label={`${spotlightCar.fuel} / ${formatKm(spotlightCar.mileage)}`} />
                 <SpotlightInfo label={spotlightCar.city || "Atendimento sob consulta"} />
                 <SpotlightInfo label={spotlightCar.category || "Perfil premium"} />
               </div>
@@ -258,7 +258,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/65">
                           {car.brand}
                         </p>
-                        <h3 className="mt-2 text-2xl font-black uppercase text-white">
+                        <h3 className="mt-2 text-[1.55rem] font-black uppercase leading-[0.98] text-white">
                           {car.name}
                         </h3>
                       </div>

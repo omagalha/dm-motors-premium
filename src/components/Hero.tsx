@@ -35,17 +35,17 @@ const showroomPoints: ShowroomPoint[] = [
   {
     icon: ShieldCheck,
     title: "Procedencia validada",
-    description: "Laudo, historico e selecao criteriosa antes de entrar no estoque.",
+    description: "Laudo e historico avaliados antes de cada carro entrar no estoque.",
   },
   {
     icon: RefreshCw,
     title: "Troca com avaliacao justa",
-    description: "Seu usado entra como parte do negocio com atendimento consultivo.",
+    description: "Seu usado entra na negociacao com avaliacao clara e atendimento direto.",
   },
   {
     icon: WalletCards,
     title: "Financiamento multibancos",
-    description: "Simulacao agil para encontrar a melhor condicao para cada perfil.",
+    description: "Simulacao agil para buscar a melhor condicao para cada perfil.",
   },
 ];
 
@@ -55,14 +55,14 @@ function HeroSearch() {
   const navigate = useNavigate();
 
   return (
-    <div className="mt-9 w-full max-w-3xl rounded-[28px] border border-white/12 bg-[oklch(0.12_0.01_20/0.84)] p-4 shadow-[0_25px_80px_-40px_rgba(0,0,0,0.85)] backdrop-blur-xl">
-      <div className="mb-3 flex flex-wrap items-center gap-3">
+    <div className="mt-8 w-full max-w-3xl rounded-[28px] border border-white/12 bg-[oklch(0.12_0.01_20/0.84)] p-4 shadow-[0_25px_80px_-40px_rgba(0,0,0,0.85)] backdrop-blur-xl sm:p-5">
+      <div className="mb-3 flex flex-wrap items-center gap-2.5 sm:gap-3">
         <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-white/72">
           <Search className="h-3.5 w-3.5 text-primary" />
-          Busca rapida
+          Busca guiada
         </span>
         <p className="text-sm text-muted-foreground">
-          Encontre um perfil de carro em poucos cliques.
+          Filtre o estoque em poucos cliques.
         </p>
       </div>
 
@@ -115,8 +115,10 @@ function HeroSearch() {
 function HeroStatCard({ value, label }: HeroStat) {
   return (
     <div className="rounded-[24px] border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-sm">
-      <p className="text-2xl font-black uppercase text-foreground sm:text-[2rem]">{value}</p>
-      <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+      <p className="text-[1.9rem] font-black uppercase leading-none text-foreground sm:text-[2.4rem]">
+        {value}
+      </p>
+      <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </p>
     </div>
@@ -129,7 +131,7 @@ function ShowroomCard() {
       initial={{ opacity: 0, x: 24 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-      className="w-full max-w-[420px] rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,oklch(0.18_0.01_20/0.92)_0%,oklch(0.11_0.008_20/0.94)_100%)] p-6 shadow-[0_30px_90px_-45px_rgba(0,0,0,0.9)] backdrop-blur-xl"
+      className="w-full max-w-[420px] rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,oklch(0.18_0.01_20/0.92)_0%,oklch(0.11_0.008_20/0.94)_100%)] p-5 shadow-[0_30px_90px_-45px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:p-6"
     >
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -137,8 +139,8 @@ function ShowroomCard() {
             <Building2 className="h-3.5 w-3.5" />
             Padrao DM Motors
           </span>
-          <h2 className="mt-4 text-2xl font-black uppercase leading-tight text-foreground">
-            Atendimento de loja premium, direto no interior do RJ.
+          <h2 className="mt-4 max-w-[14ch] text-[1.55rem] font-black uppercase leading-[0.98] text-foreground sm:text-[1.7rem]">
+            Atendimento premium, com proximidade e confianca.
           </h2>
         </div>
 
@@ -153,7 +155,7 @@ function ShowroomCard() {
         </div>
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-5 space-y-3">
         {showroomPoints.map((point) => (
           <div
             key={point.title}
@@ -164,10 +166,10 @@ function ShowroomCard() {
                 <point.icon className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-foreground">
+                <h3 className="text-[13px] font-bold uppercase tracking-[0.08em] text-foreground sm:text-sm">
                   {point.title}
                 </h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-sm leading-[1.6] text-muted-foreground">
                   {point.description}
                 </p>
               </div>
@@ -176,13 +178,13 @@ function ShowroomCard() {
         ))}
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
           <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.08em] text-foreground">
             <Clock3 className="h-4 w-4 text-primary" />
             Loja aberta
           </p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-sm leading-[1.65] text-muted-foreground">
             Seg a Sex 8h as 19h
             <br />
             Sab 8h as 17h
@@ -195,7 +197,7 @@ function ShowroomCard() {
           <p className="text-sm font-bold uppercase tracking-[0.08em] text-foreground">
             Showroom fisico
           </p>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-sm leading-[1.65] text-muted-foreground">
             Santo Antonio de Padua - RJ
             <br />
             Atendimento rapido no WhatsApp
@@ -233,7 +235,7 @@ export function Hero({ activeCarCount }: HeroProps) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_16%,oklch(0.62_0.24_25/0.22),transparent_26%),radial-gradient(circle_at_76%_28%,oklch(0.97_0_0/0.08),transparent_18%),linear-gradient(180deg,transparent_0%,oklch(0.11_0.008_20)_92%)]" />
       </div>
 
-      <div className="mx-auto grid min-h-[760px] max-w-7xl gap-10 px-5 py-18 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center lg:py-24">
+      <div className="mx-auto grid min-h-[740px] max-w-7xl gap-9 px-5 py-16 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center lg:py-22">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -245,18 +247,18 @@ export function Hero({ activeCarCount }: HeroProps) {
             Showroom premium em Santo Antonio de Padua - RJ
           </span>
 
-          <h1 className="mt-6 max-w-4xl text-5xl font-black uppercase leading-[0.88] tracking-[-0.04em] text-foreground sm:text-6xl md:text-7xl lg:text-[5.4rem]">
-            Seu proximo carro
+          <h1 className="mt-5 max-w-[11.5ch] text-[3.35rem] font-black uppercase leading-[0.9] tracking-[-0.035em] text-foreground sm:text-[4.5rem] md:text-[5.25rem] lg:text-[5rem]">
+            Seu proximo carro,
             <br />
-            com cara de conquista.
+            com mais seguranca.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/72 sm:text-lg">
-            Veiculos selecionados com procedencia, atendimento direto e condicoes reais
-            para voce negociar com seguranca, do primeiro clique ate a entrega.
+          <p className="mt-5 max-w-[38rem] text-[15px] leading-[1.72] text-white/72 sm:text-[17px]">
+            Estoque selecionado, atendimento direto e condicoes reais para voce negociar
+            bem, do primeiro contato ate a entrega.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             <Link
               to="/estoque"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-7 py-4 text-sm font-black uppercase tracking-[0.16em] text-background transition hover:opacity-90"
@@ -267,7 +269,7 @@ export function Hero({ activeCarCount }: HeroProps) {
             <WhatsAppButton size="lg" label="Falar com a DM Motors" />
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          <div className="mt-7 grid gap-3 sm:grid-cols-3">
             {stats.map((stat) => (
               <HeroStatCard key={stat.label} value={stat.value} label={stat.label} />
             ))}
@@ -275,7 +277,7 @@ export function Hero({ activeCarCount }: HeroProps) {
 
           <HeroSearch />
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/62">
+          <div className="mt-5 flex flex-wrap items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/62 sm:gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
               Procedencia garantida

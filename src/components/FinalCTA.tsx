@@ -22,18 +22,18 @@ export function FinalCTA() {
             Atendimento direto
           </span>
 
-          <h2 className="mt-4 text-4xl font-black uppercase leading-[0.9] text-foreground md:text-5xl">
-            Achou o carro certo?
+          <h2 className="mt-4 max-w-[14ch] text-[2.2rem] font-black uppercase leading-[0.95] text-foreground md:text-[3.1rem]">
+            Gostou de algum modelo?
             <br />
-            Fale com a DM Motors agora.
+            Fale com a DM Motors.
           </h2>
 
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            Tire duvidas, simule financiamento, envie seu usado para avaliacao e receba
+          <p className="mt-5 max-w-[38rem] text-[15px] leading-[1.72] text-muted-foreground sm:text-base">
+            Tire duvidas, simule financiamento, envie seu usado para avaliacao e receba um
             atendimento direto para fechar com mais agilidade.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap gap-3">
             <WhatsAppButton size="lg" label="Chamar no WhatsApp agora" />
             <Link
               to="/estoque"
@@ -66,11 +66,11 @@ export function FinalCTA() {
               Horario de atendimento
             </p>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Seg-Sex 8h-19h
+              Seg-Sex 8h-18h
               <br />
-              Sab 8h-17h
+              Sab 8h-12h
               <br />
-              Dom 9h-13h
+              Dom Fechado - Agendados
             </p>
           </div>
         </div>
