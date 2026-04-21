@@ -42,6 +42,25 @@ const vehicleMetricsSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const vehicleDocumentWorkflowSchema = new mongoose.Schema(
+  {
+    saleContract: {
+      status: {
+        type: String,
+        enum: ["idle", "pending", "completed", "failed"],
+        default: "idle",
+      },
+      executionId: { type: String, default: "", trim: true },
+      triggeredAt: { type: Date, default: null },
+      completedAt: { type: Date, default: null },
+      failedAt: { type: Date, default: null },
+      documentUrl: { type: String, default: "", trim: true },
+      errorMessage: { type: String, default: "", trim: true },
+    },
+  },
+  { _id: false },
+);
+
 const vehicleSchema = new mongoose.Schema(
   {
     name: {
@@ -142,6 +161,10 @@ const vehicleSchema = new mongoose.Schema(
     },
     metrics: {
       type: vehicleMetricsSchema,
+      required: false,
+    },
+    documentWorkflow: {
+      type: vehicleDocumentWorkflowSchema,
       required: false,
     },
     // Legacy compatibility fields.
