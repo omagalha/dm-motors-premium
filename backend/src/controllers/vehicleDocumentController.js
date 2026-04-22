@@ -280,9 +280,48 @@ async function saleContractWorkflowCallback(req, res) {
   }
 }
 
+async function resetSaleContractWorkflow(req, res) {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ error: "Veiculo nao encontrado" });
+    }
+
+    const vehicle = await Vehicle.findById(req.params.id);
+
+    if (!vehicle) {
+      return res.status(404).json({ error: "Veiculo nao encontrado" });
+    }
+
+    if (!vehicle.documentWorkflow?.saleContract) {
+      return res.status(404).json({ error: "Nenhum workflow encontrado" });
+    }
+
+    const now = new Date();
+    vehicle.documentWorkflow.saleContract.status = "cancelled";
+    vehicle.documentWorkflow.saleContract.errorMessage = "Workflow resetado manualmente";
+    vehicle.documentWorkflow.saleContract.updatedAt = now;
+    vehicle.documentWorkflow.saleContract.completedAt = null;
+    vehicle.documentWorkflow.saleContract.failedAt = null;
+    vehicle.documentWorkflow.saleContract.documentUrl = "";
+
+    await vehicle.save();
+
+    return res.status(200).json({
+      message: "Workflow resetado com sucesso",
+      currentExecutionId: vehicle.documentWorkflow.saleContract.executionId || null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: "Erro ao resetar workflow",
+      details: error.message,
+    });
+  }
+}
+
 module.exports = {
   getVehicleDocumentPayload,
   getVehicleDocumentReadiness,
   startSaleContractWorkflow,
   saleContractWorkflowCallback,
+  resetSaleContractWorkflow,
 };

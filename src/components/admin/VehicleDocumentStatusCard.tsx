@@ -101,6 +101,8 @@ export function VehicleDocumentStatusCard({
                 ? "bg-emerald-500/15 text-emerald-600"
                 : currentWorkflowStatus === "failed"
                   ? "bg-destructive/10 text-destructive"
+                  : currentWorkflowStatus === "cancelled"
+                    ? "bg-secondary text-foreground"
                   : currentWorkflowStatus === "pending"
                     ? "bg-amber-500/15 text-amber-600"
               : documentNeedsSave
@@ -116,6 +118,8 @@ export function VehicleDocumentStatusCard({
               ? "Workflow concluido"
               : currentWorkflowStatus === "failed"
                 ? "Workflow falhou"
+                : currentWorkflowStatus === "cancelled"
+                  ? "Workflow cancelado"
                 : currentWorkflowStatus === "pending"
                   ? "Automacao pendente"
             : documentNeedsSave
@@ -250,6 +254,8 @@ export function VehicleDocumentStatusCard({
                   ? "border-emerald-500/30 bg-emerald-500/10"
                   : currentWorkflowStatus === "failed"
                     ? "border-destructive/30 bg-destructive/10"
+                    : currentWorkflowStatus === "cancelled"
+                      ? "border-border/60 bg-background/60"
                     : currentWorkflowStatus === "pending"
                       ? "border-amber-500/30 bg-amber-500/10"
                 : documentWorkflowResult?.validation.ready
@@ -263,6 +269,8 @@ export function VehicleDocumentStatusCard({
                     ? "text-emerald-700"
                     : currentWorkflowStatus === "failed"
                       ? "text-destructive"
+                      : currentWorkflowStatus === "cancelled"
+                        ? "text-foreground"
                       : currentWorkflowStatus === "pending"
                         ? "text-amber-700"
                   : documentWorkflowResult?.validation.ready
@@ -272,7 +280,9 @@ export function VehicleDocumentStatusCard({
               >
                 {currentWorkflowStatus === "completed" ? (
                   <CheckCircle2 className="h-4 w-4" />
-                ) : currentWorkflowStatus === "failed" || currentWorkflowStatus === "pending" ? (
+                ) : currentWorkflowStatus === "failed" ||
+                  currentWorkflowStatus === "pending" ||
+                  currentWorkflowStatus === "cancelled" ? (
                   <AlertTriangle className="h-4 w-4" />
                 ) : documentWorkflowResult?.validation.ready ? (
                   <CheckCircle2 className="h-4 w-4" />
@@ -283,6 +293,8 @@ export function VehicleDocumentStatusCard({
                   ? "Workflow concluido"
                   : currentWorkflowStatus === "failed"
                     ? "Workflow falhou"
+                    : currentWorkflowStatus === "cancelled"
+                      ? "Workflow cancelado"
                     : currentWorkflowStatus === "pending"
                       ? "Workflow pendente"
                 : documentWorkflowResult?.validation.ready
@@ -295,6 +307,9 @@ export function VehicleDocumentStatusCard({
                   : currentWorkflowStatus === "failed"
                     ? currentDocumentWorkflowState?.errorMessage ||
                       "O callback do n8n confirmou falha na automacao."
+                    : currentWorkflowStatus === "cancelled"
+                      ? currentDocumentWorkflowState?.errorMessage ||
+                        "O workflow foi cancelado manualmente e pode ser gerado novamente."
                     : currentWorkflowStatus === "pending"
                       ? "O backend solicitou a automacao e aguarda o callback do n8n."
                 : documentWorkflowResult?.validation.ready

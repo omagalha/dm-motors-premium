@@ -47,7 +47,7 @@ const vehicleDocumentWorkflowSchema = new mongoose.Schema(
     saleContract: {
       status: {
         type: String,
-        enum: ["idle", "pending", "completed", "failed"],
+        enum: ["idle", "pending", "completed", "failed", "cancelled"],
         default: "idle",
       },
       executionId: { type: String, default: "", trim: true },

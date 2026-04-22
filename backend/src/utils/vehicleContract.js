@@ -344,7 +344,7 @@ function normalizeVehicleMetrics(value, options = {}) {
 }
 
 function normalizeWorkflowStatus(value) {
-  return ["idle", "pending", "completed", "failed"].includes(value)
+  return ["idle", "pending", "completed", "failed", "cancelled"].includes(value)
     ? value
     : DEFAULTS.documentWorkflow.saleContract.status;
 }

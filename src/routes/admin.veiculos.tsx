@@ -811,6 +811,7 @@ function AdminVeiculos() {
     currentDocumentWorkflowStatus === "pending" ||
     documentWorkflowResult?.automationStatus === "pending";
   const isAutomationCompleted = currentDocumentWorkflowStatus === "completed";
+  const isAutomationCancelled = currentDocumentWorkflowStatus === "cancelled";
   const isAutomationFailed =
     currentDocumentWorkflowStatus === "failed" ||
     (currentDocumentWorkflowStatus === "idle" &&
@@ -825,6 +826,8 @@ function AdminVeiculos() {
       ? "pending"
     : !documentNeedsSave && isAutomationCompleted
       ? "completed"
+    : !documentNeedsSave && isAutomationCancelled
+      ? "idle"
     : !documentNeedsSave && isAutomationFailed
       ? "failed"
     : !documentNeedsSave && documentWorkflowResult?.ready

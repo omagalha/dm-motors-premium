@@ -113,7 +113,12 @@ function normalizeDateInputString(value: unknown) {
 }
 
 function normalizeDocumentWorkflowStatus(value: unknown): VehicleDocumentWorkflowStatus {
-  if (value === "pending" || value === "completed" || value === "failed") {
+  if (
+    value === "pending" ||
+    value === "completed" ||
+    value === "failed" ||
+    value === "cancelled"
+  ) {
     return value;
   }
 

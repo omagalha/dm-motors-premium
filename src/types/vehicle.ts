@@ -6,7 +6,12 @@ export type Transmission = "AutomÃ¡tico" | "Manual" | "Nao informado";
 export type Category = "Hatch" | "Sedan" | "SUV" | "Picape" | "Nao informado";
 export type Fuel = "Flex" | "Diesel" | "Gasolina" | "Nao informado";
 export type VehicleStatus = "disponivel" | "reservado" | "vendido";
-export type VehicleDocumentWorkflowStatus = "idle" | "pending" | "completed" | "failed";
+export type VehicleDocumentWorkflowStatus =
+  | "idle"
+  | "pending"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 export interface VehicleImage {
   url: string;
