@@ -12,6 +12,15 @@ function normalizeExecutionId(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function sanitizeDownloadFileName(value) {
+  return String(value || "contrato.pdf")
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+}
+
 function createWorkflowResponse(workflowResult, options = {}) {
   const automationTriggered = options.automationTriggered === true;
   const automationStatus = options.automationStatus ?? "skipped_not_ready";
@@ -289,6 +298,49 @@ async function saleContractWorkflowCallback(req, res) {
   }
 }
 
+async function downloadSaleContractDocument(req, res) {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ error: "Veiculo nao encontrado" });
+    }
+
+    const vehicle = await Vehicle.findById(req.params.id);
+
+    if (!vehicle) {
+      return res.status(404).json({ error: "Veiculo nao encontrado" });
+    }
+
+    const saleContract = vehicle.documentWorkflow?.saleContract;
+    const documentUrl = saleContract?.documentUrl?.trim();
+
+    if (saleContract?.status !== "completed" || !documentUrl) {
+      return res.status(404).json({ error: "Contrato ainda nao esta disponivel para download" });
+    }
+
+    const response = await fetch(documentUrl);
+
+    if (!response.ok) {
+      return res.status(502).json({ error: "Nao foi possivel baixar o contrato na origem" });
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const contentType = response.headers.get("content-type") || "application/pdf";
+    const vehicleName = sanitizeDownloadFileName(vehicle.name || `contrato-${vehicle._id}`);
+    const fileName = vehicleName.endsWith(".pdf") ? vehicleName : `${vehicleName}.pdf`;
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Length", String(arrayBuffer.byteLength));
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+
+    return res.status(200).send(Buffer.from(arrayBuffer));
+  } catch (error) {
+    return res.status(500).json({
+      error: "Erro ao baixar contrato",
+      details: error.message,
+    });
+  }
+}
+
 async function resetSaleContractWorkflow(req, res) {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -332,5 +384,6 @@ module.exports = {
   getVehicleDocumentReadiness,
   startSaleContractWorkflow,
   saleContractWorkflowCallback,
+  downloadSaleContractDocument,
   resetSaleContractWorkflow,
 };

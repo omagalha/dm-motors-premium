@@ -14,6 +14,7 @@ import type {
   VehicleDocumentReadiness,
   VehicleSaleContractWorkflowResult,
 } from "@/services/vehicleDocumentService";
+import { downloadSaleContractDocument } from "@/services/vehicleDocumentService";
 import type { VehicleSaleContractWorkflowState } from "@/types/vehicle";
 import { toast } from "sonner";
 import {
@@ -44,6 +45,7 @@ interface VehicleDocumentStatusCardProps {
   documentWorkflowButtonLabel: string;
   documentWorkflowResult: VehicleSaleContractWorkflowResult | null;
   currentDocumentWorkflowState: VehicleSaleContractWorkflowState | null;
+  vehicleId?: string | null;
   contractDownloadFileName?: string;
   isSubmitting: boolean;
   canResetWorkflow: boolean;
@@ -81,6 +83,7 @@ export function VehicleDocumentStatusCard({
   documentWorkflowButtonLabel,
   documentWorkflowResult,
   currentDocumentWorkflowState,
+  vehicleId,
   contractDownloadFileName,
   isSubmitting,
   canResetWorkflow,
@@ -121,19 +124,14 @@ export function VehicleDocumentStatusCard({
     documentWorkflowLoading;
 
   async function handleDownloadContract() {
-    if (!contractUrl || isDownloadingContract) {
+    if (!vehicleId || !contractUrl || isDownloadingContract) {
       return;
     }
 
     try {
       setIsDownloadingContract(true);
 
-      const response = await fetch(contractUrl);
-      if (!response.ok) {
-        throw new Error("Falha ao baixar contrato.");
-      }
-
-      const blob = await response.blob();
+      const blob = await downloadSaleContractDocument(vehicleId);
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;

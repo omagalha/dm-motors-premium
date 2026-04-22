@@ -2459,6 +2459,7 @@ function AdminVeiculos() {
                   documentWorkflowButtonLabel={documentWorkflowButtonLabel}
                   documentWorkflowResult={documentWorkflowResult}
                   currentDocumentWorkflowState={currentDocumentWorkflowState}
+                  vehicleId={currentEditingCar?.id ?? null}
                   contractDownloadFileName={
                     currentEditingCar ? `contrato-${currentEditingCar.id}.pdf` : "contrato.pdf"
                   }

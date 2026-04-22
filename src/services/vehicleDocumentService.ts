@@ -1,3 +1,4 @@
+import { getStoredAdminToken } from "@/lib/adminSession";
 import { apiFetch, ApiError, isApiConfigured } from "./apiClient";
 
 export interface VehicleSaleDocumentPayload {
@@ -175,4 +176,52 @@ export async function resetSaleContractWorkflow(
       body: JSON.stringify({}),
     },
   );
+}
+
+export async function downloadSaleContractDocument(id: string): Promise<Blob> {
+  assertDocumentApiConfigured();
+
+  const apiUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+  const token = getStoredAdminToken();
+
+  if (!token) {
+    throw new ApiError("Sessao expirada. Faca login novamente.", 401);
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `${apiUrl}/vehicles/${encodeURIComponent(id)}/document-workflows/sale-contract/download`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/pdf",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+  } catch {
+    throw new ApiError("Nao foi possivel conectar a API para baixar o contrato.", 0);
+  }
+
+  if (!response.ok) {
+    let message = "Nao foi possivel baixar o contrato.";
+
+    const contentType = response.headers.get("Content-Type") ?? "";
+    if (contentType.includes("application/json")) {
+      const payload = (await response.json().catch(() => null)) as
+        | { message?: string; error?: string }
+        | null;
+      if (payload?.message) {
+        message = payload.message;
+      } else if (payload?.error) {
+        message = payload.error;
+      }
+    }
+
+    throw new ApiError(message, response.status);
+  }
+
+  return response.blob();
 }

@@ -16,6 +16,7 @@ const {
   getVehicleDocumentReadiness,
   startSaleContractWorkflow,
   saleContractWorkflowCallback,
+  downloadSaleContractDocument,
   resetSaleContractWorkflow,
 } = require("../controllers/vehicleDocumentController");
 const attachAdminAuth = require("../middleware/attachAdminAuth");
@@ -37,6 +38,11 @@ router.post(
 router.post(
   "/:id/document-workflows/sale-contract/callback",
   saleContractWorkflowCallback,
+);
+router.get(
+  "/:id/document-workflows/sale-contract/download",
+  requireAdminAuth,
+  downloadSaleContractDocument,
 );
 router.post(
   "/:id/document-workflows/sale-contract/reset",
