@@ -393,10 +393,24 @@ function safeTrim(value: unknown) {
 function normalizeDateInputValue(value: unknown) {
   const normalized = safeTrim(value);
   if (!normalized) return "";
-  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return normalized;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    const [year] = normalized.split("-");
+    const numericYear = Number(year);
+
+    if (Number.isFinite(numericYear) && numericYear >= 1900 && numericYear <= 2100) {
+      return normalized;
+    }
+
+    return "";
+  }
 
   const parsed = new Date(normalized);
   if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  const year = parsed.getUTCFullYear();
+  if (year < 1900 || year > 2100) {
     return "";
   }
 

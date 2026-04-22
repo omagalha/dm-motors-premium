@@ -113,6 +113,37 @@ function normalizeDate(value, fallback = "") {
   return fallback;
 }
 
+function normalizeDateOnly(value, fallback = "") {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+    const [year] = value.trim().split("-");
+    const numericYear = Number(year);
+
+    if (Number.isFinite(numericYear) && numericYear >= 1900 && numericYear <= 2100) {
+      return value.trim();
+    }
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const year = value.getUTCFullYear();
+    if (year >= 1900 && year <= 2100) {
+      return value.toISOString().slice(0, 10);
+    }
+    return fallback;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      const year = parsed.getUTCFullYear();
+      if (year >= 1900 && year <= 2100) {
+        return parsed.toISOString().slice(0, 10);
+      }
+    }
+  }
+
+  return fallback;
+}
+
 function normalizeStringArray(value) {
   if (Array.isArray(value)) {
     return value.map((item) => String(item).trim()).filter(Boolean);
@@ -269,7 +300,7 @@ function normalizeVehicleInternalData(value, options = {}) {
   assign("previousOwnerName", (entry) =>
     normalizeString(entry, DEFAULTS.internal.previousOwnerName),
   );
-  assign("acquisitionDate", (entry) => normalizeString(entry, DEFAULTS.internal.acquisitionDate));
+  assign("acquisitionDate", (entry) => normalizeDateOnly(entry, DEFAULTS.internal.acquisitionDate));
   assign("acquisitionValue", (entry) => normalizeNumber(entry, DEFAULTS.internal.acquisitionValue));
   assign("minimumSaleValue", (entry) => normalizeNumber(entry, DEFAULTS.internal.minimumSaleValue));
   assign("financedValue", (entry) => normalizeNumber(entry, DEFAULTS.internal.financedValue));

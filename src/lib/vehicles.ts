@@ -88,6 +88,30 @@ function normalizeDateString(value: unknown) {
   return parsed.toISOString();
 }
 
+function normalizeDateInputString(value: unknown) {
+  const normalized = normalizeString(value);
+  if (!normalized) return "";
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    const [year] = normalized.split("-");
+    const numericYear = Number(year);
+
+    if (Number.isFinite(numericYear) && numericYear >= 1900 && numericYear <= 2100) {
+      return normalized;
+    }
+
+    return "";
+  }
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const year = parsed.getUTCFullYear();
+  if (year < 1900 || year > 2100) return "";
+
+  return parsed.toISOString().slice(0, 10);
+}
+
 function normalizeDocumentWorkflowStatus(value: unknown): VehicleDocumentWorkflowStatus {
   if (value === "pending" || value === "completed" || value === "failed") {
     return value;
@@ -115,7 +139,7 @@ function normalizeVehicleInternalData(value: unknown): VehicleInternalData | und
     buyerName: normalizeString(value.buyerName),
     previousOwnerDocument: normalizeString(value.previousOwnerDocument),
     previousOwnerName: normalizeString(value.previousOwnerName),
-    acquisitionDate: normalizeString(value.acquisitionDate),
+    acquisitionDate: normalizeDateInputString(value.acquisitionDate),
     acquisitionValue: normalizeNumber(value.acquisitionValue),
     minimumSaleValue: normalizeNumber(value.minimumSaleValue),
     financedValue: normalizeNumber(value.financedValue),
