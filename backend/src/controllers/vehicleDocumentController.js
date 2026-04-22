@@ -112,6 +112,8 @@ async function startSaleContractWorkflow(req, res) {
           const executionId = `sale-contract_${vehicleDoc._id}_${Date.now()}`;
           const vehicleId = vehicleDoc._id.toString();
           const callbackUrl = `${backendUrl}/vehicles/${vehicleId}/document-workflows/sale-contract/callback`;
+          console.log("PENDING vehicleId:", vehicleId);
+          console.log("PENDING executionId:", executionId);
           console.log("[n8n] Disparando webhook. vehicleId:", vehicleId, "callbackUrl:", callbackUrl);
           const n8nResponse = await triggerN8n({
             executionId,
@@ -177,6 +179,10 @@ function validateCallbackSecret(req) {
 
 async function saleContractWorkflowCallback(req, res) {
   try {
+    console.log("CALLBACK vehicleId:", req.body?.vehicleId);
+    console.log("CALLBACK executionId:", req.body?.executionId);
+    console.log("CALLBACK param id:", req.params.id);
+
     validateCallbackSecret(req);
 
     if (!mongoose.isValidObjectId(req.params.id)) {
