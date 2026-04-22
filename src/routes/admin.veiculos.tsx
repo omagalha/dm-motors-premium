@@ -326,15 +326,15 @@ function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormSta
     isFeatured: car.isFeatured,
     active: car.active,
     internal: {
-      plate: internal?.plate ?? "",
-      renavam: internal?.renavam ?? "",
-      chassis: internal?.chassis ?? "",
-      engineNumber: internal?.engineNumber ?? "",
-      buyerDocument: internal?.buyerDocument ?? "",
-      buyerName: internal?.buyerName ?? "",
-      previousOwnerDocument: internal?.previousOwnerDocument ?? "",
-      previousOwnerName: internal?.previousOwnerName ?? "",
-      acquisitionDate: internal?.acquisitionDate ?? "",
+      plate: coerceInputText(internal?.plate),
+      renavam: coerceInputText(internal?.renavam),
+      chassis: coerceInputText(internal?.chassis),
+      engineNumber: coerceInputText(internal?.engineNumber),
+      buyerDocument: coerceInputText(internal?.buyerDocument),
+      buyerName: coerceInputText(internal?.buyerName),
+      previousOwnerDocument: coerceInputText(internal?.previousOwnerDocument),
+      previousOwnerName: coerceInputText(internal?.previousOwnerName),
+      acquisitionDate: normalizeDateInputValue(internal?.acquisitionDate),
       acquisitionValue:
         typeof internal?.acquisitionValue === "number" && internal.acquisitionValue > 0
           ? String(internal.acquisitionValue)
@@ -347,15 +347,15 @@ function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormSta
         typeof internal?.financedValue === "number" && internal.financedValue > 0
           ? String(internal.financedValue)
           : "",
-      internalNotes: internal?.internalNotes ?? "",
-      provenance: internal?.provenance ?? "",
-      spareKeyCount: internal?.spareKeyCount ?? "",
-      manualCount: internal?.manualCount ?? "",
+      internalNotes: coerceInputText(internal?.internalNotes),
+      provenance: coerceInputText(internal?.provenance),
+      spareKeyCount: coerceInputText(internal?.spareKeyCount),
+      manualCount: coerceInputText(internal?.manualCount),
       hasInspectionReport: Boolean(internal?.hasInspectionReport),
       hasPaidIpva: Boolean(internal?.hasPaidIpva),
       hasFines: Boolean(internal?.hasFines),
       hasLien: Boolean(internal?.hasLien),
-      legalNotes: internal?.legalNotes ?? "",
+      legalNotes: coerceInputText(internal?.legalNotes),
     },
     ...overrides,
   };
@@ -380,56 +380,79 @@ function joinList(items: string[]) {
   return items.join("\n");
 }
 
-function parseOptionalNumber(value: string) {
-  const parsed = Number(value.trim());
+function coerceInputText(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value === null || value === undefined) return "";
+  return String(value);
+}
+
+function safeTrim(value: unknown) {
+  return coerceInputText(value).trim();
+}
+
+function normalizeDateInputValue(value: unknown) {
+  const normalized = safeTrim(value);
+  if (!normalized) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return normalized;
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
+
+function parseOptionalNumber(value: unknown) {
+  const parsed = Number(safeTrim(value));
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function buildInternalPayload(internal: InternalFormState): VehicleInternalData {
   return {
-    plate: internal.plate.trim(),
-    renavam: internal.renavam.trim(),
-    chassis: internal.chassis.trim(),
-    engineNumber: internal.engineNumber.trim(),
-    buyerDocument: internal.buyerDocument.trim(),
-    buyerName: internal.buyerName.trim(),
-    previousOwnerDocument: internal.previousOwnerDocument.trim(),
-    previousOwnerName: internal.previousOwnerName.trim(),
-    acquisitionDate: internal.acquisitionDate.trim(),
+    plate: safeTrim(internal.plate),
+    renavam: safeTrim(internal.renavam),
+    chassis: safeTrim(internal.chassis),
+    engineNumber: safeTrim(internal.engineNumber),
+    buyerDocument: safeTrim(internal.buyerDocument),
+    buyerName: safeTrim(internal.buyerName),
+    previousOwnerDocument: safeTrim(internal.previousOwnerDocument),
+    previousOwnerName: safeTrim(internal.previousOwnerName),
+    acquisitionDate: normalizeDateInputValue(internal.acquisitionDate),
     acquisitionValue: parseOptionalNumber(internal.acquisitionValue),
     minimumSaleValue: parseOptionalNumber(internal.minimumSaleValue),
     financedValue: parseOptionalNumber(internal.financedValue),
-    internalNotes: internal.internalNotes.trim(),
-    provenance: internal.provenance.trim(),
-    spareKeyCount: internal.spareKeyCount.trim(),
-    manualCount: internal.manualCount.trim(),
+    internalNotes: safeTrim(internal.internalNotes),
+    provenance: safeTrim(internal.provenance),
+    spareKeyCount: safeTrim(internal.spareKeyCount),
+    manualCount: safeTrim(internal.manualCount),
     hasInspectionReport: internal.hasInspectionReport,
     hasPaidIpva: internal.hasPaidIpva,
     hasFines: internal.hasFines,
     hasLien: internal.hasLien,
-    legalNotes: internal.legalNotes.trim(),
+    legalNotes: safeTrim(internal.legalNotes),
   };
 }
 
 function buildDocumentBadges(internal: InternalFormState): DocumentBadge[] {
   return [
     {
-      done: Boolean(internal.plate.trim()),
+      done: Boolean(safeTrim(internal.plate)),
       doneLabel: "Placa preenchida",
       pendingLabel: "Placa faltando",
     },
     {
-      done: Boolean(internal.renavam.trim()),
+      done: Boolean(safeTrim(internal.renavam)),
       doneLabel: "Renavam preenchido",
       pendingLabel: "Renavam faltando",
     },
     {
-      done: Boolean(internal.chassis.trim()),
+      done: Boolean(safeTrim(internal.chassis)),
       doneLabel: "Chassi preenchido",
       pendingLabel: "Chassi faltando",
     },
     {
-      done: Boolean(internal.acquisitionDate.trim() || internal.acquisitionValue.trim()),
+      done: Boolean(safeTrim(internal.acquisitionDate) || safeTrim(internal.acquisitionValue)),
       doneLabel: "Aquisicao registrada",
       pendingLabel: "Aquisicao faltando",
     },
@@ -512,15 +535,15 @@ function buildDocumentPayloadSummary(payload: VehicleSaleDocumentPayload | null)
 
 function buildDocumentFormStateKey(form: FormState) {
   return JSON.stringify({
-    name: form.name.trim(),
-    brand: form.brand.trim(),
-    model: form.model.trim(),
-    price: form.price.trim(),
-    year: form.year.trim(),
-    mileage: form.mileage.trim(),
+    name: safeTrim(form.name),
+    brand: safeTrim(form.brand),
+    model: safeTrim(form.model),
+    price: safeTrim(form.price),
+    year: safeTrim(form.year),
+    mileage: safeTrim(form.mileage),
     fuel: form.fuel,
     transmission: form.transmission,
-    color: form.color.trim(),
+    color: safeTrim(form.color),
     internal: buildInternalPayload(form.internal),
   });
 }
