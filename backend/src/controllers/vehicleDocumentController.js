@@ -90,6 +90,12 @@ async function startSaleContractWorkflow(req, res) {
       return res.status(404).json({ message: "Veiculo nao encontrado." });
     }
 
+    if (vehicleDoc.documentWorkflow?.saleContract?.status === "pending") {
+      return res.status(409).json({
+        error: "Ja existe um contrato sendo gerado para este veiculo.",
+      });
+    }
+
     const workflowResult = await runSaleContractWorkflow(vehicleDoc.toObject());
 
     let automationTriggered = false;
@@ -240,7 +246,9 @@ async function saleContractWorkflowCallback(req, res) {
     );
 
     if (!matchesKnownExecutionId(currentSaleContract, normalizedExecutionId)) {
-      return res.status(409).json({ message: "executionId do callback nao corresponde ao workflow atual." });
+      return res.status(409).json({
+        error: "Callback de execucao antiga. O workflow atual ja foi substituido por uma nova geracao.",
+      });
     }
 
     const currentStatus = currentSaleContract.status;
