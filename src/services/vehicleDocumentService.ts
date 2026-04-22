@@ -120,6 +120,11 @@ export interface VehicleSaleContractWorkflowResult {
   automationProviderExecutionId: string | null;
 }
 
+export interface VehicleSaleContractWorkflowResetResult {
+  message: string;
+  currentExecutionId?: string | null;
+}
+
 function assertDocumentApiConfigured() {
   if (!isApiConfigured) {
     throw new ApiError("VITE_API_URL nao configurada para o fluxo documental.", 0);
@@ -151,6 +156,20 @@ export async function startSaleContractWorkflow(
 
   return apiFetch<VehicleSaleContractWorkflowResult>(
     `/vehicles/${encodeURIComponent(id)}/document-workflows/sale-contract`,
+    {
+      method: "POST",
+      body: JSON.stringify({}),
+    },
+  );
+}
+
+export async function resetSaleContractWorkflow(
+  id: string,
+): Promise<VehicleSaleContractWorkflowResetResult> {
+  assertDocumentApiConfigured();
+
+  return apiFetch<VehicleSaleContractWorkflowResetResult>(
+    `/vehicles/${encodeURIComponent(id)}/document-workflows/sale-contract/reset`,
     {
       method: "POST",
       body: JSON.stringify({}),

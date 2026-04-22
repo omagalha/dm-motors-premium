@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type {
   VehicleDocumentReadiness,
   VehicleSaleContractWorkflowResult,
@@ -8,6 +19,7 @@ import {
   CheckCircle2,
   FileText,
   Loader2,
+  RotateCcw,
   ShieldCheck,
 } from "lucide-react";
 
@@ -31,9 +43,12 @@ interface VehicleDocumentStatusCardProps {
   documentWorkflowResult: VehicleSaleContractWorkflowResult | null;
   currentDocumentWorkflowState: VehicleSaleContractWorkflowState | null;
   isSubmitting: boolean;
+  canResetWorkflow: boolean;
+  isResettingWorkflow: boolean;
   onValidate: () => void;
   onStartWorkflow: () => void;
   onOpenSummary: () => void;
+  onResetWorkflow: () => void;
 }
 
 function formatDocumentGeneratedAt(value: string | null | undefined) {
@@ -64,21 +79,26 @@ export function VehicleDocumentStatusCard({
   documentWorkflowResult,
   currentDocumentWorkflowState,
   isSubmitting,
+  canResetWorkflow,
+  isResettingWorkflow,
   onValidate,
   onStartWorkflow,
   onOpenSummary,
+  onResetWorkflow,
 }: VehicleDocumentStatusCardProps) {
   const currentWorkflowStatus = currentDocumentWorkflowState?.status ?? "idle";
   const showPersistedWorkflowStatus = currentWorkflowStatus !== "idle";
   const validateDisabled =
     !hasPersistedVehicle ||
     isSubmitting ||
+    isResettingWorkflow ||
     documentNeedsSave ||
     documentReadinessLoading ||
     documentWorkflowLoading;
   const workflowDisabled =
     !hasPersistedVehicle ||
     isSubmitting ||
+    isResettingWorkflow ||
     documentNeedsSave ||
     documentReadinessLoading ||
     documentWorkflowLoading;
@@ -353,14 +373,50 @@ export function VehicleDocumentStatusCard({
                   {formatDocumentGeneratedAt(documentWorkflowResult.payload.generatedAt)}
                 </p>
               ) : null}
-              <button
-                type="button"
-                onClick={onOpenSummary}
-                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border bg-background/80 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
-              >
-                <FileText className="h-4 w-4" />
-                Abrir resumo documental
-              </button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={onOpenSummary}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/80 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
+                >
+                  <FileText className="h-4 w-4" />
+                  Abrir resumo documental
+                </button>
+
+                {canResetWorkflow ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={isResettingWorkflow}
+                        className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-destructive transition hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isResettingWorkflow ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RotateCcw className="h-4 w-4" />
+                        )}
+                        Resetar workflow
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Resetar workflow?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Isso cancela o workflow atual deste veiculo e libera uma nova geracao do
+                          pre-contrato.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Voltar</AlertDialogCancel>
+                        <AlertDialogAction onClick={onResetWorkflow}>
+                          Confirmar reset
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : null}
+              </div>
             </div>
           )}
         </>

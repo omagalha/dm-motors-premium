@@ -22,6 +22,7 @@ import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import {
   getVehicleDocumentPayload,
   getVehicleDocumentReadiness,
+  resetSaleContractWorkflow,
   startSaleContractWorkflow,
   type VehicleDocumentReadiness,
   type VehicleSaleDocumentPayload,
@@ -754,6 +755,7 @@ function AdminVeiculos() {
   >(null);
   const [documentReadinessLoading, setDocumentReadinessLoading] = useState(false);
   const [documentWorkflowLoading, setDocumentWorkflowLoading] = useState(false);
+  const [documentWorkflowResetLoading, setDocumentWorkflowResetLoading] = useState(false);
   const [documentServiceError, setDocumentServiceError] = useState<string | null>(null);
   const [documentWorkflowResult, setDocumentWorkflowResult] =
     useState<VehicleSaleContractWorkflowResult | null>(null);
@@ -816,6 +818,9 @@ function AdminVeiculos() {
     currentDocumentWorkflowStatus === "failed" ||
     (currentDocumentWorkflowStatus === "idle" &&
       documentWorkflowResult?.automationStatus === "trigger_failed");
+  const canResetDocumentWorkflow =
+    !documentNeedsSave &&
+    (currentDocumentWorkflowStatus === "pending" || currentDocumentWorkflowStatus === "failed");
   const documentPayloadSummary = useMemo(
     () => buildDocumentPayloadSummary(activeDocumentPayload),
     [activeDocumentPayload],
@@ -1166,6 +1171,32 @@ function AdminVeiculos() {
       toast.error(message);
     } finally {
       setDocumentWorkflowLoading(false);
+    }
+  }
+
+  async function handleResetSaleContractWorkflow() {
+    if (!editingId) {
+      return;
+    }
+
+    setDocumentWorkflowResetLoading(true);
+    setDocumentServiceError(null);
+
+    try {
+      await resetSaleContractWorkflow(editingId);
+      setDocumentWorkflowResult(null);
+      setDocumentPayloadPreview(null);
+      setDocumentPayloadPreviewLoading(false);
+      setDocumentDrawerOpen(false);
+      await getVehicleById(editingId);
+      toast.success("Workflow resetado com sucesso.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Nao foi possivel resetar o workflow.";
+      setDocumentServiceError(message);
+      toast.error(message);
+    } finally {
+      setDocumentWorkflowResetLoading(false);
     }
   }
 
@@ -2335,9 +2366,12 @@ function AdminVeiculos() {
                   documentWorkflowResult={documentWorkflowResult}
                   currentDocumentWorkflowState={currentDocumentWorkflowState}
                   isSubmitting={isSubmitting}
+                  canResetWorkflow={canResetDocumentWorkflow}
+                  isResettingWorkflow={documentWorkflowResetLoading}
                   onValidate={() => void handleValidateDocumentation()}
                   onStartWorkflow={() => void handleStartSaleContract()}
                   onOpenSummary={() => void handleOpenDocumentSummary()}
+                  onResetWorkflow={() => void handleResetSaleContractWorkflow()}
                 />
 
                 <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
