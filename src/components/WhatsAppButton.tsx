@@ -11,7 +11,7 @@ interface Props {
 
 export function WhatsAppButton({
   message,
-  label = "Chamar no WhatsApp",
+  label = "📲 CHAMAR NO WHATSAPP",
   className = "",
   size = "md",
 }: Props) {
