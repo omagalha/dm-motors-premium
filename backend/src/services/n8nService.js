@@ -30,12 +30,25 @@ function getSaleContractWebhookUrl() {
 async function triggerSaleContractWorkflow(payload) {
   const webhookUrl = getSaleContractWebhookUrl();
 
-  const response = await axios.post(webhookUrl, payload, {
-    timeout: 5000,
-    headers: { "Content-Type": "application/json" },
-  });
+  try {
+    console.log("[n8n] webhookUrl:", webhookUrl);
 
-  return response.data; // n8n retorna { executionId }
+    const response = await axios.post(webhookUrl, payload, {
+      timeout: 5000,
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("[n8n] status:", response.status);
+    console.log("[n8n] data:", response.data);
+
+    return response.data; // n8n retorna { executionId }
+  } catch (error) {
+    console.error("[n8n] webhookUrl:", webhookUrl);
+    console.error("[n8n] status:", error.response?.status);
+    console.error("[n8n] data:", error.response?.data);
+    console.error("[n8n] message:", error.message);
+    throw error;
+  }
 }
 
 module.exports = {
