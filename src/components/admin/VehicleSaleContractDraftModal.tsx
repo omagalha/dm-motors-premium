@@ -35,6 +35,20 @@ interface VehicleSaleContractDraftModalProps {
   getDocumentRequirementLabel: (path: string) => string;
 }
 
+function formatDocumentGeneratedAt(value: string | null | undefined) {
+  if (!value) {
+    return "Data indisponivel";
+  }
+
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return "Data indisponivel";
+  }
+
+  return parsed.toLocaleString("pt-BR");
+}
+
 export function VehicleSaleContractDraftModal({
   open,
   onOpenChange,
@@ -183,7 +197,7 @@ export function VehicleSaleContractDraftModal({
               </div>
               {activeDocumentPayload ? (
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {new Date(activeDocumentPayload.generatedAt).toLocaleString("pt-BR")}
+                  {formatDocumentGeneratedAt(activeDocumentPayload.generatedAt)}
                 </span>
               ) : null}
             </div>

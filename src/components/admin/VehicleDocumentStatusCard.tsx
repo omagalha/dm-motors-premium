@@ -36,6 +36,20 @@ interface VehicleDocumentStatusCardProps {
   onOpenSummary: () => void;
 }
 
+function formatDocumentGeneratedAt(value: string | null | undefined) {
+  if (!value) {
+    return "Data indisponivel";
+  }
+
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return "Data indisponivel";
+  }
+
+  return parsed.toLocaleString("pt-BR");
+}
+
 export function VehicleDocumentStatusCard({
   hasPersistedVehicle,
   documentNeedsSave,
@@ -321,7 +335,7 @@ export function VehicleDocumentStatusCard({
               {documentWorkflowResult?.payload ? (
                 <p className="mt-2 text-xs text-muted-foreground">
                   {documentWorkflowResult.payload.vehicle.name} - gerado em{" "}
-                  {new Date(documentWorkflowResult.payload.generatedAt).toLocaleString("pt-BR")}
+                  {formatDocumentGeneratedAt(documentWorkflowResult.payload.generatedAt)}
                 </p>
               ) : null}
               <button

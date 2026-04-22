@@ -1097,6 +1097,14 @@ function AdminVeiculos() {
     return loadDocumentPayloadPreview(vehicleId, { silent: true });
   }
 
+  async function handleOpenDocumentSummary() {
+    if (!editingId) {
+      return;
+    }
+
+    await openDocumentDrawerForVehicle(editingId, documentWorkflowResult?.payload ?? null);
+  }
+
   async function handleValidateDocumentation() {
     if (!editingId) {
       return toast.error("Salve o veiculo primeiro para validar a documentacao.");
@@ -2326,7 +2334,7 @@ function AdminVeiculos() {
                   isSubmitting={isSubmitting}
                   onValidate={() => void handleValidateDocumentation()}
                   onStartWorkflow={() => void handleStartSaleContract()}
-                  onOpenSummary={() => setDocumentDrawerOpen(true)}
+                  onOpenSummary={() => void handleOpenDocumentSummary()}
                 />
 
                 <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
