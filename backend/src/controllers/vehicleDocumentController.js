@@ -179,10 +179,6 @@ function validateCallbackSecret(req) {
 
 async function saleContractWorkflowCallback(req, res) {
   try {
-    console.log("CALLBACK vehicleId:", req.body?.vehicleId);
-    console.log("CALLBACK executionId:", req.body?.executionId);
-    console.log("CALLBACK param id:", req.params.id);
-
     validateCallbackSecret(req);
 
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -190,6 +186,7 @@ async function saleContractWorkflowCallback(req, res) {
     }
 
     const { executionId, status, documentUrl = "", errorMessage = "" } = req.body;
+    const vehicleId = req.body?.vehicleId;
     const normalizedExecutionId = normalizeExecutionId(executionId);
 
     const VALID_STATUSES = ["completed", "failed"];
@@ -209,9 +206,38 @@ async function saleContractWorkflowCallback(req, res) {
 
     const currentSaleContract = vehicle.documentWorkflow?.saleContract;
 
+    console.log("CALLBACK vehicleId:", vehicleId);
+    console.log("CALLBACK executionId:", executionId);
+    console.log("CALLBACK param id:", req.params.id);
+    console.log(
+      "CURRENT saleContract.executionId:",
+      vehicle.documentWorkflow?.saleContract?.executionId,
+    );
+    console.log(
+      "CURRENT saleContract.providerExecutionId:",
+      vehicle.documentWorkflow?.saleContract?.providerExecutionId,
+    );
+    console.log(
+      "CURRENT saleContract.status:",
+      vehicle.documentWorkflow?.saleContract?.status,
+    );
+    console.log(
+      "NORMALIZED callback executionId:",
+      normalizedExecutionId,
+    );
+
     if (!currentSaleContract?.executionId) {
       return res.status(409).json({ message: "Nenhum workflow pendente encontrado para este veiculo." });
     }
+
+    console.log(
+      "COMPARE executionId === current.executionId:",
+      normalizedExecutionId === vehicle.documentWorkflow?.saleContract?.executionId,
+    );
+    console.log(
+      "COMPARE executionId === current.providerExecutionId:",
+      normalizedExecutionId === vehicle.documentWorkflow?.saleContract?.providerExecutionId,
+    );
 
     if (!matchesKnownExecutionId(currentSaleContract, normalizedExecutionId)) {
       return res.status(409).json({ message: "executionId do callback nao corresponde ao workflow atual." });
