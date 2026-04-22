@@ -412,7 +412,7 @@ export function VehicleDocumentStatusCard({
               ) : null}
               {contractUrl ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Documento pronto para download.
+                  Documento pronto para abrir ou baixar.
                 </p>
               ) : null}
               {documentWorkflowResult?.payload ? (
@@ -423,19 +423,30 @@ export function VehicleDocumentStatusCard({
               ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 {currentWorkflowStatus === "completed" && contractUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleDownloadContract()}
-                    disabled={isDownloadingContract}
-                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:brightness-110"
-                  >
-                    {isDownloadingContract ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
+                  <>
+                    <a
+                      href={contractUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border border-emerald-600/30 bg-emerald-600/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-emerald-700 transition hover:bg-emerald-600/15"
+                    >
                       <FileText className="h-4 w-4" />
-                    )}
-                    {isDownloadingContract ? "Baixando..." : "Baixar contrato"}
-                  </button>
+                      Abrir contrato
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => void handleDownloadContract()}
+                      disabled={isDownloadingContract}
+                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:brightness-110"
+                    >
+                      {isDownloadingContract ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileText className="h-4 w-4" />
+                      )}
+                      {isDownloadingContract ? "Baixando..." : "Baixar contrato"}
+                    </button>
+                  </>
                 ) : null}
                 <button
                   type="button"
