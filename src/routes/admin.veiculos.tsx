@@ -2459,6 +2459,9 @@ function AdminVeiculos() {
                   documentWorkflowButtonLabel={documentWorkflowButtonLabel}
                   documentWorkflowResult={documentWorkflowResult}
                   currentDocumentWorkflowState={currentDocumentWorkflowState}
+                  contractDownloadFileName={
+                    currentEditingCar ? `contrato-${currentEditingCar.id}.pdf` : "contrato.pdf"
+                  }
                   isSubmitting={isSubmitting}
                   canResetWorkflow={canResetDocumentWorkflow}
                   isResettingWorkflow={documentWorkflowResetLoading}

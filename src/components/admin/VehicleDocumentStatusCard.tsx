@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +15,7 @@ import type {
   VehicleSaleContractWorkflowResult,
 } from "@/services/vehicleDocumentService";
 import type { VehicleSaleContractWorkflowState } from "@/types/vehicle";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -42,6 +44,7 @@ interface VehicleDocumentStatusCardProps {
   documentWorkflowButtonLabel: string;
   documentWorkflowResult: VehicleSaleContractWorkflowResult | null;
   currentDocumentWorkflowState: VehicleSaleContractWorkflowState | null;
+  contractDownloadFileName?: string;
   isSubmitting: boolean;
   canResetWorkflow: boolean;
   isResettingWorkflow: boolean;
@@ -78,6 +81,7 @@ export function VehicleDocumentStatusCard({
   documentWorkflowButtonLabel,
   documentWorkflowResult,
   currentDocumentWorkflowState,
+  contractDownloadFileName,
   isSubmitting,
   canResetWorkflow,
   isResettingWorkflow,
@@ -86,8 +90,10 @@ export function VehicleDocumentStatusCard({
   onOpenSummary,
   onResetWorkflow,
 }: VehicleDocumentStatusCardProps) {
+  const [isDownloadingContract, setIsDownloadingContract] = useState(false);
   const currentWorkflowStatus = currentDocumentWorkflowState?.status ?? "idle";
   const contractUrl = currentDocumentWorkflowState?.documentUrl?.trim() ?? "";
+  const resolvedContractFileName = contractDownloadFileName?.trim() || "contrato.pdf";
   const showPersistedWorkflowStatus = currentWorkflowStatus !== "idle";
   const contractStatusLabel =
     currentWorkflowStatus === "completed"
@@ -113,6 +119,36 @@ export function VehicleDocumentStatusCard({
     documentNeedsSave ||
     documentReadinessLoading ||
     documentWorkflowLoading;
+
+  async function handleDownloadContract() {
+    if (!contractUrl || isDownloadingContract) {
+      return;
+    }
+
+    try {
+      setIsDownloadingContract(true);
+
+      const response = await fetch(contractUrl);
+      if (!response.ok) {
+        throw new Error("Falha ao baixar contrato.");
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = resolvedContractFileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+    } catch (error) {
+      console.error(error);
+      toast.error("Nao foi possivel baixar o contrato.");
+    } finally {
+      setIsDownloadingContract(false);
+    }
+  }
 
   return (
     <section className="space-y-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-background/30 to-background/10 p-4">
@@ -389,16 +425,19 @@ export function VehicleDocumentStatusCard({
               ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 {currentWorkflowStatus === "completed" && contractUrl ? (
-                  <a
-                    href={contractUrl}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => void handleDownloadContract()}
+                    disabled={isDownloadingContract}
                     className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:brightness-110"
                   >
-                    <FileText className="h-4 w-4" />
-                    Baixar contrato
-                  </a>
+                    {isDownloadingContract ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
+                    {isDownloadingContract ? "Baixando..." : "Baixar contrato"}
+                  </button>
                 ) : null}
                 <button
                   type="button"
