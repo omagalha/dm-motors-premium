@@ -318,7 +318,7 @@ export function VehicleDocumentStatusCard({
                   Documento: {currentDocumentWorkflowState.documentUrl}
                 </p>
               ) : null}
-              {documentWorkflowResult.payload ? (
+              {documentWorkflowResult?.payload ? (
                 <p className="mt-2 text-xs text-muted-foreground">
                   {documentWorkflowResult.payload.vehicle.name} - gerado em{" "}
                   {new Date(documentWorkflowResult.payload.generatedAt).toLocaleString("pt-BR")}
