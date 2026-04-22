@@ -47,19 +47,6 @@ export interface VehicleSaleDocumentPayload {
 
 export interface VehicleSaleContractDraft {
   title: string;
-  vehicleId: string;
-  workflow: "sale-contract";
-  generatedAt: string;
-  parties: {
-    buyer: {
-      name: string;
-      document: string;
-    };
-    seller: {
-      name: string;
-      document: string;
-    };
-  };
   vehicle: {
     id: string;
     name: string;
@@ -74,6 +61,14 @@ export interface VehicleSaleContractDraft {
     mileage: number;
     fuel: string;
     transmission: string;
+  };
+  buyer: {
+    name: string;
+    document: string;
+  };
+  previousOwner: {
+    name: string;
+    document: string;
   };
   financial: {
     salePrice: number;
@@ -103,7 +98,14 @@ export interface VehicleDocumentReadiness {
 
 export type VehicleSaleContractWorkflowNextStep =
   | "ready_for_automation"
-  | "complete_required_fields";
+  | "complete_required_fields"
+  | "automation_requested";
+
+export type VehicleSaleContractAutomationStatus =
+  | "skipped_not_ready"
+  | "skipped_not_configured"
+  | "pending"
+  | "trigger_failed";
 
 export interface VehicleSaleContractWorkflowResult {
   workflow: "sale-contract";
@@ -112,6 +114,10 @@ export interface VehicleSaleContractWorkflowResult {
   payload: VehicleSaleDocumentPayload | null;
   draft: VehicleSaleContractDraft | null;
   nextStep: VehicleSaleContractWorkflowNextStep;
+  automationTriggered: boolean;
+  automationStatus: VehicleSaleContractAutomationStatus;
+  automationExecutionId: string | null;
+  automationProviderExecutionId: string | null;
 }
 
 function assertDocumentApiConfigured() {

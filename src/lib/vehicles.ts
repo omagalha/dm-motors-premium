@@ -2,6 +2,8 @@ import type {
   Category,
   Fuel,
   Transmission,
+  VehicleDocumentWorkflowState,
+  VehicleDocumentWorkflowStatus,
   Vehicle,
   VehicleInternalData,
   VehicleImage,
@@ -19,6 +21,7 @@ type VehicleRecordLike = Partial<Vehicle> & {
   images?: unknown;
   internal?: unknown;
   metrics?: unknown;
+  documentWorkflow?: unknown;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -85,6 +88,14 @@ function normalizeDateString(value: unknown) {
   return parsed.toISOString();
 }
 
+function normalizeDocumentWorkflowStatus(value: unknown): VehicleDocumentWorkflowStatus {
+  if (value === "pending" || value === "completed" || value === "failed") {
+    return value;
+  }
+
+  return "idle";
+}
+
 export function createEmptyVehicleMetricsSummary(): VehicleMetricsSummary {
   return {
     views: 0,
@@ -149,6 +160,25 @@ function normalizeVehicleMetricsSummary(value: unknown): VehicleMetricsSummary |
   }
 
   return metrics;
+}
+
+function normalizeVehicleDocumentWorkflow(
+  value: unknown,
+): VehicleDocumentWorkflowState | undefined {
+  if (!isRecord(value) || !isRecord(value.saleContract)) return undefined;
+
+  return {
+    saleContract: {
+      status: normalizeDocumentWorkflowStatus(value.saleContract.status),
+      executionId: normalizeString(value.saleContract.executionId),
+      providerExecutionId: normalizeString(value.saleContract.providerExecutionId) || undefined,
+      triggeredAt: normalizeDateString(value.saleContract.triggeredAt),
+      completedAt: normalizeDateString(value.saleContract.completedAt),
+      failedAt: normalizeDateString(value.saleContract.failedAt),
+      documentUrl: normalizeString(value.saleContract.documentUrl),
+      errorMessage: normalizeString(value.saleContract.errorMessage),
+    },
+  };
 }
 
 function normalizeStringArray(value: unknown) {
@@ -291,6 +321,7 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
   const legacyImage = normalizeVehicleImages(vehicle.image);
   const internal = normalizeVehicleInternalData(vehicle.internal);
   const metrics = normalizeVehicleMetricsSummary(vehicle.metrics);
+  const documentWorkflow = normalizeVehicleDocumentWorkflow(vehicle.documentWorkflow);
 
   return {
     id: String(vehicle.id ?? vehicle._id ?? ""),
@@ -316,6 +347,7 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
     tags: normalizeStringArray(vehicle.tags),
     ...(internal ? { internal } : {}),
     ...(metrics ? { metrics } : {}),
+    ...(documentWorkflow ? { documentWorkflow } : {}),
     createdAt: normalizeString(vehicle.createdAt),
     updatedAt: normalizeString(vehicle.updatedAt),
   };
@@ -323,7 +355,12 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
 
 export function stripVehicleAdminData(vehicle: Vehicle): Vehicle {
   const normalized = normalizeVehicleRecord(vehicle);
-  const { internal: _internal, metrics: _metrics, ...publicVehicle } = normalized;
+  const {
+    internal: _internal,
+    metrics: _metrics,
+    documentWorkflow: _documentWorkflow,
+    ...publicVehicle
+  } = normalized;
   return publicVehicle;
 }
 

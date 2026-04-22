@@ -2,10 +2,11 @@
 // The goal is to keep one canonical shape and avoid guessing sales-critical data
 // in the UI layer.
 
-export type Transmission = "Automático" | "Manual" | "Nao informado";
+export type Transmission = "AutomÃ¡tico" | "Manual" | "Nao informado";
 export type Category = "Hatch" | "Sedan" | "SUV" | "Picape" | "Nao informado";
 export type Fuel = "Flex" | "Diesel" | "Gasolina" | "Nao informado";
 export type VehicleStatus = "disponivel" | "reservado" | "vendido";
+export type VehicleDocumentWorkflowStatus = "idle" | "pending" | "completed" | "failed";
 
 export interface VehicleImage {
   url: string;
@@ -49,6 +50,21 @@ export interface VehicleMetricsSummary {
   leads?: number;
 }
 
+export interface VehicleSaleContractWorkflowState {
+  status: VehicleDocumentWorkflowStatus;
+  executionId: string;
+  providerExecutionId?: string;
+  triggeredAt?: string;
+  completedAt?: string;
+  failedAt?: string;
+  documentUrl: string;
+  errorMessage: string;
+}
+
+export interface VehicleDocumentWorkflowState {
+  saleContract: VehicleSaleContractWorkflowState;
+}
+
 export interface Vehicle {
   // Identidade
   id: string;
@@ -80,6 +96,7 @@ export interface Vehicle {
   tags: string[];
   internal?: VehicleInternalData;
   metrics?: VehicleMetricsSummary;
+  documentWorkflow?: VehicleDocumentWorkflowState;
 
   // Operacao
   createdAt: string;

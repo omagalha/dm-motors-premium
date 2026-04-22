@@ -27,6 +27,15 @@ function getSaleContractWebhookUrl() {
   return parsedWebhookUrl.toString();
 }
 
+function getProviderExecutionId(responseData) {
+  if (!responseData || typeof responseData !== "object") {
+    return "";
+  }
+
+  const executionId = responseData.executionId;
+  return typeof executionId === "string" ? executionId.trim() : "";
+}
+
 async function triggerSaleContractWorkflow(payload) {
   const webhookUrl = getSaleContractWebhookUrl();
 
@@ -54,5 +63,6 @@ async function triggerSaleContractWorkflow(payload) {
 module.exports = {
   triggerSaleContractWorkflow,
   getSaleContractWebhookUrl,
+  getProviderExecutionId,
   SALE_CONTRACT_WEBHOOK_PATH,
 };

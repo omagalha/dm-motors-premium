@@ -11,6 +11,7 @@ import type {
   VehicleSaleContractWorkflowResult,
   VehicleSaleDocumentPayload,
 } from "@/services/vehicleDocumentService";
+import type { VehicleSaleContractWorkflowState } from "@/types/vehicle";
 import { FileText, Loader2 } from "lucide-react";
 
 export interface VehicleDocumentPayloadSummaryItem {
@@ -30,6 +31,7 @@ interface VehicleSaleContractDraftModalProps {
   documentPayloadPreviewLoading: boolean;
   documentPayloadSummary: VehicleDocumentPayloadSummaryItem[];
   documentWorkflowResult: VehicleSaleContractWorkflowResult | null;
+  currentDocumentWorkflowState: VehicleSaleContractWorkflowState | null;
   getDocumentRequirementLabel: (path: string) => string;
 }
 
@@ -45,6 +47,7 @@ export function VehicleSaleContractDraftModal({
   documentPayloadPreviewLoading,
   documentPayloadSummary,
   documentWorkflowResult,
+  currentDocumentWorkflowState,
   getDocumentRequirementLabel,
 }: VehicleSaleContractDraftModalProps) {
   return (
@@ -103,6 +106,29 @@ export function VehicleSaleContractDraftModal({
                 <span className="font-semibold text-foreground">
                   {documentWorkflowResult.nextStep}
                 </span>
+                {" · "}automacao:{" "}
+                <span className="font-semibold text-foreground">
+                  {documentWorkflowResult.automationStatus}
+                </span>
+              </p>
+            ) : null}
+
+            {currentDocumentWorkflowState && currentDocumentWorkflowState.status !== "idle" ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Status persistido:{" "}
+                <span className="font-semibold text-foreground">
+                  {currentDocumentWorkflowState.status}
+                </span>
+                {" · "}executionId:{" "}
+                <span className="font-semibold text-foreground">
+                  {currentDocumentWorkflowState.executionId || "n/a"}
+                </span>
+              </p>
+            ) : null}
+
+            {currentDocumentWorkflowState?.errorMessage ? (
+              <p className="mt-2 text-xs text-destructive">
+                Erro do workflow: {currentDocumentWorkflowState.errorMessage}
               </p>
             ) : null}
           </section>

@@ -27,11 +27,17 @@ import {
   type VehicleSaleDocumentPayload,
   type VehicleSaleContractWorkflowResult,
 } from "@/services/vehicleDocumentService";
-import { createVehicle, deleteVehicle, updateVehicle } from "@/services/vehicleService";
+import {
+  createVehicle,
+  deleteVehicle,
+  getVehicleById,
+  updateVehicle,
+} from "@/services/vehicleService";
 import type {
   Category,
   Fuel,
   Transmission,
+  VehicleDocumentWorkflowStatus,
   VehicleInternalData,
   VehicleImage,
   VehicleStatus,
@@ -753,29 +759,54 @@ function AdminVeiculos() {
   const documentNeedsSave = Boolean(
     editingId && savedDocumentStateKey && currentDocumentStateKey !== savedDocumentStateKey,
   );
+  const currentEditingCar = useMemo(
+    () => (editingId ? cars.find((car) => car.id === editingId) ?? null : null),
+    [cars, editingId],
+  );
+  const currentDocumentWorkflowState = currentEditingCar?.documentWorkflow?.saleContract ?? null;
+  const currentDocumentWorkflowStatus: VehicleDocumentWorkflowStatus =
+    currentDocumentWorkflowState?.status ?? "idle";
   const activeDocumentValidation = documentWorkflowResult?.validation ?? documentReadiness;
   const activeDocumentPayload = documentWorkflowResult?.payload ?? documentPayloadPreview;
   const activeDocumentMissingFields = activeDocumentValidation?.missingFields ?? [];
   const activeDocumentWarnings = activeDocumentValidation?.warnings ?? [];
+  const isAutomationPending =
+    currentDocumentWorkflowStatus === "pending" ||
+    documentWorkflowResult?.automationStatus === "pending";
+  const isAutomationCompleted = currentDocumentWorkflowStatus === "completed";
+  const isAutomationFailed =
+    currentDocumentWorkflowStatus === "failed" ||
+    (currentDocumentWorkflowStatus === "idle" &&
+      documentWorkflowResult?.automationStatus === "trigger_failed");
   const documentPayloadSummary = useMemo(
     () => buildDocumentPayloadSummary(activeDocumentPayload),
     [activeDocumentPayload],
   );
   const documentWorkflowButtonState = documentWorkflowLoading
     ? "loading"
+    : !documentNeedsSave && isAutomationPending
+      ? "pending"
+    : !documentNeedsSave && isAutomationCompleted
+      ? "completed"
+    : !documentNeedsSave && isAutomationFailed
+      ? "failed"
     : !documentNeedsSave && documentWorkflowResult?.ready
-      ? "ready"
-      : !documentNeedsSave &&
-          ((documentWorkflowResult && !documentWorkflowResult.ready) ||
-            (!documentWorkflowResult && documentReadiness && !documentReadiness.ready))
-        ? "pending"
-        : "idle";
+      ? "completed"
+    : !documentNeedsSave &&
+        ((documentWorkflowResult && !documentWorkflowResult.ready) ||
+          (!documentWorkflowResult && documentReadiness && !documentReadiness.ready))
+      ? "blocked"
+      : "idle";
   const documentWorkflowButtonLabel =
     documentWorkflowButtonState === "loading"
       ? "Validando..."
-      : documentWorkflowButtonState === "ready"
-        ? "Pre-contrato pronto"
-        : documentWorkflowButtonState === "pending"
+      : documentWorkflowButtonState === "pending"
+        ? "Automacao pendente"
+      : documentWorkflowButtonState === "completed"
+        ? "Workflow concluido"
+        : documentWorkflowButtonState === "failed"
+          ? "Workflow falhou"
+        : documentWorkflowButtonState === "blocked"
           ? "Campos pendentes"
           : "Gerar pre-contrato";
 
@@ -840,6 +871,32 @@ function AdminVeiculos() {
     editorTab,
     open,
   ]);
+
+  useEffect(() => {
+    if (!open || !editingId) {
+      return;
+    }
+
+    const syncVehicleWorkflowState = async () => {
+      try {
+        await getVehicleById(editingId);
+      } catch {
+        /* ignore background workflow polling errors */
+      }
+    };
+
+    void syncVehicleWorkflowState();
+
+    if (currentDocumentWorkflowStatus !== "pending") {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void syncVehicleWorkflowState();
+    }, 10000);
+
+    return () => window.clearInterval(intervalId);
+  }, [currentDocumentWorkflowStatus, editingId, open]);
 
   function resetEditorState() {
     setOpen(false);
@@ -1035,9 +1092,19 @@ function AdminVeiculos() {
       const workflowResult = await startSaleContractWorkflow(editingId);
       setDocumentWorkflowResult(workflowResult);
       setDocumentReadiness(workflowResult.validation);
+      await getVehicleById(editingId);
       await openDocumentDrawerForVehicle(editingId, workflowResult.payload);
 
-      if (workflowResult.ready) {
+      if (workflowResult.ready && workflowResult.automationStatus === "pending") {
+        toast.success("Pre-contrato preparado e automacao solicitada ao n8n.");
+      } else if (workflowResult.ready && workflowResult.automationStatus === "trigger_failed") {
+        toast.warning("Pre-contrato preparado, mas a automacao falhou ao disparar.");
+      } else if (
+        workflowResult.ready &&
+        workflowResult.automationStatus === "skipped_not_configured"
+      ) {
+        toast.warning("Pre-contrato preparado, mas a automacao nao esta configurada.");
+      } else if (workflowResult.ready) {
         toast.success("Pre-contrato preparado com sucesso.");
       } else {
         toast.warning(
@@ -2218,6 +2285,7 @@ function AdminVeiculos() {
                   documentWorkflowButtonState={documentWorkflowButtonState}
                   documentWorkflowButtonLabel={documentWorkflowButtonLabel}
                   documentWorkflowResult={documentWorkflowResult}
+                  currentDocumentWorkflowState={currentDocumentWorkflowState}
                   isSubmitting={isSubmitting}
                   onValidate={() => void handleValidateDocumentation()}
                   onStartWorkflow={() => void handleStartSaleContract()}
@@ -2519,6 +2587,7 @@ function AdminVeiculos() {
         documentPayloadPreviewLoading={documentPayloadPreviewLoading}
         documentPayloadSummary={documentPayloadSummary}
         documentWorkflowResult={documentWorkflowResult}
+        currentDocumentWorkflowState={currentDocumentWorkflowState}
         getDocumentRequirementLabel={getDocumentRequirementLabel}
       />
 

@@ -2,6 +2,7 @@ import type {
   VehicleDocumentReadiness,
   VehicleSaleContractWorkflowResult,
 } from "@/services/vehicleDocumentService";
+import type { VehicleSaleContractWorkflowState } from "@/types/vehicle";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -25,9 +26,10 @@ interface VehicleDocumentStatusCardProps {
   documentReadinessBadges: VehicleDocumentStatusBadge[];
   completedReadinessBadges: number;
   documentWorkflowLoading: boolean;
-  documentWorkflowButtonState: "idle" | "loading" | "ready" | "pending";
+  documentWorkflowButtonState: "idle" | "loading" | "completed" | "failed" | "blocked" | "pending";
   documentWorkflowButtonLabel: string;
   documentWorkflowResult: VehicleSaleContractWorkflowResult | null;
+  currentDocumentWorkflowState: VehicleSaleContractWorkflowState | null;
   isSubmitting: boolean;
   onValidate: () => void;
   onStartWorkflow: () => void;
@@ -46,11 +48,14 @@ export function VehicleDocumentStatusCard({
   documentWorkflowButtonState,
   documentWorkflowButtonLabel,
   documentWorkflowResult,
+  currentDocumentWorkflowState,
   isSubmitting,
   onValidate,
   onStartWorkflow,
   onOpenSummary,
 }: VehicleDocumentStatusCardProps) {
+  const currentWorkflowStatus = currentDocumentWorkflowState?.status ?? "idle";
+  const showPersistedWorkflowStatus = currentWorkflowStatus !== "idle";
   const validateDisabled =
     !hasPersistedVehicle ||
     isSubmitting ||
@@ -78,6 +83,12 @@ export function VehicleDocumentStatusCard({
           className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
             !hasPersistedVehicle
               ? "bg-secondary text-foreground"
+              : currentWorkflowStatus === "completed"
+                ? "bg-emerald-500/15 text-emerald-600"
+                : currentWorkflowStatus === "failed"
+                  ? "bg-destructive/10 text-destructive"
+                  : currentWorkflowStatus === "pending"
+                    ? "bg-amber-500/15 text-amber-600"
               : documentNeedsSave
                 ? "bg-amber-500/15 text-amber-600"
                 : documentReadiness?.ready
@@ -87,6 +98,12 @@ export function VehicleDocumentStatusCard({
         >
           {!hasPersistedVehicle
             ? "Salve para habilitar"
+            : currentWorkflowStatus === "completed"
+              ? "Workflow concluido"
+              : currentWorkflowStatus === "failed"
+                ? "Workflow falhou"
+                : currentWorkflowStatus === "pending"
+                  ? "Automacao pendente"
             : documentNeedsSave
               ? "Salve para revalidar"
               : documentReadiness?.ready
@@ -184,18 +201,26 @@ export function VehicleDocumentStatusCard({
               onClick={onStartWorkflow}
               disabled={workflowDisabled}
               className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                documentWorkflowButtonState === "ready"
+                documentWorkflowButtonState === "completed"
                   ? "bg-emerald-600 text-white shadow-card hover:brightness-110"
-                  : documentWorkflowButtonState === "pending"
+                : documentWorkflowButtonState === "pending"
                     ? "bg-amber-500/15 text-amber-700 ring-1 ring-amber-500/30 hover:bg-amber-500/20"
-                    : "bg-primary text-primary-foreground shadow-red hover:brightness-110"
+                  : documentWorkflowButtonState === "failed"
+                    ? "bg-destructive/10 text-destructive ring-1 ring-destructive/30 hover:bg-destructive/15"
+                  : documentWorkflowButtonState === "blocked"
+                      ? "bg-secondary text-foreground ring-1 ring-border hover:bg-secondary/80"
+                      : "bg-primary text-primary-foreground shadow-red hover:brightness-110"
               }`}
             >
               {documentWorkflowButtonState === "loading" ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
-              ) : documentWorkflowButtonState === "ready" ? (
+              ) : documentWorkflowButtonState === "completed" ? (
                 <CheckCircle2 className="h-4 w-4" />
               ) : documentWorkflowButtonState === "pending" ? (
+                <AlertTriangle className="h-4 w-4" />
+              ) : documentWorkflowButtonState === "failed" ? (
+                <AlertTriangle className="h-4 w-4" />
+              ) : documentWorkflowButtonState === "blocked" ? (
                 <AlertTriangle className="h-4 w-4" />
               ) : (
                 <FileText className="h-4 w-4" />
@@ -204,38 +229,95 @@ export function VehicleDocumentStatusCard({
             </button>
           </div>
 
-          {documentWorkflowResult && !documentNeedsSave && (
+          {(documentWorkflowResult || showPersistedWorkflowStatus) && !documentNeedsSave && (
             <div
               className={`rounded-xl border px-4 py-3 ${
-                documentWorkflowResult.validation.ready
+                currentWorkflowStatus === "completed"
+                  ? "border-emerald-500/30 bg-emerald-500/10"
+                  : currentWorkflowStatus === "failed"
+                    ? "border-destructive/30 bg-destructive/10"
+                    : currentWorkflowStatus === "pending"
+                      ? "border-amber-500/30 bg-amber-500/10"
+                : documentWorkflowResult?.validation.ready
                   ? "border-emerald-500/30 bg-emerald-500/10"
                   : "border-amber-500/30 bg-amber-500/10"
               }`}
             >
               <p
                 className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${
-                  documentWorkflowResult.validation.ready
+                  currentWorkflowStatus === "completed"
+                    ? "text-emerald-700"
+                    : currentWorkflowStatus === "failed"
+                      ? "text-destructive"
+                      : currentWorkflowStatus === "pending"
+                        ? "text-amber-700"
+                  : documentWorkflowResult?.validation.ready
                     ? "text-emerald-700"
                     : "text-amber-700"
                 }`}
               >
-                {documentWorkflowResult.validation.ready ? (
+                {currentWorkflowStatus === "completed" ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : currentWorkflowStatus === "failed" || currentWorkflowStatus === "pending" ? (
+                  <AlertTriangle className="h-4 w-4" />
+                ) : documentWorkflowResult?.validation.ready ? (
                   <CheckCircle2 className="h-4 w-4" />
                 ) : (
                   <AlertTriangle className="h-4 w-4" />
                 )}
-                {documentWorkflowResult.validation.ready
+                {currentWorkflowStatus === "completed"
+                  ? "Workflow concluido"
+                  : currentWorkflowStatus === "failed"
+                    ? "Workflow falhou"
+                    : currentWorkflowStatus === "pending"
+                      ? "Workflow pendente"
+                : documentWorkflowResult?.validation.ready
                   ? "Pre-contrato pronto"
                   : "Campos pendentes"}
               </p>
               <p className="mt-2 text-sm font-semibold text-foreground">
-                {documentWorkflowResult.validation.ready
-                  ? "O backend ja montou a base documental e ela esta pronta para a futura automacao."
-                  : `Ainda faltam ${documentWorkflowResult.validation.missingFields.length} campo(s) obrigatorio(s) para seguir com o contrato.`}
+                {currentWorkflowStatus === "completed"
+                  ? "O callback do n8n confirmou a conclusao do workflow no backend."
+                  : currentWorkflowStatus === "failed"
+                    ? currentDocumentWorkflowState?.errorMessage ||
+                      "O callback do n8n confirmou falha na automacao."
+                    : currentWorkflowStatus === "pending"
+                      ? "O backend solicitou a automacao e aguarda o callback do n8n."
+                : documentWorkflowResult?.validation.ready
+                  ? documentWorkflowResult.automationStatus === "pending"
+                    ? "O backend ja montou a base documental e a automacao no n8n foi solicitada."
+                    : documentWorkflowResult.automationStatus === "trigger_failed"
+                      ? "O backend montou a base documental, mas a chamada para o n8n falhou."
+                      : documentWorkflowResult.automationStatus === "skipped_not_configured"
+                        ? "O backend montou a base documental, mas a automacao esta desativada por configuracao."
+                        : "O backend ja montou a base documental e ela esta pronta para a futura automacao."
+                  : `Ainda faltam ${documentWorkflowResult?.validation.missingFields.length ?? 0} campo(s) obrigatorio(s) para seguir com o contrato.`}
               </p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Proxima etapa: {documentWorkflowResult.nextStep}
-              </p>
+              {documentWorkflowResult ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Proxima etapa: {documentWorkflowResult.nextStep}
+                </p>
+              ) : null}
+              {currentDocumentWorkflowState?.executionId ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Execucao confirmada: {currentDocumentWorkflowState.executionId}
+                  {currentDocumentWorkflowState.providerExecutionId
+                    ? ` - n8n: ${currentDocumentWorkflowState.providerExecutionId}`
+                    : ""}
+                </p>
+              ) : documentWorkflowResult?.automationExecutionId ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Execucao solicitada: {documentWorkflowResult.automationExecutionId}
+                  {documentWorkflowResult.automationProviderExecutionId
+                    ? ` - n8n: ${documentWorkflowResult.automationProviderExecutionId}`
+                    : ""}
+                </p>
+              ) : null}
+              {currentDocumentWorkflowState?.documentUrl ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Documento: {currentDocumentWorkflowState.documentUrl}
+                </p>
+              ) : null}
               {documentWorkflowResult.payload ? (
                 <p className="mt-2 text-xs text-muted-foreground">
                   {documentWorkflowResult.payload.vehicle.name} - gerado em{" "}

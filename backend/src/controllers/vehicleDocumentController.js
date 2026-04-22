@@ -3,7 +3,44 @@ const Vehicle = require("../models/Vehicle");
 const { buildVehicleSaleDocumentPayload } = require("../utils/vehicleDocumentPayload");
 const { validateVehicleForSaleDocument } = require("../utils/vehicleDocumentValidation");
 const { runSaleContractWorkflow } = require("../services/documentWorkflowService");
-const { triggerSaleContractWorkflow: triggerN8n } = require("../services/n8nService");
+const {
+  triggerSaleContractWorkflow: triggerN8n,
+  getProviderExecutionId,
+} = require("../services/n8nService");
+
+function normalizeExecutionId(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function createWorkflowResponse(workflowResult, options = {}) {
+  const automationTriggered = options.automationTriggered === true;
+  const automationStatus = options.automationStatus ?? "skipped_not_ready";
+  const automationExecutionId = options.automationExecutionId ?? null;
+  const automationProviderExecutionId = options.automationProviderExecutionId ?? null;
+
+  return {
+    ...workflowResult,
+    nextStep: automationTriggered ? "automation_requested" : workflowResult.nextStep,
+    automationTriggered,
+    automationStatus,
+    automationExecutionId,
+    automationProviderExecutionId,
+  };
+}
+
+function matchesKnownExecutionId(saleContract, receivedExecutionId) {
+  const normalizedReceivedExecutionId = normalizeExecutionId(receivedExecutionId);
+  if (!normalizedReceivedExecutionId) {
+    return false;
+  }
+
+  const knownExecutionIds = [
+    normalizeExecutionId(saleContract?.executionId),
+    normalizeExecutionId(saleContract?.providerExecutionId),
+  ].filter(Boolean);
+
+  return knownExecutionIds.includes(normalizedReceivedExecutionId);
+}
 
 async function findVehicleForDocuments(id) {
   if (!mongoose.isValidObjectId(id)) {
@@ -57,6 +94,8 @@ async function startSaleContractWorkflow(req, res) {
 
     let automationTriggered = false;
     let automationStatus = "skipped_not_ready";
+    let automationExecutionId = null;
+    let automationProviderExecutionId = null;
 
     if (workflowResult.ready && workflowResult.draft) {
       const webhookUrl = process.env.N8N_SALE_CONTRACT_WEBHOOK_URL;
@@ -74,19 +113,23 @@ async function startSaleContractWorkflow(req, res) {
           const vehicleId = vehicleDoc._id.toString();
           const callbackUrl = `${backendUrl}/vehicles/${vehicleId}/document-workflows/sale-contract/callback`;
           console.log("[n8n] Disparando webhook. vehicleId:", vehicleId, "callbackUrl:", callbackUrl);
-          await triggerN8n({
+          const n8nResponse = await triggerN8n({
             executionId,
             vehicleId,
             workflow: "sale-contract",
             callbackUrl,
             draft: workflowResult.draft,
           });
+          const providerExecutionId = getProviderExecutionId(n8nResponse);
           automationTriggered = true;
           automationStatus = "pending";
+          automationExecutionId = executionId;
+          automationProviderExecutionId = providerExecutionId || null;
           vehicleDoc.documentWorkflow = {
             saleContract: {
               status: "pending",
               executionId,
+              providerExecutionId,
               triggeredAt: new Date(),
               completedAt: null,
               failedAt: null,
@@ -102,12 +145,14 @@ async function startSaleContractWorkflow(req, res) {
       }
     }
 
-    return res.status(200).json({
-      ...workflowResult,
-      nextStep: automationTriggered ? "automation_requested" : workflowResult.nextStep,
-      automationTriggered,
-      automationStatus,
-    });
+    return res.status(200).json(
+      createWorkflowResponse(workflowResult, {
+        automationTriggered,
+        automationStatus,
+        automationExecutionId,
+        automationProviderExecutionId,
+      }),
+    );
   } catch (error) {
     return res.status(500).json({ message: "Erro ao iniciar workflow documental do veiculo." });
   }
@@ -116,10 +161,14 @@ async function startSaleContractWorkflow(req, res) {
 function validateCallbackSecret(req) {
   const expected = process.env.N8N_CALLBACK_SECRET;
   const received = req.headers["x-callback-secret"];
-  console.log("[n8n callback] EXPECTED:", expected);
-  console.log("[n8n callback] RECEIVED:", received);
 
-  if (!expected || received !== expected) {
+  if (!expected) {
+    const error = new Error("N8N callback secret not configured");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  if (received !== expected) {
     const error = new Error("Unauthorized callback");
     error.statusCode = 401;
     throw error;
@@ -135,10 +184,15 @@ async function saleContractWorkflowCallback(req, res) {
     }
 
     const { executionId, status, documentUrl = "", errorMessage = "" } = req.body;
+    const normalizedExecutionId = normalizeExecutionId(executionId);
 
     const VALID_STATUSES = ["completed", "failed"];
     if (!VALID_STATUSES.includes(status)) {
       return res.status(400).json({ message: "Status invalido. Use 'completed' ou 'failed'." });
+    }
+
+    if (!normalizedExecutionId) {
+      return res.status(400).json({ message: "executionId obrigatorio no callback." });
     }
 
     const vehicle = await Vehicle.findById(req.params.id);
@@ -147,17 +201,40 @@ async function saleContractWorkflowCallback(req, res) {
       return res.status(404).json({ message: "Veiculo nao encontrado." });
     }
 
+    const currentSaleContract = vehicle.documentWorkflow?.saleContract;
+
+    if (!currentSaleContract?.executionId) {
+      return res.status(409).json({ message: "Nenhum workflow pendente encontrado para este veiculo." });
+    }
+
+    if (!matchesKnownExecutionId(currentSaleContract, normalizedExecutionId)) {
+      return res.status(409).json({ message: "executionId do callback nao corresponde ao workflow atual." });
+    }
+
+    const currentStatus = currentSaleContract.status;
+    const isPendingWorkflow = currentStatus === "pending";
+    const isIdempotentFinalCallback =
+      (currentStatus === "completed" || currentStatus === "failed") && currentStatus === status;
+
+    if (!isPendingWorkflow && !isIdempotentFinalCallback) {
+      return res.status(409).json({ message: "Workflow nao esta mais pendente para este callback." });
+    }
+
     const now = new Date();
 
     vehicle.documentWorkflow = {
       saleContract: {
         status,
-        executionId: executionId ?? "",
-        triggeredAt: vehicle.documentWorkflow?.saleContract?.triggeredAt ?? now,
-        completedAt: status === "completed" ? now : null,
-        failedAt: status === "failed" ? now : null,
-        documentUrl,
-        errorMessage,
+        executionId: normalizedExecutionId,
+        providerExecutionId:
+          currentSaleContract.providerExecutionId ||
+          (normalizedExecutionId !== currentSaleContract.executionId ? normalizedExecutionId : ""),
+        triggeredAt: currentSaleContract.triggeredAt ?? now,
+        completedAt:
+          status === "completed" ? currentSaleContract.completedAt ?? now : null,
+        failedAt: status === "failed" ? currentSaleContract.failedAt ?? now : null,
+        documentUrl: documentUrl || currentSaleContract.documentUrl || "",
+        errorMessage: errorMessage || currentSaleContract.errorMessage || "",
       },
     };
 

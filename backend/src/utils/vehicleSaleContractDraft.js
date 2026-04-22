@@ -37,19 +37,6 @@ function buildVehicleSaleContractDraft(documentPayload) {
 
   return {
     title: "Pre-contrato de compra e venda",
-    vehicleId: normalizeString(vehicle.id),
-    workflow: "sale-contract",
-    generatedAt: normalizeString(payload.generatedAt) || new Date().toISOString(),
-    parties: {
-      buyer: {
-        name: normalizeString(buyer.name),
-        document: normalizeString(buyer.document),
-      },
-      seller: {
-        name: normalizeString(previousOwner.name),
-        document: normalizeString(previousOwner.document),
-      },
-    },
     vehicle: {
       id: normalizeString(vehicle.id),
       name: normalizeString(vehicle.name),
@@ -64,6 +51,14 @@ function buildVehicleSaleContractDraft(documentPayload) {
       mileage: normalizeNumber(vehicle.mileage),
       fuel: normalizeString(vehicle.fuel),
       transmission: normalizeString(vehicle.transmission),
+    },
+    buyer: {
+      name: normalizeString(buyer.name),
+      document: normalizeString(buyer.document),
+    },
+    previousOwner: {
+      name: normalizeString(previousOwner.name),
+      document: normalizeString(previousOwner.document),
     },
     financial: {
       salePrice: normalizeNumber(transaction.salePrice),

@@ -49,6 +49,18 @@ const DEFAULTS = {
     lastWhatsappClickAt: "",
     sources: {},
   },
+  documentWorkflow: {
+    saleContract: {
+      status: "idle",
+      executionId: "",
+      providerExecutionId: "",
+      triggeredAt: "",
+      completedAt: "",
+      failedAt: "",
+      documentUrl: "",
+      errorMessage: "",
+    },
+  },
 };
 
 function isRecord(value) {
@@ -83,6 +95,21 @@ function normalizeBoolean(value, fallback = false) {
   if (typeof value === "boolean") return value;
   if (value === "true") return true;
   if (value === "false") return false;
+  return fallback;
+}
+
+function normalizeDate(value, fallback = "") {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
   return fallback;
 }
 
@@ -283,6 +310,50 @@ function normalizeVehicleMetrics(value, options = {}) {
   return metrics;
 }
 
+function normalizeWorkflowStatus(value) {
+  return ["idle", "pending", "completed", "failed"].includes(value)
+    ? value
+    : DEFAULTS.documentWorkflow.saleContract.status;
+}
+
+function normalizeVehicleDocumentWorkflow(value) {
+  if (!isRecord(value) || !isRecord(value.saleContract)) return null;
+
+  return {
+    saleContract: {
+      status: normalizeWorkflowStatus(value.saleContract.status),
+      executionId: normalizeString(
+        value.saleContract.executionId,
+        DEFAULTS.documentWorkflow.saleContract.executionId,
+      ),
+      providerExecutionId: normalizeString(
+        value.saleContract.providerExecutionId,
+        DEFAULTS.documentWorkflow.saleContract.providerExecutionId,
+      ),
+      triggeredAt: normalizeDate(
+        value.saleContract.triggeredAt,
+        DEFAULTS.documentWorkflow.saleContract.triggeredAt,
+      ),
+      completedAt: normalizeDate(
+        value.saleContract.completedAt,
+        DEFAULTS.documentWorkflow.saleContract.completedAt,
+      ),
+      failedAt: normalizeDate(
+        value.saleContract.failedAt,
+        DEFAULTS.documentWorkflow.saleContract.failedAt,
+      ),
+      documentUrl: normalizeString(
+        value.saleContract.documentUrl,
+        DEFAULTS.documentWorkflow.saleContract.documentUrl,
+      ),
+      errorMessage: normalizeString(
+        value.saleContract.errorMessage,
+        DEFAULTS.documentWorkflow.saleContract.errorMessage,
+      ),
+    },
+  };
+}
+
 function normalizeVehiclePayload(body = {}, options = {}) {
   const partial = options.partial === true;
   const payload = {};
@@ -352,6 +423,7 @@ function serializeVehicle(vehicle, options = {}) {
   const legacyTags = normalizeStringArray(vehicle.highlights);
   const internal = normalizeVehicleInternalData(vehicle.internal);
   const metrics = normalizeVehicleMetrics(metricsSource) ?? DEFAULTS.metrics;
+  const documentWorkflow = normalizeVehicleDocumentWorkflow(vehicle.documentWorkflow);
 
   return {
     id: String(vehicle._id),
@@ -377,6 +449,7 @@ function serializeVehicle(vehicle, options = {}) {
     tags: tags.length ? tags : legacyTags,
     ...(isAdmin && internal ? { internal } : {}),
     ...(isAdmin ? { metrics } : {}),
+    ...(isAdmin && documentWorkflow ? { documentWorkflow } : {}),
     createdAt: vehicle.createdAt instanceof Date ? vehicle.createdAt.toISOString() : "",
     updatedAt: vehicle.updatedAt instanceof Date ? vehicle.updatedAt.toISOString() : "",
   };

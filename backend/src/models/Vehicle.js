@@ -51,6 +51,7 @@ const vehicleDocumentWorkflowSchema = new mongoose.Schema(
         default: "idle",
       },
       executionId: { type: String, default: "", trim: true },
+      providerExecutionId: { type: String, default: "", trim: true },
       triggeredAt: { type: Date, default: null },
       completedAt: { type: Date, default: null },
       failedAt: { type: Date, default: null },
