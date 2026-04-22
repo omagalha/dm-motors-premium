@@ -254,23 +254,32 @@ async function saleContractWorkflowCallback(req, res) {
     }
 
     const now = new Date();
-    currentSaleContract.status = status;
-    currentSaleContract.updatedAt = now;
 
     if (status === "completed") {
+      currentSaleContract.status = "completed";
       currentSaleContract.documentUrl = documentUrl || "";
       currentSaleContract.errorMessage = "";
+      currentSaleContract.updatedAt = now;
       currentSaleContract.completedAt = now;
       currentSaleContract.failedAt = null;
     }
 
     if (status === "failed") {
+      currentSaleContract.status = "failed";
+      currentSaleContract.documentUrl = "";
       currentSaleContract.errorMessage = errorMessage || "Falha ao gerar contrato";
+      currentSaleContract.updatedAt = now;
       currentSaleContract.failedAt = now;
       currentSaleContract.completedAt = null;
     }
 
+    console.log("CALLBACK status:", status);
+    console.log("CALLBACK documentUrl:", documentUrl);
+    console.log("ANTES DE SALVAR saleContract:", currentSaleContract);
+
     await vehicle.save();
+
+    console.log("SALE CONTRACT SALVO:", vehicle.documentWorkflow?.saleContract);
 
     return res.status(200).json({
       message: "Callback processado com sucesso",

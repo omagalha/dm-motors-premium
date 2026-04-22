@@ -87,7 +87,18 @@ export function VehicleDocumentStatusCard({
   onResetWorkflow,
 }: VehicleDocumentStatusCardProps) {
   const currentWorkflowStatus = currentDocumentWorkflowState?.status ?? "idle";
+  const contractUrl = currentDocumentWorkflowState?.documentUrl?.trim() ?? "";
   const showPersistedWorkflowStatus = currentWorkflowStatus !== "idle";
+  const contractStatusLabel =
+    currentWorkflowStatus === "completed"
+      ? "Contrato pronto"
+      : currentWorkflowStatus === "pending"
+        ? "Gerando contrato..."
+        : currentWorkflowStatus === "failed"
+          ? "Erro ao gerar contrato"
+          : currentWorkflowStatus === "cancelled"
+            ? "Cancelado"
+            : "Nao gerado";
   const validateDisabled =
     !hasPersistedVehicle ||
     isSubmitting ||
@@ -347,6 +358,9 @@ export function VehicleDocumentStatusCard({
                   Proxima etapa: {documentWorkflowResult.nextStep}
                 </p>
               ) : null}
+              <p className="mt-2 text-xs text-muted-foreground">
+                Status do contrato: {contractStatusLabel}
+              </p>
               {currentDocumentWorkflowState?.executionId ? (
                 <p className="mt-2 text-xs text-muted-foreground">
                   Execucao confirmada: {currentDocumentWorkflowState.executionId}
@@ -362,9 +376,9 @@ export function VehicleDocumentStatusCard({
                     : ""}
                 </p>
               ) : null}
-              {currentDocumentWorkflowState?.documentUrl ? (
+              {contractUrl ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Documento: {currentDocumentWorkflowState.documentUrl}
+                  Documento pronto para visualizacao.
                 </p>
               ) : null}
               {documentWorkflowResult?.payload ? (
@@ -374,6 +388,17 @@ export function VehicleDocumentStatusCard({
                 </p>
               ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
+                {currentWorkflowStatus === "completed" && contractUrl ? (
+                  <a
+                    href={contractUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:brightness-110"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Ver contrato
+                  </a>
+                ) : null}
                 <button
                   type="button"
                   onClick={onOpenSummary}

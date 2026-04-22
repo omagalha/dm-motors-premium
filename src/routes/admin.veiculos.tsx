@@ -5,9 +5,19 @@ import {
   type VehicleDocumentStatusBadge,
 } from "@/components/admin/VehicleDocumentStatusCard";
 import { VehicleSaleContractDraftModal } from "@/components/admin/VehicleSaleContractDraftModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatKm, formatPrice } from "@/data/cars";
-import { resetCars, useCars, type Car, type CarInput } from "@/data/carsStore";
+import { useCars, type Car, type CarInput } from "@/data/carsStore";
 import { getStoredAdminToken } from "@/lib/adminSession";
 import {
   ensureSingleCover,
@@ -563,6 +573,51 @@ function buildDocumentFormStateKey(form: FormState) {
   });
 }
 
+function buildEditorStateKey(
+  form: FormState,
+  existingImages: VehicleImage[],
+  pendingUploads: PendingUploadItem[],
+) {
+  return JSON.stringify({
+    form: {
+      name: safeTrim(form.name),
+      brand: safeTrim(form.brand),
+      model: safeTrim(form.model),
+      price: safeTrim(form.price),
+      mileage: safeTrim(form.mileage),
+      year: safeTrim(form.year),
+      transmission: form.transmission,
+      fuel: form.fuel,
+      category: form.category,
+      color: safeTrim(form.color),
+      city: safeTrim(form.city),
+      badge: safeTrim(form.badge),
+      status: form.status,
+      whatsappNumber: safeTrim(form.whatsappNumber),
+      description: safeTrim(form.description),
+      features: safeTrim(form.features),
+      tags: safeTrim(form.tags),
+      isFeatured: form.isFeatured,
+      active: form.active,
+      internal: buildInternalPayload(form.internal),
+    },
+    existingImages: normalizeVehicleImages(existingImages).map((image, index) => ({
+      key: createExistingImageId(image, index),
+      url: image.url,
+      publicId: image.publicId?.trim() ?? "",
+      isCover: Boolean(image.isCover),
+    })),
+    pendingUploads: pendingUploads.map((item, index) => ({
+      key: item.id || `pending-${index}`,
+      name: item.file.name,
+      size: item.file.size,
+      type: item.file.type,
+      lastModified: item.file.lastModified,
+      isCover: Boolean(item.image.isCover),
+    })),
+  });
+}
+
 function readFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -764,6 +819,8 @@ function AdminVeiculos() {
     useState<VehicleSaleDocumentPayload | null>(null);
   const [documentPayloadPreviewLoading, setDocumentPayloadPreviewLoading] = useState(false);
   const [savedDocumentStateKey, setSavedDocumentStateKey] = useState<string | null>(null);
+  const [savedEditorStateKey, setSavedEditorStateKey] = useState<string | null>(null);
+  const [discardChangesDialogOpen, setDiscardChangesDialogOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingUploadIdRef = useRef(0);
   const isSubmitting = submitStatus !== "idle";
@@ -786,6 +843,10 @@ function AdminVeiculos() {
     () => buildAdminImageItems(existingImages, pendingUploads),
     [existingImages, pendingUploads],
   );
+  const currentEditorStateKey = useMemo(
+    () => buildEditorStateKey(form, existingImages, pendingUploads),
+    [existingImages, form, pendingUploads],
+  );
 
   const documentBadges = useMemo(() => buildDocumentBadges(form.internal), [form.internal]);
   const completedDocumentBadges = documentBadges.filter((item) => item.done).length;
@@ -797,6 +858,9 @@ function AdminVeiculos() {
   const currentDocumentStateKey = useMemo(() => buildDocumentFormStateKey(form), [form]);
   const documentNeedsSave = Boolean(
     editingId && savedDocumentStateKey && currentDocumentStateKey !== savedDocumentStateKey,
+  );
+  const editorHasUnsavedChanges = Boolean(
+    open && savedEditorStateKey && currentEditorStateKey !== savedEditorStateKey,
   );
   const currentEditingCar = useMemo(
     () => (editingId ? cars.find((car) => car.id === editingId) ?? null : null),
@@ -899,6 +963,21 @@ function AdminVeiculos() {
   }, [highlightedCarId]);
 
   useEffect(() => {
+    if (!open || !editorHasUnsavedChanges) {
+      return;
+    }
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [editorHasUnsavedChanges, open]);
+
+  useEffect(() => {
     if (!open || editorTab !== "internal" || !editingId || documentNeedsSave) {
       return;
     }
@@ -963,11 +1042,14 @@ function AdminVeiculos() {
     setDocumentPayloadPreview(null);
     setDocumentPayloadPreviewLoading(false);
     setSavedDocumentStateKey(null);
+    setSavedEditorStateKey(null);
+    setDiscardChangesDialogOpen(false);
   }
 
   function openNew() {
     resetEditorState();
     setEditorMode("create");
+    setSavedEditorStateKey(buildEditorStateKey(emptyForm, [], []));
     setOpen(true);
   }
 
@@ -989,6 +1071,8 @@ function AdminVeiculos() {
     setDocumentPayloadPreview(null);
     setDocumentPayloadPreviewLoading(false);
     setSavedDocumentStateKey(buildDocumentFormStateKey(nextForm));
+    setSavedEditorStateKey(buildEditorStateKey(nextForm, car.images, []));
+    setDiscardChangesDialogOpen(false);
     setOpen(true);
   }
 
@@ -1010,11 +1094,36 @@ function AdminVeiculos() {
     setRemovedExistingImages([]);
     setSubmitStatus("idle");
     setSavedDocumentStateKey(null);
+    setSavedEditorStateKey(buildEditorStateKey(nextForm, car.images, []));
+    setDiscardChangesDialogOpen(false);
     setOpen(true);
   }
 
   function close() {
     if (isSubmitting) return;
+    if (editorHasUnsavedChanges) {
+      setDiscardChangesDialogOpen(true);
+      return;
+    }
+    resetEditorState();
+  }
+
+  function handleConfirmCloseEditor() {
+    resetEditorState();
+  }
+
+  function handleKeepEditing() {
+    setDiscardChangesDialogOpen(false);
+  }
+
+  function handleEditorBackdropClick() {
+    if (isSubmitting || discardChangesDialogOpen) return;
+
+    if (editorHasUnsavedChanges) {
+      setDiscardChangesDialogOpen(true);
+      return;
+    }
+
     resetEditorState();
   }
 
@@ -1557,14 +1666,6 @@ function AdminVeiculos() {
     }
   }
 
-  function handleReset() {
-    if (!window.confirm("Restaurar lista padrao? As alteracoes locais serao perdidas.")) {
-      return;
-    }
-    resetCars();
-    toast.success("Lista restaurada.");
-  }
-
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -1580,13 +1681,6 @@ function AdminVeiculos() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={handleReset}
-            disabled={isSubmitting || hasBusyRow}
-            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:border-primary hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <RotateCcw className="h-4 w-4" /> Restaurar
-          </button>
           <button
             onClick={openNew}
             disabled={isSubmitting || hasBusyRow}
@@ -1904,7 +1998,7 @@ function AdminVeiculos() {
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-          onClick={close}
+          onClick={handleEditorBackdropClick}
         >
           <form
             onClick={(event) => event.stopPropagation()}
@@ -2656,6 +2750,24 @@ function AdminVeiculos() {
           </form>
         </div>
       )}
+
+      <AlertDialog open={discardChangesDialogOpen} onOpenChange={setDiscardChangesDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar alteracoes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O cadastro tem campos preenchidos que ainda nao foram salvos. Se voce sair agora,
+              tudo o que foi digitado nesta tela sera perdido.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleKeepEditing}>Continuar editando</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCloseEditor}>
+              Sair sem salvar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <VehicleSaleContractDraftModal
         open={documentDrawerOpen}
