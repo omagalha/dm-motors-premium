@@ -37,13 +37,13 @@ interface VehicleSaleContractDraftModalProps {
 
 function formatDocumentGeneratedAt(value: string | null | undefined) {
   if (!value) {
-    return "Data indisponivel";
+    return "Data indisponível";
   }
 
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
-    return "Data indisponivel";
+    return "Data indisponível";
   }
 
   return parsed.toLocaleString("pt-BR");
@@ -75,7 +75,7 @@ export function VehicleSaleContractDraftModal({
             {documentWorkflowResult?.draft?.title ?? "Resumo documental"}
           </SheetTitle>
           <SheetDescription>
-            Status atual do fluxo de pre-contrato, com pendencias, avisos e resumo do payload
+            Status atual do fluxo de pré-contrato, com pendências, avisos e resumo do payload
             oficial do backend.
           </SheetDescription>
         </SheetHeader>
@@ -83,7 +83,7 @@ export function VehicleSaleContractDraftModal({
         <div className="mt-6 space-y-4">
           {documentNeedsSave && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700">
-              Existem alteracoes no formulario ainda nao salvas. O resumo abaixo considera apenas
+              Existem alterações no formulário ainda não salvas. O resumo abaixo considera apenas
               os dados persistidos no backend.
             </div>
           )}
@@ -93,7 +93,7 @@ export function VehicleSaleContractDraftModal({
               <div>
                 <p className="text-sm font-bold text-foreground">Status</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Resultado mais recente da validacao documental e do workflow de pre-contrato.
+                  Resultado mais recente da validação documental e do workflow de pré-contrato.
                 </p>
               </div>
               <span
@@ -106,7 +106,7 @@ export function VehicleSaleContractDraftModal({
                 }`}
               >
                 {activeDocumentValidation?.ready
-                  ? "Pre-contrato pronto"
+                  ? "Pré-contrato pronto"
                   : activeDocumentValidation
                     ? "Campos pendentes"
                     : "Status pendente"}
@@ -116,11 +116,11 @@ export function VehicleSaleContractDraftModal({
             {documentWorkflowResult ? (
               <p className="mt-3 text-xs text-muted-foreground">
                 Workflow: <span className="font-semibold text-foreground">sale-contract</span> -
-                proxima etapa:{" "}
+                próxima etapa:{" "}
                 <span className="font-semibold text-foreground">
                   {documentWorkflowResult.nextStep}
                 </span>
-                {" · "}automacao:{" "}
+                {" · "}automação:{" "}
                 <span className="font-semibold text-foreground">
                   {documentWorkflowResult.automationStatus}
                 </span>
@@ -192,7 +192,7 @@ export function VehicleSaleContractDraftModal({
               <div>
                 <p className="text-sm font-bold text-foreground">Resumo do payload</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Base consolidada que sera reutilizada por automacao, templates e PDF.
+                  Base consolidada que será reutilizada por automação, templates e PDF.
                 </p>
               </div>
               {activeDocumentPayload ? (
@@ -223,7 +223,7 @@ export function VehicleSaleContractDraftModal({
               </div>
             ) : (
               <div className="mt-4 rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-                O resumo do payload ainda nao foi carregado.
+                O resumo do payload ainda não foi carregado.
               </div>
             )}
           </section>
@@ -236,7 +236,7 @@ export function VehicleSaleContractDraftModal({
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground opacity-70 sm:w-auto"
           >
             <FileText className="h-4 w-4" />
-            Enviar para automacao
+            Enviar para automação
           </button>
           <button
             type="button"

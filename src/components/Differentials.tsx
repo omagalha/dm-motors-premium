@@ -14,37 +14,37 @@ import { motion } from "framer-motion";
 const items = [
   {
     icon: ShieldCheck,
-    title: "Procedencia garantida",
-    desc: "Historico e apresentacao avaliados antes de cada carro entrar na vitrine.",
+    title: "Procedência garantida",
+    desc: "Histórico e apresentação avaliados antes de cada carro entrar na vitrine.",
   },
   {
     icon: Wrench,
-    title: "Revisao antes da entrega",
-    desc: "Cada carro segue para a loja com um padrao mais alinhado de cuidado e entrega.",
+    title: "Revisão antes da entrega",
+    desc: "Cada carro segue para a loja com um padrão mais alinhado de cuidado e entrega.",
   },
   {
     icon: Banknote,
-    title: "Credito com agilidade",
-    desc: "Analise com diferentes bancos para buscar agilidade e melhores condicoes.",
+    title: "Crédito com agilidade",
+    desc: "Análise com diferentes bancos para buscar agilidade e melhores condições.",
   },
   {
     icon: RefreshCw,
     title: "Troca facilitada",
-    desc: "Seu carro atual entra na negociacao com avaliacao clara e mais praticidade.",
+    desc: "Seu carro atual entra na negociação com avaliação clara e mais praticidade.",
   },
 ];
 
 const commitments = [
-  "Loja fisica para ver, comparar e decidir com mais seguranca.",
-  "Atendimento consultivo do primeiro contato ate o fechamento.",
-  "Fotos fortes, preco claro e contato rapido no mesmo bloco.",
-  "Confianca, transparencia e condicoes claras na negociacao.",
+  "Loja física para ver, comparar e decidir com mais segurança.",
+  "Atendimento consultivo do primeiro contato até o fechamento.",
+  "Fotos fortes, preço claro e contato rápido no mesmo bloco.",
+  "Confiança, transparência e condições claras na negociação.",
 ];
 
 const stats = [
   { icon: Users, value: "+500", label: "clientes atendidos" },
-  { icon: Trophy, value: "+800", label: "veiculos vendidos" },
-  { icon: Star, value: "4.9", label: "avaliacao Google" },
+  { icon: Trophy, value: "+800", label: "veículos vendidos" },
+  { icon: Star, value: "4.9", label: "avaliação Google" },
   { icon: Clock3, value: "7 dias", label: "de atendimento" },
 ];
 
@@ -60,15 +60,15 @@ export function Differentials() {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-primary">
               <Building2 className="h-4 w-4" />
-              Confianca antes da visita
+              Confiança antes da visita
             </span>
             <h2 className="mt-3 text-[2.15rem] font-black uppercase leading-[0.95] text-foreground md:text-[3rem]">
-              Confianca para visitar,
+              Confiança para visitar,
               <br className="hidden md:block" />
               avaliar e decidir.
             </h2>
             <p className="mt-4 max-w-[38rem] text-sm leading-[1.68] text-muted-foreground md:text-base">
-              Estoque atualizado, informacoes claras e atendimento que acompanha voce em
+              Estoque atualizado, informações claras e atendimento que acompanha você em
               cada etapa da compra.
             </p>
           </div>
@@ -108,16 +108,16 @@ export function Differentials() {
             className="rounded-[32px] border border-white/8 bg-[linear-gradient(180deg,oklch(0.18_0.01_20)_0%,oklch(0.12_0.008_20)_100%)] p-7 md:p-9"
           >
             <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
-              Padrao DM Motors
+              Padrão DM Motors
             </span>
             <h3 className="mt-3 text-[2rem] font-black uppercase leading-[0.96] text-foreground md:text-[2.55rem]">
-              Confianca para comprar
+              Confiança para comprar
               <br />
               com mais tranquilidade.
             </h3>
             <p className="mt-4 max-w-2xl text-sm leading-[1.7] text-muted-foreground md:text-base">
-              A DM Motors reune atendimento direto, estoque selecionado e uma apresentacao
-              pensada para facilitar sua decisao na hora de fechar negocio.
+              A DM Motors reúne atendimento direto, estoque selecionado e uma apresentação
+              pensada para facilitar sua decisão na hora de fechar negócio.
             </p>
 
             <div className="mt-7 grid gap-3">

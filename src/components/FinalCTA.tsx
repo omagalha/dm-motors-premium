@@ -29,7 +29,7 @@ export function FinalCTA() {
           </h2>
 
           <p className="mt-5 max-w-[38rem] text-[15px] leading-[1.72] text-muted-foreground sm:text-base">
-            Tire duvidas, simule financiamento, envie seu usado para avaliacao e receba um
+            Tire dúvidas, simule financiamento, envie seu usado para avaliação e receba um
             atendimento direto para fechar com mais agilidade.
           </p>
 
@@ -49,21 +49,21 @@ export function FinalCTA() {
           <div className="rounded-[30px] border border-white/8 bg-background p-7">
             <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-foreground">
               <MapPin className="h-4 w-4 text-primary" />
-              Endereco da loja
+              Endereço da loja
             </p>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Estrada Padua x Pirapetinga, KM 1
+              Estrada Pádua x Pirapetinga, KM 1
               <br />
               Santa Afra
               <br />
-              Santo Antonio de Padua - RJ
+              Santo Antônio de Pádua - RJ
             </p>
           </div>
 
           <div className="rounded-[30px] border border-white/8 bg-background p-7">
             <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.14em] text-foreground">
               <Clock className="h-4 w-4 text-primary" />
-              Horario de atendimento
+              Horário de atendimento
             </p>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
               Seg a Sex · 8h às 18h

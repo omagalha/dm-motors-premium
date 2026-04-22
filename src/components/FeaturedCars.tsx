@@ -71,7 +71,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
               Estoque
             </h2>
             <p className="mt-3 max-w-[38rem] text-sm leading-[1.68] text-muted-foreground md:text-base">
-              Modelos escolhidos para quem busca procedencia, boa apresentacao e negociacao
+              Modelos escolhidos para quem busca procedência, boa apresentação e negociação
               objetiva.
             </p>
           </div>
@@ -109,7 +109,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
 
               <div className="absolute left-5 top-5 flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-white/12 bg-black/45 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white">
-                  Veiculo em destaque
+                  Veículo em destaque
                 </span>
                 {spotlightCar.badge && (
                   <span
@@ -148,7 +148,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
 
               <p className="mt-4 text-[15px] leading-[1.72] text-muted-foreground sm:text-base">
                 {spotlightCar.description ||
-                  "Um dos modelos mais interessantes do nosso estoque, com boa apresentacao e negociacao direta."}
+                  "Um dos modelos mais interessantes do nosso estoque, com boa apresentação e negociação direta."}
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -185,7 +185,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
               <div className="mt-8 flex flex-wrap gap-3">
                 <a
                   href={whatsappLink(
-                    `Ola! Vi o veiculo ${spotlightCar.name} ${spotlightCar.year} no site e tenho interesse. Ele ainda esta disponivel?`,
+                    `Olá! Vi o veículo ${spotlightCar.name} ${spotlightCar.year} no site e tenho interesse. Ele ainda está disponível?`,
                     getVehicleWhatsappNumber(spotlightCar)
                   )}
                   target="_blank"
@@ -307,7 +307,7 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
                     <div className="flex gap-2">
                       <a
                         href={whatsappLink(
-                          `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`,
+                          `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`,
                           getVehicleWhatsappNumber(car)
                         )}
                         target="_blank"

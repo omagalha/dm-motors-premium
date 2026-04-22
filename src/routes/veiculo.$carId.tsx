@@ -54,7 +54,7 @@ export const Route = createFileRoute("/veiculo/$carId")({
   staleTime: 0,
   shouldReload: () => true,
   head: ({ loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "Veiculo - DM Motors Imports" }] };
+    if (!loaderData) return { meta: [{ title: "Veículo - DM Motors Imports" }] };
     const { car } = loaderData;
     const title = `${car.name} ${car.year} - ${formatPrice(car.price)} | DM Motors Imports`;
     const description = `${car.name} ${car.year}, ${formatKm(car.mileage)}, ${car.transmission}, ${car.fuel}. ${car.city}.`;
@@ -114,7 +114,7 @@ function VehiclePage() {
   }, [car.id]);
 
   const badgeStyle = getVehicleBadgeStyle(car.badge);
-  const whatsappMessage = `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`;
+  const whatsappMessage = `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`;
   const handleWhatsappClick = () => {
     void trackVehicleWhatsappClick(car.id, { source: "detail" });
   };
@@ -122,11 +122,11 @@ function VehiclePage() {
   const specs = [
     { icon: Calendar, label: "Ano", value: String(car.year) },
     { icon: Gauge, label: "Km", value: formatKm(car.mileage) },
-    { icon: Settings2, label: "Cambio", value: car.transmission },
-    { icon: FuelIcon, label: "Combustivel", value: car.fuel },
-    { icon: Palette, label: "Cor", value: car.color || "Nao informado" },
+    { icon: Settings2, label: "Câmbio", value: car.transmission },
+    { icon: FuelIcon, label: "Combustível", value: car.fuel },
+    { icon: Palette, label: "Cor", value: car.color || "Não informado" },
     { icon: CarIcon, label: "Categoria", value: car.category },
-    { icon: MapPin, label: "Cidade", value: car.city || "Nao informado" },
+    { icon: MapPin, label: "Cidade", value: car.city || "Não informado" },
   ];
 
   const related = cars.filter((item) => item.id !== car.id && item.active).slice(0, 3);
@@ -191,7 +191,7 @@ function VehiclePage() {
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
-                    aria-label="Proxima foto"
+                    aria-label="Próxima foto"
                     onClick={next}
                     className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
                   >
@@ -227,7 +227,7 @@ function VehiclePage() {
             {car.description && (
               <div className="mt-8 rounded-2xl border border-border bg-card p-6">
                 <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
-                  Sobre este veiculo
+                  Sobre este veículo
                 </h2>
                 <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                   {car.description}
@@ -282,13 +282,13 @@ function VehiclePage() {
 
               <div className="mt-5 border-t border-border pt-5">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">
-                  Preco a vista
+                  Preço à vista
                 </p>
                 <p className="text-4xl font-black text-primary md:text-5xl">
                   {formatPrice(car.price)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  ou em ate 60x - financiamento facilitado
+                  ou em até 60x - financiamento facilitado
                 </p>
               </div>
 
@@ -330,7 +330,7 @@ function VehiclePage() {
 
             <div className="rounded-2xl border border-border bg-card p-6">
               <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">
-                Ficha tecnica
+                Ficha técnica
               </h3>
               <dl className="mt-4 grid grid-cols-2 gap-4">
                 {specs.map((spec) => (
@@ -351,9 +351,9 @@ function VehiclePage() {
               </h3>
               <ul className="mt-4 space-y-3 text-sm">
                 {[
-                  { icon: ShieldCheck, label: "Procedencia garantida" },
-                  { icon: Wrench, label: "Veiculo revisado" },
-                  { icon: Banknote, label: "Financiamento facil" },
+                  { icon: ShieldCheck, label: "Procedência garantida" },
+                  { icon: Wrench, label: "Veículo revisado" },
+                  { icon: Banknote, label: "Financiamento fácil" },
                   { icon: RefreshCw, label: "Aceitamos troca" },
                 ].map((item) => (
                   <li key={item.label} className="flex items-center gap-3 text-foreground">
@@ -371,7 +371,7 @@ function VehiclePage() {
 
       <section className="mx-auto max-w-7xl px-5 pb-16">
         <h2 className="mb-6 text-2xl font-black uppercase text-foreground md:text-3xl">
-          Veja tambem
+          Veja também
         </h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {related.map((relatedVehicle) => (
@@ -439,7 +439,7 @@ function NotFound() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="mx-auto max-w-xl px-5 py-24 text-center">
-        <h1 className="text-4xl font-black uppercase text-foreground">Veiculo nao encontrado</h1>
+        <h1 className="text-4xl font-black uppercase text-foreground">Veículo não encontrado</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Esse carro pode ter sido vendido. Veja outras oportunidades no nosso estoque.
         </p>

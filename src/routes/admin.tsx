@@ -25,8 +25,8 @@ export const Route = createFileRoute("/admin")({
 });
 
 const navItems = [
-  { to: "/admin" as const, label: "Visao geral", icon: LayoutDashboard, exact: true },
-  { to: "/admin/veiculos" as const, label: "Veiculos", icon: Car, exact: false },
+  { to: "/admin" as const, label: "Visão geral", icon: LayoutDashboard, exact: true },
+  { to: "/admin/veiculos" as const, label: "Veículos", icon: Car, exact: false },
   { to: "/admin/insights" as const, label: "Insights", icon: BarChart3, exact: false },
 ];
 
@@ -224,7 +224,7 @@ function AdminLayout() {
       <div className="flex">
         <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 border-r border-border/60 bg-card/30 px-3 py-6 md:block">
           <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Gestao
+            Gestão
           </p>
           <nav className="flex flex-col gap-1">
             {navItems.map((item) => {

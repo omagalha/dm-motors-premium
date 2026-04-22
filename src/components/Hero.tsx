@@ -34,18 +34,18 @@ interface ShowroomPoint {
 const showroomPoints: ShowroomPoint[] = [
   {
     icon: ShieldCheck,
-    title: "Procedencia validada",
-    description: "Laudo e historico avaliados antes de cada carro entrar no estoque.",
+    title: "Procedência validada",
+    description: "Laudo e histórico avaliados antes de cada carro entrar no estoque.",
   },
   {
     icon: RefreshCw,
-    title: "Troca com avaliacao justa",
-    description: "Seu usado entra na negociacao com avaliacao clara e atendimento direto.",
+    title: "Troca com avaliação justa",
+    description: "Seu usado entra na negociação com avaliação clara e atendimento direto.",
   },
   {
     icon: WalletCards,
     title: "Financiamento multibancos",
-    description: "Simulacao agil para buscar a melhor condicao para cada perfil.",
+    description: "Simulação ágil para buscar a melhor condição para cada perfil.",
   },
 ];
 
@@ -84,12 +84,12 @@ function HeroSearch() {
           onChange={(e) => setMaxPrice(e.target.value)}
           className="rounded-2xl border border-border bg-card px-4 py-3.5 text-sm text-foreground focus:border-primary focus:outline-none"
         >
-          <option value="">Qualquer preco</option>
-          <option value="50000">Ate R$ 50 mil</option>
-          <option value="80000">Ate R$ 80 mil</option>
-          <option value="100000">Ate R$ 100 mil</option>
-          <option value="150000">Ate R$ 150 mil</option>
-          <option value="200000">Ate R$ 200 mil</option>
+          <option value="">Qualquer preço</option>
+          <option value="50000">Até R$ 50 mil</option>
+          <option value="80000">Até R$ 80 mil</option>
+          <option value="100000">Até R$ 100 mil</option>
+          <option value="150000">Até R$ 150 mil</option>
+          <option value="200000">Até R$ 200 mil</option>
         </select>
 
         <button
@@ -137,14 +137,14 @@ function ShowroomCard() {
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/12 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#D7D7D7]">
             <Building2 className="h-3.5 w-3.5" />
-            Padrao DM Motors
+            Padrão DM Motors
           </span>
           <h2 className="mt-4 max-w-[14ch] leading-[0.98] text-[#F1F1F1]">
             <span className="block text-[1.45rem] font-extrabold tracking-[-0.7px] sm:text-[1.62rem]">
               Atendimento premium
             </span>
             <span className="mt-2 block text-[0.98rem] font-semibold tracking-[-0.2px] text-[#D8D4D4]">
-              <span className="text-primary">com proximidade</span> e confianca
+              <span className="text-primary">com proximidade</span> e confiança
             </span>
           </h2>
         </div>
@@ -155,7 +155,7 @@ function ShowroomCard() {
             4.9
           </p>
           <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-[#B9B4B4]">
-            avaliacao Google
+            avaliação Google
           </p>
         </div>
       </div>
@@ -200,12 +200,12 @@ function ShowroomCard() {
 
         <div className="rounded-[24px] border border-white/6 bg-white/[0.025] p-4">
           <p className="text-sm font-semibold tracking-[0.01em] text-[#F1F1F1]">
-            Showroom fisico
+            Showroom físico
           </p>
           <p className="mt-2 text-sm leading-[1.65] text-[#C9C5C5]">
-            Santo Antonio de Padua - RJ
+            Santo Antônio de Pádua - RJ
             <br />
-            Atendimento rapido no WhatsApp
+            Atendimento rápido no WhatsApp
             <br />
             Estoque atualizado
           </p>
@@ -219,10 +219,10 @@ export function Hero({ activeCarCount }: HeroProps) {
   const stats: HeroStat[] = [
     {
       value: activeCarCount && activeCarCount > 0 ? `${activeCarCount}+` : "Estoque",
-      label: activeCarCount && activeCarCount > 0 ? "veiculos disponiveis" : "atualizado",
+      label: activeCarCount && activeCarCount > 0 ? "veículos disponíveis" : "atualizado",
     },
     { value: "+500", label: "clientes atendidos" },
-    { value: "4.9", label: "avaliacao no Google" },
+    { value: "4.9", label: "avaliação no Google" },
   ];
 
   return (
@@ -249,19 +249,19 @@ export function Hero({ activeCarCount }: HeroProps) {
         >
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[#D7D7D7]">
             <Building2 className="h-3.5 w-3.5 text-primary" />
-            Showroom premium em Santo Antonio de Padua - RJ
+            Showroom premium em Santo Antônio de Pádua - RJ
           </span>
 
           <h1 className="mt-5 mb-6 max-w-[11ch] text-[clamp(48px,6vw,72px)] leading-[0.95] tracking-[-1px] text-[#F1F1F1]">
-            <span className="block font-extrabold uppercase">Seu proximo carro</span>
+            <span className="block font-extrabold uppercase">Seu próximo carro</span>
             <span className="mt-2 block text-[0.58em] font-bold tracking-[-0.6px] text-[#E5E5E5] normal-case">
-              <span className="text-primary">com mais</span> seguranca
+              <span className="text-primary">com mais</span> segurança
             </span>
           </h1>
 
           <p className="max-w-[38rem] text-[15px] leading-[1.72] text-[#D0CDCD] sm:text-[17px]">
-            Estoque selecionado, atendimento direto e condicoes reais para voce negociar
-            bem, do primeiro contato ate a entrega.
+            Estoque selecionado, atendimento direto e condições reais para você negociar
+            bem, do primeiro contato até a entrega.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
@@ -286,7 +286,7 @@ export function Hero({ activeCarCount }: HeroProps) {
           <div className="mt-5 flex flex-wrap items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/62 sm:gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-              Procedencia garantida
+              Procedência garantida
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5">
               <RefreshCw className="h-3.5 w-3.5 text-primary" />
@@ -294,7 +294,7 @@ export function Hero({ activeCarCount }: HeroProps) {
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5">
               <WalletCards className="h-3.5 w-3.5 text-primary" />
-              Financiamento facil
+              Financiamento fácil
             </span>
           </div>
         </motion.div>

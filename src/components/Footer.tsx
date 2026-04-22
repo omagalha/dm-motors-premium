@@ -47,7 +47,7 @@ export function Footer() {
             <li className="flex items-start gap-2">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span>
-                Estrada Padua x Pirapetinga, KM 1
+                Estrada Pádua x Pirapetinga, KM 1
                 <br />
                 Santa Afra · Santo Antônio de Pádua - RJ
               </span>

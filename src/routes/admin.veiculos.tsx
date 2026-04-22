@@ -71,7 +71,7 @@ import { toast } from "sonner";
 
 const statusMeta: Record<VehicleStatus, { label: string; dot: string; pill: string }> = {
   disponivel: {
-    label: "Disponivel",
+    label: "Disponível",
     dot: "bg-whatsapp shadow-[0_0_0_3px_oklch(0.68_0.18_145/0.25)]",
     pill: "bg-whatsapp/15 text-whatsapp",
   },
@@ -90,16 +90,16 @@ const statusMeta: Record<VehicleStatus, { label: string; dot: string; pill: stri
 export const Route = createFileRoute("/admin/veiculos")({
   head: () => ({
     meta: [
-      { title: "Veiculos - Admin DM Motors" },
+      { title: "Veículos - Admin DM Motors" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AdminVeiculos,
 });
 
-const transmissions: Transmission[] = ["Automático", "Manual", "Nao informado"];
-const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel", "Nao informado"];
-const categories: Category[] = ["Hatch", "Sedan", "SUV", "Picape", "Nao informado"];
+const transmissions: Transmission[] = ["Automático", "Manual", "Não informado"];
+const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel", "Não informado"];
+const categories: Category[] = ["Hatch", "Sedan", "SUV", "Picape", "Não informado"];
 const statuses: VehicleStatus[] = ["disponivel", "reservado", "vendido"];
 type SubmitStatus = "idle" | "uploading_images" | "saving_vehicle";
 type ActiveFilter = "all" | "active" | "inactive";
@@ -219,13 +219,13 @@ const documentRequirementBadges: Array<{
   },
   {
     path: "internal.previousOwnerName",
-    doneLabel: "Proprietario anterior ok",
-    pendingLabel: "Proprietario anterior faltando",
+    doneLabel: "Proprietário anterior ok",
+    pendingLabel: "Proprietário anterior faltando",
   },
   {
     path: "internal.previousOwnerDocument",
-    doneLabel: "Documento do proprietario ok",
-    pendingLabel: "Documento do proprietario faltando",
+    doneLabel: "Documento do proprietário ok",
+    pendingLabel: "Documento do proprietário faltando",
   },
   {
     path: "price",
@@ -234,8 +234,8 @@ const documentRequirementBadges: Array<{
   },
   {
     path: "internal.acquisitionDate",
-    doneLabel: "Data da operacao ok",
-    pendingLabel: "Data da operacao faltando",
+    doneLabel: "Data da operação ok",
+    pendingLabel: "Data da operação faltando",
   },
 ];
 
@@ -377,7 +377,7 @@ function cloneDraftImages(images: Car["images"]) {
 }
 
 function getDuplicateName(name: string) {
-  return /\bcopia\b/i.test(name) ? name : `${name} - Copia`;
+  return /\bcópia\b/i.test(name) ? name : `${name} - Cópia`;
 }
 
 function parseList(value: string) {
@@ -478,18 +478,18 @@ function buildDocumentBadges(internal: InternalFormState): DocumentBadge[] {
     },
     {
       done: Boolean(safeTrim(internal.acquisitionDate) || safeTrim(internal.acquisitionValue)),
-      doneLabel: "Aquisicao registrada",
-      pendingLabel: "Aquisicao faltando",
+      doneLabel: "Aquisição registrada",
+      pendingLabel: "Aquisição faltando",
     },
     {
       done: internal.hasPaidIpva,
       doneLabel: "IPVA marcado",
-      pendingLabel: "IPVA nao marcado",
+      pendingLabel: "IPVA não marcado",
     },
     {
       done: internal.hasInspectionReport,
       doneLabel: "Laudo marcado",
-      pendingLabel: "Laudo nao marcado",
+      pendingLabel: "Laudo não marcado",
     },
   ];
 }
@@ -524,12 +524,12 @@ function buildDocumentPayloadSummary(payload: VehicleSaleDocumentPayload | null)
 
   return [
     {
-      label: "Veiculo",
+      label: "Veículo",
       value: `${payload.vehicle.name} ${payload.vehicle.year}`.trim(),
     },
     {
       label: "Placa",
-      value: payload.vehicle.plate || "Nao informada",
+      value: payload.vehicle.plate || "Não informada",
     },
     {
       label: "Venda",
@@ -537,23 +537,23 @@ function buildDocumentPayloadSummary(payload: VehicleSaleDocumentPayload | null)
     },
     {
       label: "Data",
-      value: payload.transaction.acquisitionDate || "Nao informada",
+      value: payload.transaction.acquisitionDate || "Não informada",
     },
     {
       label: "Comprador",
-      value: payload.buyer.name || "Nao informado",
+      value: payload.buyer.name || "Não informado",
     },
     {
       label: "Documento",
-      value: payload.buyer.document || "Nao informado",
+      value: payload.buyer.document || "Não informado",
     },
     {
       label: "Anterior",
-      value: payload.previousOwner.name || "Nao informado",
+      value: payload.previousOwner.name || "Não informado",
     },
     {
-      label: "Procedencia",
-      value: payload.documentation.provenance || "Nao informada",
+      label: "Procedência",
+      value: payload.documentation.provenance || "Não informada",
     },
   ];
 }
@@ -632,10 +632,10 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
   const token = getStoredAdminToken();
 
   if (!apiUrl) {
-    throw new Error("VITE_API_URL nao configurada para upload.");
+    throw new Error("VITE_API_URL não configurada para upload.");
   }
   if (!token) {
-    throw new Error("Sessao expirada. Faca login novamente.");
+    throw new Error("Sessão expirada. Faça login novamente.");
   }
 
   const formData = new FormData();
@@ -656,7 +656,7 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
     });
   } catch {
     throw new Error(
-      "Nao foi possivel conectar ao servidor de upload. Verifique VITE_API_URL, backend online e CORS.",
+      "Não foi possível conectar ao servidor de upload. Verifique VITE_API_URL, backend online e CORS.",
     );
   }
 
@@ -685,7 +685,7 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
   try {
     json = await response.json();
   } catch {
-    throw new Error("Resposta invalida do servidor de upload.");
+    throw new Error("Resposta inválida do servidor de upload.");
   }
 
   const uploadedRaw = Array.isArray(json)
@@ -697,7 +697,7 @@ async function uploadVehicleImages(files: File[]): Promise<VehicleImage[]> {
   const uploaded = normalizeVehicleImages(uploadedRaw);
 
   if (!uploaded.length) {
-    throw new Error("Nenhuma imagem valida foi retornada pelo servidor.");
+    throw new Error("Nenhuma imagem válida foi retornada pelo servidor.");
   }
 
   return uploaded;
@@ -709,7 +709,7 @@ async function deleteVehicleImages(publicIds: string[]) {
 
   if (!apiUrl || !publicIds.length) return;
   if (!token) {
-    throw new Error("Sessao expirada. Faca login novamente.");
+    throw new Error("Sessão expirada. Faça login novamente.");
   }
 
   let response: Response;
@@ -726,7 +726,7 @@ async function deleteVehicleImages(publicIds: string[]) {
     });
   } catch {
     throw new Error(
-      "Nao foi possivel conectar ao servidor para excluir imagens. Verifique VITE_API_URL, backend online e CORS.",
+      "Não foi possível conectar ao servidor para excluir imagens. Verifique VITE_API_URL, backend online e CORS.",
     );
   }
 
@@ -744,7 +744,7 @@ async function deleteVehicleImages(publicIds: string[]) {
       : [];
 
   if (!response.ok || failed.length) {
-    throw new Error("Nao foi possivel excluir todas as imagens antigas do Cloudinary.");
+    throw new Error("Não foi possível excluir todas as imagens antigas do Cloudinary.");
   }
 }
 
@@ -910,14 +910,14 @@ function AdminVeiculos() {
     documentWorkflowButtonState === "loading"
       ? "Validando..."
       : documentWorkflowButtonState === "pending"
-        ? "Automacao pendente"
+        ? "Automação pendente"
       : documentWorkflowButtonState === "completed"
-        ? "Workflow concluido"
+        ? "Workflow concluído"
         : documentWorkflowButtonState === "failed"
           ? "Workflow falhou"
         : documentWorkflowButtonState === "blocked"
           ? "Campos pendentes"
-          : "Gerar pre-contrato";
+          : "Gerar pré-contrato";
 
   const filteredCars = useMemo(() => {
     const normalizedSearch = normalizeText(searchQuery);
@@ -1142,10 +1142,10 @@ function AdminVeiculos() {
 
       if (!options.silent) {
         if (readiness.ready) {
-          toast.success("Documentacao pronta para contrato.");
+          toast.success("Documentação pronta para contrato.");
         } else {
           toast.warning(
-            `Faltam ${readiness.missingFields.length} campo(s) para gerar o pre-contrato.`,
+            `Faltam ${readiness.missingFields.length} campo(s) para gerar o pré-contrato.`,
           );
         }
       }
@@ -1155,7 +1155,7 @@ function AdminVeiculos() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nao foi possivel validar a documentacao do veiculo.";
+          : "Não foi possível validar a documentação do veículo.";
 
       setDocumentReadiness(null);
       setDocumentServiceError(message);
@@ -1184,7 +1184,7 @@ function AdminVeiculos() {
       const message =
         error instanceof Error
           ? error.message
-          : "Nao foi possivel carregar o resumo documental do veiculo.";
+          : "Não foi possível carregar o resumo documental do veículo.";
 
       setDocumentPayloadPreview(null);
       setDocumentServiceError(message);
@@ -1224,11 +1224,11 @@ function AdminVeiculos() {
 
   async function handleValidateDocumentation() {
     if (!editingId) {
-      return toast.error("Salve o veiculo primeiro para validar a documentacao.");
+      return toast.error("Salve o veículo primeiro para validar a documentação.");
     }
 
     if (documentNeedsSave) {
-      return toast.error("Salve as alteracoes antes de validar a documentacao.");
+      return toast.error("Salve as alterações antes de validar a documentação.");
     }
 
     const readiness = await refreshDocumentReadiness(editingId);
@@ -1240,11 +1240,11 @@ function AdminVeiculos() {
 
   async function handleStartSaleContract() {
     if (!editingId) {
-      return toast.error("Salve o veiculo primeiro para gerar o pre-contrato.");
+      return toast.error("Salve o veículo primeiro para gerar o pré-contrato.");
     }
 
     if (documentNeedsSave) {
-      return toast.error("Salve as alteracoes antes de gerar o pre-contrato.");
+      return toast.error("Salve as alterações antes de gerar o pré-contrato.");
     }
 
     setDocumentWorkflowLoading(true);
@@ -1258,24 +1258,24 @@ function AdminVeiculos() {
       await openDocumentDrawerForVehicle(editingId, workflowResult.payload);
 
       if (workflowResult.ready && workflowResult.automationStatus === "pending") {
-        toast.success("Pre-contrato preparado e automacao solicitada ao n8n.");
+        toast.success("Pré-contrato preparado e automação solicitada ao n8n.");
       } else if (workflowResult.ready && workflowResult.automationStatus === "trigger_failed") {
-        toast.warning("Pre-contrato preparado, mas a automacao falhou ao disparar.");
+        toast.warning("Pré-contrato preparado, mas a automação falhou ao disparar.");
       } else if (
         workflowResult.ready &&
         workflowResult.automationStatus === "skipped_not_configured"
       ) {
-        toast.warning("Pre-contrato preparado, mas a automacao nao esta configurada.");
+        toast.warning("Pré-contrato preparado, mas a automação não está configurada.");
       } else if (workflowResult.ready) {
-        toast.success("Pre-contrato preparado com sucesso.");
+        toast.success("Pré-contrato preparado com sucesso.");
       } else {
         toast.warning(
-          `Campos pendentes para seguir com o pre-contrato: ${workflowResult.validation.missingFields.length}.`,
+          `Campos pendentes para seguir com o pré-contrato: ${workflowResult.validation.missingFields.length}.`,
         );
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nao foi possivel iniciar o pre-contrato.";
+        error instanceof Error ? error.message : "Não foi possível iniciar o pré-contrato.";
       setDocumentServiceError(message);
       toast.error(message);
     } finally {
@@ -1301,7 +1301,7 @@ function AdminVeiculos() {
       toast.success("Workflow resetado com sucesso.");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nao foi possivel resetar o workflow.";
+        error instanceof Error ? error.message : "Não foi possível resetar o workflow.";
       setDocumentServiceError(message);
       toast.error(message);
     } finally {
@@ -1316,7 +1316,7 @@ function AdminVeiculos() {
     if (!files.length) return;
 
     if (files.some((file) => file.size > 4 * 1024 * 1024)) {
-      toast.error("Cada imagem deve ter no maximo 4MB.");
+      toast.error("Cada imagem deve ter no máximo 4MB.");
       event.target.value = "";
       return;
     }
@@ -1334,7 +1334,7 @@ function AdminVeiculos() {
       ]);
       event.target.value = "";
     } catch {
-      toast.error("Nao foi possivel carregar as imagens.");
+      toast.error("Não foi possível carregar as imagens.");
     }
   }
 
@@ -1440,15 +1440,15 @@ function AdminVeiculos() {
       setHighlightedCarId(car.id);
       setActionNotice({
         tone: "success",
-        title: nextActive ? "Veiculo reativado" : "Veiculo movido para inativos",
+        title: nextActive ? "Veículo reativado" : "Veículo movido para inativos",
         description: nextActive
-          ? `${updatedCar?.name ?? car.name} voltou para a operacao do estoque.`
-          : `${updatedCar?.name ?? car.name} saiu da vitrine sem abrir o formulario.`,
+          ? `${updatedCar?.name ?? car.name} voltou para a operação do estoque.`
+          : `${updatedCar?.name ?? car.name} saiu da vitrine sem abrir o formulário.`,
       });
-      toast.success(nextActive ? "Veiculo ativado." : "Veiculo desativado.");
+      toast.success(nextActive ? "Veículo ativado." : "Veículo desativado.");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Nao foi possivel atualizar o status do veiculo.",
+        error instanceof Error ? error.message : "Não foi possível atualizar o status do veículo.",
       );
     } finally {
       setRowAction(null);
@@ -1470,7 +1470,7 @@ function AdminVeiculos() {
 
     if (!name) {
       setEditorTab("commercial");
-      return toast.error("Informe o nome do veiculo.");
+      return toast.error("Informe o nome do veículo.");
     }
     if (!brand) {
       setEditorTab("commercial");
@@ -1482,15 +1482,15 @@ function AdminVeiculos() {
     }
     if (!Number.isFinite(price) || price <= 0) {
       setEditorTab("commercial");
-      return toast.error("Preco invalido.");
+      return toast.error("Preço inválido.");
     }
     if (!Number.isFinite(mileage) || mileage < 0) {
       setEditorTab("commercial");
-      return toast.error("Quilometragem invalida.");
+      return toast.error("Quilometragem inválida.");
     }
     if (!Number.isFinite(year) || year < 1980 || year > 2100) {
       setEditorTab("commercial");
-      return toast.error("Ano invalido.");
+      return toast.error("Ano inválido.");
     }
     if (!imageItems.length) {
       setEditorTab("images");
@@ -1507,7 +1507,7 @@ function AdminVeiculos() {
         const uploadedImages = await uploadVehicleImages(pendingUploads.map((item) => item.file));
 
         if (uploadedImages.length !== pendingUploads.length) {
-          throw new Error("Quantidade de imagens retornadas pelo upload nao confere.");
+          throw new Error("Quantidade de imagens retornadas pelo upload não confere.");
         }
 
         const uploadedMap = new Map(
@@ -1526,7 +1526,7 @@ function AdminVeiculos() {
 
             const uploadedImage = uploadedMap.get(item.id);
             if (!uploadedImage) {
-              throw new Error("Nao foi possivel vincular uma imagem enviada ao item pendente.");
+              throw new Error("Não foi possível vincular uma imagem enviada ao item pendente.");
             }
 
             return {
@@ -1573,10 +1573,10 @@ function AdminVeiculos() {
 
       if (editingId) {
         savedVehicle = await updateVehicle(editingId, payload);
-        toast.success("Veiculo atualizado.");
+        toast.success("Veículo atualizado.");
       } else {
         savedVehicle = await createVehicle(payload);
-        toast.success(mode === "duplicate" ? "Copia criada." : "Veiculo adicionado.");
+        toast.success(mode === "duplicate" ? "Cópia criada." : "Veículo adicionado.");
       }
 
       const savedVehicleId = savedVehicle?.id ?? editingId ?? null;
@@ -1585,16 +1585,16 @@ function AdminVeiculos() {
         tone: "success",
         title:
           mode === "edit"
-            ? "Alteracoes salvas"
+            ? "Alterações salvas"
             : mode === "duplicate"
-              ? "Copia pronta para operar"
-              : "Veiculo salvo com sucesso",
+              ? "Cópia pronta para operar"
+              : "Veículo salvo com sucesso",
         description:
           mode === "duplicate"
             ? `${payload.name} foi criado como ${
                 payload.active ? "ativo" : "inativo"
-              } para voce revisar antes de publicar.`
-            : `${payload.name} ja esta com os dados atualizados no painel.`,
+              } para você revisar antes de publicar.`
+            : `${payload.name} já está com os dados atualizados no painel.`,
       });
       resetEditorState();
 
@@ -1616,14 +1616,14 @@ function AdminVeiculos() {
         void deleteVehicleImages(removablePublicIds).catch((error) => {
           console.warn("[admin.veiculos] Cloudinary cleanup failed:", error);
           toast.warning(
-            "Veiculo salvo, mas algumas imagens antigas nao puderam ser removidas do Cloudinary.",
+            "Veículo salvo, mas algumas imagens antigas não puderam ser removidas do Cloudinary.",
           );
         });
       }
     } catch (error) {
       setSubmitStatus("idle");
       toast.error(
-        error instanceof Error ? error.message : "Nao foi possivel salvar. Tente novamente.",
+        error instanceof Error ? error.message : "Não foi possível salvar. Tente novamente.",
       );
     }
   }
@@ -1644,10 +1644,10 @@ function AdminVeiculos() {
 
     try {
       await deleteVehicle(car.id);
-      toast.success("Veiculo excluido.");
+      toast.success("Veículo excluído.");
       setActionNotice({
         tone: "success",
-        title: "Veiculo removido",
+        title: "Veículo removido",
         description: `${car.name} saiu do painel com sucesso.`,
       });
 
@@ -1655,7 +1655,7 @@ function AdminVeiculos() {
         void deleteVehicleImages(removablePublicIds).catch((error) => {
           console.warn("[admin.veiculos] Cloudinary cleanup after delete failed:", error);
           toast.warning(
-            "Veiculo removido, mas algumas imagens nao puderam ser limpas do Cloudinary.",
+            "Veículo removido, mas algumas imagens não puderam ser limpas do Cloudinary.",
           );
         });
       }
@@ -1671,13 +1671,13 @@ function AdminVeiculos() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary">
-            Inventario
+            Inventário
           </p>
           <h1 className="mt-1.5 text-3xl font-black tracking-tight text-foreground md:text-4xl">
-            Gerenciar veiculos
+            Gerenciar veículos
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {stats.total} veiculos - {stats.active} ativos - {stats.featured} em destaque
+            {stats.total} veículos - {stats.active} ativos - {stats.featured} em destaque
           </p>
         </div>
         <div className="flex gap-2">
@@ -1686,7 +1686,7 @@ function AdminVeiculos() {
             disabled={isSubmitting || hasBusyRow}
             className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <Plus className="h-4 w-4" /> Novo veiculo
+            <Plus className="h-4 w-4" /> Novo veículo
           </button>
         </div>
       </header>
@@ -1733,7 +1733,7 @@ function AdminVeiculos() {
 
       <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
-          <Field label="Buscar veiculo">
+          <Field label="Buscar veículo">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
@@ -1792,11 +1792,11 @@ function AdminVeiculos() {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-            <span>{filteredCars.length} visiveis</span>
+            <span>{filteredCars.length} visíveis</span>
             <span>-</span>
             <span>{stats.inactive} inativos no total</span>
             <span>-</span>
-            <span>ticket medio {formatPrice(stats.avgPrice)}</span>
+            <span>ticket médio {formatPrice(stats.avgPrice)}</span>
           </div>
           {hasActiveFilters && (
             <button
@@ -1815,14 +1815,14 @@ function AdminVeiculos() {
           <table className="w-full min-w-[820px] text-sm">
             <thead className="bg-secondary/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">Veiculo</th>
+                <th className="px-4 py-3 text-left font-semibold">Veículo</th>
                 <th className="px-4 py-3 text-left font-semibold">Status</th>
                 <th className="px-4 py-3 text-left font-semibold">Cidade</th>
                 <th className="px-4 py-3 text-right font-semibold">Ano</th>
                 <th className="px-4 py-3 text-right font-semibold">KM</th>
-                <th className="px-4 py-3 text-right font-semibold">Metricas</th>
-                <th className="px-4 py-3 text-right font-semibold">Preco</th>
-                <th className="px-4 py-3 text-right font-semibold">Acoes</th>
+                <th className="px-4 py-3 text-right font-semibold">Métricas</th>
+                <th className="px-4 py-3 text-right font-semibold">Preço</th>
+                <th className="px-4 py-3 text-right font-semibold">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -1888,7 +1888,7 @@ function AdminVeiculos() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {car.city || "Nao informada"}
+                      {car.city || "Não informada"}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-foreground">
                       {car.year}
@@ -1965,12 +1965,12 @@ function AdminVeiculos() {
 
       {cars.length === 0 && (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-          <p className="text-muted-foreground">Nenhum veiculo cadastrado.</p>
+          <p className="text-muted-foreground">Nenhum veículo cadastrado.</p>
           <button
             onClick={openNew}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground"
           >
-            <Plus className="h-4 w-4" /> Adicionar primeiro veiculo
+            <Plus className="h-4 w-4" /> Adicionar primeiro veículo
           </button>
         </div>
       )}
@@ -1978,10 +1978,10 @@ function AdminVeiculos() {
       {cars.length > 0 && filteredCars.length === 0 && (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center">
           <p className="font-semibold text-foreground">
-            Nenhum veiculo encontrado com esses filtros.
+            Nenhum veículo encontrado com esses filtros.
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ajuste a busca ou limpe os filtros para voltar ao inventario completo.
+            Ajuste a busca ou limpe os filtros para voltar ao inventário completo.
           </p>
           {hasActiveFilters && (
             <button
@@ -2009,13 +2009,13 @@ function AdminVeiculos() {
               <div>
                 <h2 className="text-lg font-bold text-foreground">
                   {editorMode === "edit"
-                    ? "Editar veiculo"
+                    ? "Editar veículo"
                     : editorMode === "duplicate"
-                      ? "Duplicar veiculo"
-                      : "Novo veiculo"}
+                      ? "Duplicar veículo"
+                      : "Novo veículo"}
                 </h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Comece pela aba comercial, salve rapido com imagens e volte depois para completar
+                  Comece pela aba comercial, salve rápido com imagens e volte depois para completar
                   os dados internos e documentais.
                 </p>
               </div>
@@ -2040,7 +2040,7 @@ function AdminVeiculos() {
                     value="commercial"
                     className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider"
                   >
-                    Informacoes comerciais
+                    Informações comerciais
                   </TabsTrigger>
                   <TabsTrigger
                     value="images"
@@ -2057,14 +2057,14 @@ function AdminVeiculos() {
                 </TabsList>
 
                 <div className="rounded-xl border border-border/60 bg-background/40 px-4 py-3 text-xs text-muted-foreground">
-                  Salve com comercial e imagens para publicar rapido. Os dados documentais ficam
+                  Salve com comercial e imagens para publicar rápido. Os dados documentais ficam
                   isolados no admin e podem ser preenchidos depois sem quebrar a vitrine.
                 </div>
               </div>
 
               <TabsContent value="commercial" className="mt-5 space-y-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <Field label="Nome de exibicao">
+                  <Field label="Nome de exibição">
                     <input
                       type="text"
                       value={form.name}
@@ -2097,7 +2097,7 @@ function AdminVeiculos() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <Field label="Preco (R$)">
+                  <Field label="Preço (R$)">
                     <input
                       type="number"
                       value={form.price}
@@ -2141,7 +2141,7 @@ function AdminVeiculos() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <Field label="Cambio">
+                  <Field label="Câmbio">
                     <select
                       value={form.transmission}
                       onChange={(event) =>
@@ -2156,7 +2156,7 @@ function AdminVeiculos() {
                       ))}
                     </select>
                   </Field>
-                  <Field label="Combustivel">
+                  <Field label="Combustível">
                     <select
                       value={form.fuel}
                       onChange={(event) => setForm({ ...form, fuel: event.target.value as Fuel })}
@@ -2244,27 +2244,27 @@ function AdminVeiculos() {
                   />
                 </div>
 
-                <Field label="Descricao do veiculo">
+                <Field label="Descrição do veículo">
                   <textarea
                     value={form.description}
                     onChange={(event) => setForm({ ...form, description: event.target.value })}
-                    placeholder="Descreva o estado, historico e diferenciais do veiculo."
+                    placeholder="Descreva o estado, histórico e diferenciais do veículo."
                     className="adm-input min-h-[110px] resize-y"
                     rows={5}
                   />
                 </Field>
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <Field label="Itens e opcionais (virgula ou quebra de linha)">
+                  <Field label="Itens e opcionais (vírgula ou quebra de linha)">
                     <textarea
                       value={form.features}
                       onChange={(event) => setForm({ ...form, features: event.target.value })}
-                      placeholder="Ex: Ar-condicionado, Camera de re, Multimidia"
+                      placeholder="Ex: Ar-condicionado, Câmera de ré, Multimídia"
                       className="adm-input min-h-[100px] resize-y"
                       rows={4}
                     />
                   </Field>
-                  <Field label="Tags comerciais (virgula ou quebra de linha)">
+                  <Field label="Tags comerciais (vírgula ou quebra de linha)">
                     <textarea
                       value={form.tags}
                       onChange={(event) => setForm({ ...form, tags: event.target.value })}
@@ -2280,10 +2280,10 @@ function AdminVeiculos() {
                 <section className="rounded-2xl border border-border/60 bg-background/30 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-bold text-foreground">Galeria do veiculo</p>
+                      <p className="text-sm font-bold text-foreground">Galeria do veículo</p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Defina a capa, ordene a sequencia e remova imagens antigas sem sair do fluxo
-                        rapido de cadastro.
+                        Defina a capa, ordene a sequência e remova imagens antigas sem sair do fluxo
+                        rápido de cadastro.
                       </p>
                     </div>
                     <span className="rounded-full bg-secondary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-foreground">
@@ -2379,9 +2379,9 @@ function AdminVeiculos() {
                           <p className="text-xs text-amber-600">
                             {removedExistingImages.length}{" "}
                             {removedExistingImages.length === 1
-                              ? "imagem marcada para remocao do veiculo."
-                              : "imagens marcadas para remocao do veiculo."}{" "}
-                            A exclusao fisica sera tentada automaticamente apos salvar.
+                              ? "imagem marcada para remoção do veículo."
+                              : "imagens marcadas para remoção do veículo."}{" "}
+                            A exclusão física será tentada automaticamente após salvar.
                           </p>
                         )}
                       </>
@@ -2407,7 +2407,7 @@ function AdminVeiculos() {
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      As novas imagens serao enviadas para o backend quando voce salvar o veiculo.
+                      As novas imagens serão enviadas para o backend quando você salvar o veículo.
                     </p>
                   </div>
                 </Field>
@@ -2418,11 +2418,11 @@ function AdminVeiculos() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-bold text-foreground">
-                        Opcional agora, util para contrato e automacoes futuras
+                        Opcional agora, útil para contrato e automações futuras
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Esses dados nao aparecem na vitrine publica. Voce pode salvar o comercial
-                        agora e completar a documentacao depois.
+                        Esses dados não aparecem na vitrine pública. Você pode salvar o comercial
+                        agora e completar a documentação depois.
                       </p>
                     </div>
                     <span className="rounded-full bg-secondary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-foreground">
@@ -2470,9 +2470,9 @@ function AdminVeiculos() {
 
                 <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
                   <div>
-                    <p className="text-sm font-bold text-foreground">Identificacao veicular</p>
+                    <p className="text-sm font-bold text-foreground">Identificação veicular</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Campos-base para conferencia e preparacao contratual.
+                      Campos-base para conferência e preparação contratual.
                     </p>
                   </div>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -2490,7 +2490,7 @@ function AdminVeiculos() {
                         type="text"
                         value={form.internal.renavam}
                         onChange={(event) => updateInternalField("renavam", event.target.value)}
-                        placeholder="Numero do renavam"
+                        placeholder="Número do renavam"
                         className="adm-input"
                       />
                     </Field>
@@ -2499,18 +2499,18 @@ function AdminVeiculos() {
                         type="text"
                         value={form.internal.chassis}
                         onChange={(event) => updateInternalField("chassis", event.target.value)}
-                        placeholder="Numero do chassi"
+                        placeholder="Número do chassi"
                         className="adm-input"
                       />
                     </Field>
-                    <Field label="Numero do motor">
+                    <Field label="Número do motor">
                       <input
                         type="text"
                         value={form.internal.engineNumber}
                         onChange={(event) =>
                           updateInternalField("engineNumber", event.target.value)
                         }
-                        placeholder="Numero do motor"
+                        placeholder="Número do motor"
                         className="adm-input"
                       />
                     </Field>
@@ -2519,9 +2519,9 @@ function AdminVeiculos() {
 
                 <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
                   <div>
-                    <p className="text-sm font-bold text-foreground">Partes e procedencia</p>
+                    <p className="text-sm font-bold text-foreground">Partes e procedência</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Informacoes de comprador, proprietario anterior e origem do veiculo.
+                      Informações de comprador, proprietário anterior e origem do veículo.
                     </p>
                   </div>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -2545,7 +2545,7 @@ function AdminVeiculos() {
                         className="adm-input"
                       />
                     </Field>
-                    <Field label="Nome do proprietario anterior">
+                    <Field label="Nome do proprietário anterior">
                       <input
                         type="text"
                         value={form.internal.previousOwnerName}
@@ -2556,7 +2556,7 @@ function AdminVeiculos() {
                         className="adm-input"
                       />
                     </Field>
-                    <Field label="Documento do proprietario anterior">
+                    <Field label="Documento do proprietário anterior">
                       <input
                         type="text"
                         value={form.internal.previousOwnerDocument}
@@ -2568,7 +2568,7 @@ function AdminVeiculos() {
                       />
                     </Field>
                   </div>
-                  <Field label="Procedencia">
+                  <Field label="Procedência">
                     <input
                       type="text"
                       value={form.internal.provenance}
@@ -2583,11 +2583,11 @@ function AdminVeiculos() {
                   <div>
                     <p className="text-sm font-bold text-foreground">Compra e limites internos</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Use esses campos para controle financeiro e margem minima de operacao.
+                      Use esses campos para controle financeiro e margem mínima de operação.
                     </p>
                   </div>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <Field label="Data de aquisicao">
+                    <Field label="Data de aquisição">
                       <input
                         type="date"
                         value={form.internal.acquisitionDate}
@@ -2597,7 +2597,7 @@ function AdminVeiculos() {
                         className="adm-input"
                       />
                     </Field>
-                    <Field label="Valor de aquisicao (R$)">
+                    <Field label="Valor de aquisição (R$)">
                       <input
                         type="number"
                         value={form.internal.acquisitionValue}
@@ -2609,7 +2609,7 @@ function AdminVeiculos() {
                         step={1}
                       />
                     </Field>
-                    <Field label="Valor minimo de venda (R$)">
+                    <Field label="Valor mínimo de venda (R$)">
                       <input
                         type="number"
                         value={form.internal.minimumSaleValue}
@@ -2639,10 +2639,10 @@ function AdminVeiculos() {
                 <section className="space-y-4 rounded-2xl border border-border/60 bg-background/20 p-4">
                   <div>
                     <p className="text-sm font-bold text-foreground">
-                      Itens, situacao e observacoes
+                      Itens, situação e observações
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Controle rapido do pacote documental e eventuais pendencias juridicas.
+                      Controle rápido do pacote documental e eventuais pendências jurídicas.
                     </p>
                   </div>
 
@@ -2693,22 +2693,22 @@ function AdminVeiculos() {
                   </div>
 
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <Field label="Observacoes internas">
+                    <Field label="Observações internas">
                       <textarea
                         value={form.internal.internalNotes}
                         onChange={(event) =>
                           updateInternalField("internalNotes", event.target.value)
                         }
-                        placeholder="Notas operacionais, combinados internos e pontos de atencao."
+                        placeholder="Notas operacionais, combinados internos e pontos de atenção."
                         className="adm-input min-h-[120px] resize-y"
                         rows={5}
                       />
                     </Field>
-                    <Field label="Observacoes legais">
+                    <Field label="Observações legais">
                       <textarea
                         value={form.internal.legalNotes}
                         onChange={(event) => updateInternalField("legalNotes", event.target.value)}
-                        placeholder="Restricoes, pendencias ou observacoes juridicas do contrato."
+                        placeholder="Restrições, pendências ou observações jurídicas do contrato."
                         className="adm-input min-h-[120px] resize-y"
                         rows={5}
                       />
@@ -2738,12 +2738,12 @@ function AdminVeiculos() {
                     ? editorMode === "edit"
                       ? "Salvando..."
                       : editorMode === "duplicate"
-                        ? "Criando copia..."
+                        ? "Criando cópia..."
                         : "Adicionando..."
                     : editorMode === "edit"
                       ? "Salvar"
                       : editorMode === "duplicate"
-                        ? "Criar copia"
+                        ? "Criar cópia"
                         : "Adicionar"}
               </button>
             </div>
@@ -2754,10 +2754,10 @@ function AdminVeiculos() {
       <AlertDialog open={discardChangesDialogOpen} onOpenChange={setDiscardChangesDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Descartar alteracoes?</AlertDialogTitle>
+            <AlertDialogTitle>Descartar alterações?</AlertDialogTitle>
             <AlertDialogDescription>
-              O cadastro tem campos preenchidos que ainda nao foram salvos. Se voce sair agora,
-              tudo o que foi digitado nesta tela sera perdido.
+              O cadastro tem campos preenchidos que ainda não foram salvos. Se você sair agora,
+              tudo o que foi digitado nesta tela será perdido.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

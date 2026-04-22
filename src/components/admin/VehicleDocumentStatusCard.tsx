@@ -53,13 +53,13 @@ interface VehicleDocumentStatusCardProps {
 
 function formatDocumentGeneratedAt(value: string | null | undefined) {
   if (!value) {
-    return "Data indisponivel";
+    return "Data indisponível";
   }
 
   const parsed = new Date(value);
 
   if (Number.isNaN(parsed.getTime())) {
-    return "Data indisponivel";
+    return "Data indisponível";
   }
 
   return parsed.toLocaleString("pt-BR");
@@ -98,7 +98,7 @@ export function VehicleDocumentStatusCard({
           ? "Erro ao gerar contrato"
           : currentWorkflowStatus === "cancelled"
             ? "Cancelado"
-            : "Nao gerado";
+            : "Não gerado";
   const validateDisabled =
     !hasPersistedVehicle ||
     isSubmitting ||
@@ -120,7 +120,7 @@ export function VehicleDocumentStatusCard({
         <div>
           <p className="text-sm font-bold text-foreground">Status documental</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Valide a prontidao do veiculo para contrato e monte o pre-contrato usando os dados ja
+            Valide a prontidão do veículo para contrato e monte o pré-contrato usando os dados já
             salvos no backend.
           </p>
         </div>
@@ -146,13 +146,13 @@ export function VehicleDocumentStatusCard({
           {!hasPersistedVehicle
             ? "Salve para habilitar"
             : currentWorkflowStatus === "completed"
-              ? "Workflow concluido"
+              ? "Workflow concluído"
               : currentWorkflowStatus === "failed"
                 ? "Workflow falhou"
                 : currentWorkflowStatus === "cancelled"
                   ? "Workflow cancelado"
                 : currentWorkflowStatus === "pending"
-                  ? "Automacao pendente"
+                  ? "Automação pendente"
             : documentNeedsSave
               ? "Salve para revalidar"
               : documentReadiness?.ready
@@ -165,14 +165,14 @@ export function VehicleDocumentStatusCard({
 
       {!hasPersistedVehicle && (
         <div className="rounded-xl border border-border/60 bg-background/60 px-4 py-3 text-xs text-muted-foreground">
-          Salve este veiculo primeiro para liberar a validacao documental e a geracao do
-          pre-contrato.
+          Salve este veículo primeiro para liberar a validação documental e a geração do
+          pré-contrato.
         </div>
       )}
 
       {hasPersistedVehicle && documentNeedsSave && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-700">
-          Existem alteracoes no formulario ainda nao salvas. A validacao e o pre-contrato
+          Existem alterações no formulário ainda não salvas. A validação e o pré-contrato
           consideram apenas os dados persistidos no backend.
         </div>
       )}
@@ -243,7 +243,7 @@ export function VehicleDocumentStatusCard({
               ) : (
                 <ShieldCheck className="h-4 w-4" />
               )}
-              Validar documentacao
+              Validar documentação
             </button>
             <button
               type="button"
@@ -321,7 +321,7 @@ export function VehicleDocumentStatusCard({
                   <AlertTriangle className="h-4 w-4" />
                 )}
                 {currentWorkflowStatus === "completed"
-                  ? "Workflow concluido"
+                  ? "Workflow concluído"
                   : currentWorkflowStatus === "failed"
                     ? "Workflow falhou"
                     : currentWorkflowStatus === "cancelled"
@@ -329,33 +329,33 @@ export function VehicleDocumentStatusCard({
                     : currentWorkflowStatus === "pending"
                       ? "Workflow pendente"
                 : documentWorkflowResult?.validation.ready
-                  ? "Pre-contrato pronto"
+                  ? "Pré-contrato pronto"
                   : "Campos pendentes"}
               </p>
               <p className="mt-2 text-sm font-semibold text-foreground">
                 {currentWorkflowStatus === "completed"
-                  ? "O callback do n8n confirmou a conclusao do workflow no backend."
+                  ? "O callback do n8n confirmou a conclusão do workflow no backend."
                   : currentWorkflowStatus === "failed"
                     ? currentDocumentWorkflowState?.errorMessage ||
-                      "O callback do n8n confirmou falha na automacao."
+                      "O callback do n8n confirmou falha na automação."
                     : currentWorkflowStatus === "cancelled"
                       ? currentDocumentWorkflowState?.errorMessage ||
                         "O workflow foi cancelado manualmente e pode ser gerado novamente."
                     : currentWorkflowStatus === "pending"
-                      ? "O backend solicitou a automacao e aguarda o callback do n8n."
+                      ? "O backend solicitou a automação e aguarda o callback do n8n."
                 : documentWorkflowResult?.validation.ready
                   ? documentWorkflowResult.automationStatus === "pending"
-                    ? "O backend ja montou a base documental e a automacao no n8n foi solicitada."
+                    ? "O backend já montou a base documental e a automação no n8n foi solicitada."
                     : documentWorkflowResult.automationStatus === "trigger_failed"
                       ? "O backend montou a base documental, mas a chamada para o n8n falhou."
                       : documentWorkflowResult.automationStatus === "skipped_not_configured"
-                        ? "O backend montou a base documental, mas a automacao esta desativada por configuracao."
-                        : "O backend ja montou a base documental e ela esta pronta para a futura automacao."
-                  : `Ainda faltam ${documentWorkflowResult?.validation.missingFields.length ?? 0} campo(s) obrigatorio(s) para seguir com o contrato.`}
+                        ? "O backend montou a base documental, mas a automação está desativada por configuração."
+                        : "O backend já montou a base documental e ela está pronta para a futura automação."
+                  : `Ainda faltam ${documentWorkflowResult?.validation.missingFields.length ?? 0} campo(s) obrigatório(s) para seguir com o contrato.`}
               </p>
               {documentWorkflowResult ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Proxima etapa: {documentWorkflowResult.nextStep}
+                  Próxima etapa: {documentWorkflowResult.nextStep}
                 </p>
               ) : null}
               <p className="mt-2 text-xs text-muted-foreground">
@@ -363,14 +363,14 @@ export function VehicleDocumentStatusCard({
               </p>
               {currentDocumentWorkflowState?.executionId ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Execucao confirmada: {currentDocumentWorkflowState.executionId}
+                  Execução confirmada: {currentDocumentWorkflowState.executionId}
                   {currentDocumentWorkflowState.providerExecutionId
                     ? ` - n8n: ${currentDocumentWorkflowState.providerExecutionId}`
                     : ""}
                 </p>
               ) : documentWorkflowResult?.automationExecutionId ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Execucao solicitada: {documentWorkflowResult.automationExecutionId}
+                  Execução solicitada: {documentWorkflowResult.automationExecutionId}
                   {documentWorkflowResult.automationProviderExecutionId
                     ? ` - n8n: ${documentWorkflowResult.automationProviderExecutionId}`
                     : ""}
@@ -378,7 +378,7 @@ export function VehicleDocumentStatusCard({
               ) : null}
               {contractUrl ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Documento pronto para visualizacao.
+                  Documento pronto para download.
                 </p>
               ) : null}
               {documentWorkflowResult?.payload ? (
@@ -391,12 +391,13 @@ export function VehicleDocumentStatusCard({
                 {currentWorkflowStatus === "completed" && contractUrl ? (
                   <a
                     href={contractUrl}
+                    download
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:brightness-110"
                   >
                     <FileText className="h-4 w-4" />
-                    Ver contrato
+                    Baixar contrato
                   </a>
                 ) : null}
                 <button
@@ -428,8 +429,8 @@ export function VehicleDocumentStatusCard({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Resetar workflow?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Isso cancela o workflow atual deste veiculo e libera uma nova geracao do
-                          pre-contrato.
+                          Isso cancela o workflow atual deste veículo e libera uma nova geração do
+                          pré-contrato.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

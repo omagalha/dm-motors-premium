@@ -34,7 +34,7 @@ import {
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Visao geral - Admin DM Motors" },
+      { title: "Visão geral - Admin DM Motors" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -144,13 +144,13 @@ function AdminOverview() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary">
-            Painel · metricas reais
+            Painel · métricas reais
           </p>
           <h1 className="mt-1.5 text-3xl font-black tracking-tight text-foreground md:text-4xl">
-            Visao geral
+            Visão geral
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {cars.length} veiculos no estoque · ticket medio {formatPrice(avgPrice)}
+            {cars.length} veículos no estoque · ticket médio {formatPrice(avgPrice)}
           </p>
         </div>
       </header>
@@ -159,28 +159,28 @@ function AdminOverview() {
         <KpiCard
           label="Cliques no WhatsApp"
           value={totals.whatsappClicks}
-          subtext={`${totals.vehiclesWithEngagement} veiculos com engajamento`}
+          subtext={`${totals.vehiclesWithEngagement} veículos com engajamento`}
           icon={<MessageCircle className="h-5 w-5" />}
           accent="bg-whatsapp/15 text-whatsapp"
         />
         <KpiCard
-          label="Visualizacoes"
+          label="Visualizações"
           value={totals.views}
           subtext={
-            activity.length ? `${activity.length} dias reais monitorados` : "Aguardando historico"
+            activity.length ? `${activity.length} dias reais monitorados` : "Aguardando histórico"
           }
           icon={<Eye className="h-5 w-5" />}
           accent="bg-primary/15 text-primary"
         />
         <KpiCard
-          label="Veiculos com engajamento"
+          label="Veículos com engajamento"
           value={totals.vehiclesWithEngagement}
           subtext="Com views ou cliques registrados"
           icon={<Activity className="h-5 w-5" />}
           accent="bg-foreground/10 text-foreground"
         />
         <KpiCard
-          label="Veiculos ativos"
+          label="Veículos ativos"
           value={cars.length}
           subtext="Estoque acompanhado pelo painel"
           icon={<CarIcon className="h-5 w-5" />}
@@ -203,7 +203,7 @@ function AdminOverview() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary">
-                <Flame className="h-3.5 w-3.5" /> Mais clicado ate agora
+                <Flame className="h-3.5 w-3.5" /> Mais clicado até agora
               </p>
               <h2 className="mt-1 text-2xl font-black uppercase tracking-tight text-foreground md:text-3xl">
                 {topClicked.name}
@@ -225,12 +225,12 @@ function AdminOverview() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <MetricInfo
                   icon={<Clock3 className="h-4 w-4" />}
-                  label="Ultimo clique"
+                  label="Último clique"
                   value={formatMetricTimestamp(topInsight.lastWhatsappClickAt)}
                 />
                 <MetricInfo
                   icon={<TrendingUp className="h-4 w-4" />}
-                  label="Ultima visualizacao"
+                  label="Última visualização"
                   value={formatMetricTimestamp(topInsight.lastViewAt)}
                 />
               </div>
@@ -258,7 +258,7 @@ function AdminOverview() {
               params={{ carId: topClicked.id }}
               className="shrink-0 rounded-full bg-primary px-5 py-3 text-center text-xs font-black uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110"
             >
-              Ver veiculo
+              Ver veículo
             </Link>
           </div>
         </section>
@@ -269,7 +269,7 @@ function AdminOverview() {
           <div>
             <h2 className="text-lg font-bold text-foreground">Atividade · 7 dias</h2>
             <p className="text-xs text-muted-foreground">
-              Visualizacoes e cliques no WhatsApp registrados no backend
+              Visualizações e cliques no WhatsApp registrados no backend
             </p>
           </div>
           <span className="hidden items-center gap-1 rounded-full bg-whatsapp/10 px-3 py-1 text-xs font-semibold text-whatsapp sm:inline-flex">
@@ -324,7 +324,7 @@ function AdminOverview() {
                   <Area
                     type="monotone"
                     dataKey="views"
-                    name="Visualizacoes"
+                    name="Visualizações"
                     stroke="oklch(0.62 0.24 25)"
                     strokeWidth={3}
                     fill="url(#gradViews)"
@@ -344,7 +344,7 @@ function AdminOverview() {
             <div className="mt-3 flex items-center gap-5 text-xs text-muted-foreground">
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-primary" />
-                Visualizacoes
+                Visualizações
               </span>
               <span className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-whatsapp" />
@@ -355,10 +355,10 @@ function AdminOverview() {
         ) : (
           <div className="rounded-2xl border border-dashed border-border bg-background/50 px-5 py-10 text-center">
             <p className="text-sm font-semibold text-foreground">
-              O grafico vai aparecer assim que o backend acumular historico diario.
+              O gráfico vai aparecer assim que o backend acumular histórico diário.
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Os contadores por veiculo ja estao vindo do backend real.
+              Os contadores por veículo já estão vindo do backend real.
             </p>
           </div>
         )}

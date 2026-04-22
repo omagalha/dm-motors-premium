@@ -27,7 +27,7 @@ export function Header() {
     { label: "SUV", to: "/estoque" as const, search: { category: "SUV" } as const },
     {
       label: "Contato",
-      href: whatsappLink("Ola! Vim pelo site e quero falar com a DM Motors Imports."),
+      href: whatsappLink("Olá! Vim pelo site e quero falar com a DM Motors Imports."),
     },
   ];
 

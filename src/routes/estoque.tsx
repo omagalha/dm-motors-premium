@@ -181,12 +181,12 @@ export const Route = createFileRoute("/estoque")({
       {
         name: "description",
         content:
-          "Veja todos os veiculos disponiveis na DM Motors Imports. Hatch, Sedan, SUV e Picape com procedencia, preco e financiamento facilitado.",
+          "Veja todos os veículos disponíveis na DM Motors Imports. Hatch, Sedan, SUV e Picape com procedência, preço e financiamento facilitado.",
       },
       { property: "og:title", content: "Estoque DM Motors Imports" },
       {
         property: "og:description",
-        content: "Marketplace de carros com procedencia. Filtre por preco, marca, cambio e mais.",
+        content: "Marketplace de carros com procedência. Filtre por preço, marca, câmbio e mais.",
       },
     ],
   }),
@@ -366,8 +366,8 @@ function EstoquePage() {
               className="hidden rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground focus:border-primary focus:outline-none md:block"
             >
               <option value="destaque">Destaques</option>
-              <option value="menor-preco">Menor preco</option>
-              <option value="maior-preco">Maior preco</option>
+              <option value="menor-preco">Menor preço</option>
+              <option value="maior-preco">Maior preço</option>
               <option value="menor-km">Menor KM</option>
               <option value="novos">Mais novos</option>
             </select>
@@ -400,7 +400,7 @@ function EstoquePage() {
         <div className="mb-4 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             <span className="text-2xl font-black tabular-nums text-primary">{filtered.length}</span>{" "}
-            {filtered.length === 1 ? "veiculo encontrado" : "veiculos encontrados"}
+            {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}
           </p>
           {activeFilterCount > 0 && (
             <div className="text-xs text-muted-foreground">
@@ -414,7 +414,7 @@ function EstoquePage() {
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
             <p className="text-base font-semibold text-foreground">
-              Nenhum veiculo encontrado com esses filtros.
+              Nenhum veículo encontrado com esses filtros.
             </p>
             <button
               onClick={reset}
@@ -497,7 +497,7 @@ function EstoquePage() {
 
                     <a
                       href={whatsappLink(
-                        `Ola! Vi o veiculo ${car.name} ${car.year} no site e tenho interesse. Ele ainda esta disponivel?`,
+                        `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`,
                         getVehicleWhatsappNumber(car),
                       )}
                       target="_blank"
@@ -595,7 +595,7 @@ function FilterPanel({
 
       <div>
         <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
-          Cambio
+          Câmbio
         </h4>
         <div className="flex flex-wrap gap-2">
           <FilterChip
@@ -617,7 +617,7 @@ function FilterPanel({
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-            Preco maximo
+            Preço máximo
           </h4>
           <span className="text-xs font-bold text-primary">
             {filters.maxPrice ? formatPrice(filters.maxPrice) : "Sem limite"}
