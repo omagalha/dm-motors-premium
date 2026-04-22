@@ -66,11 +66,11 @@ export function FinalCTA() {
               Horario de atendimento
             </p>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Seg-Sex 8h-18h
+              Seg a Sex · 8h às 18h
               <br />
-              Sab 8h-12h
+              Sáb · 8h às 12h
               <br />
-              Dom Fechado - Agendados
+              Dom · Fechado / Agendamentos
             </p>
           </div>
         </div>

@@ -47,8 +47,9 @@ export function Footer() {
             <li className="flex items-start gap-2">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span>
-                Estrada Padua x Pirapetinga, KM 1<br />
-                Santa Afra · Santo Antônio de Pádua — RJ
+                Estrada Padua x Pirapetinga, KM 1
+                <br />
+                Santa Afra · Santo Antônio de Pádua - RJ
               </span>
             </li>
             <li>
@@ -73,9 +74,11 @@ export function Footer() {
             <li className="flex items-start gap-2">
               <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span>
-                Seg a Sex · 8h às 19h<br />
-                Sáb · 8h às 17h<br />
-                Dom · 9h às 13h
+                Seg a Sex · 8h às 18h
+                <br />
+                Sáb · 8h às 12h
+                <br />
+                Dom · Fechado / Agendamentos
               </span>
             </li>
             <li className="flex items-center gap-2 pt-1">
@@ -128,7 +131,7 @@ export function Footer() {
       </div>
 
       <div className="mx-auto max-w-7xl border-t border-border px-5 py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} DM Motors Imports — Todos os direitos reservados.
+        © {new Date().getFullYear()} DM Motors Imports - Todos os direitos reservados.
       </div>
     </footer>
   );

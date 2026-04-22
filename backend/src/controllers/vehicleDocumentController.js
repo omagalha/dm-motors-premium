@@ -60,15 +60,19 @@ async function startSaleContractWorkflow(req, res) {
 
     if (workflowResult.ready && workflowResult.draft) {
       const webhookUrl = process.env.N8N_SALE_CONTRACT_WEBHOOK_URL;
+      const backendUrl = process.env.BACKEND_URL?.replace(/\/+$/, "");
 
       if (!webhookUrl) {
         console.warn("[n8n] N8N_SALE_CONTRACT_WEBHOOK_URL not configured; automation skipped.");
+        automationStatus = "skipped_not_configured";
+      } else if (!backendUrl) {
+        console.warn("[n8n] BACKEND_URL not configured; automation skipped.");
         automationStatus = "skipped_not_configured";
       } else {
         try {
           const executionId = `sale-contract_${vehicleDoc._id}_${Date.now()}`;
           const vehicleId = vehicleDoc._id.toString();
-          const callbackUrl = `${process.env.BACKEND_URL}/vehicles/${vehicleId}/document-workflows/sale-contract/callback`;
+          const callbackUrl = `${backendUrl}/vehicles/${vehicleId}/document-workflows/sale-contract/callback`;
           console.log("[n8n] Disparando webhook. vehicleId:", vehicleId, "callbackUrl:", callbackUrl);
           await triggerN8n({
             executionId,

@@ -10,6 +10,8 @@ services:
     envVars:
       - key: FRONTEND_URL
         value: https://tanstack-start-app.dm-motors.workers.dev
+      - key: BACKEND_URL
+        sync: false
       - key: JWT_EXPIRES_IN_HOURS
         value: 12
       - key: MONGO_URI
@@ -25,4 +27,8 @@ services:
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: N8N_SALE_CONTRACT_WEBHOOK_URL
+        sync: false
+      - key: N8N_CALLBACK_SECRET
         sync: false

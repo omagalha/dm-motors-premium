@@ -190,11 +190,11 @@ function ShowroomCard() {
             Loja aberta
           </p>
           <p className="mt-2 text-sm leading-[1.65] text-[#C9C5C5]">
-            Seg a Sex 8h as 19h
+            Seg a Sex · 8h às 18h
             <br />
-            Sab 8h as 17h
+            Sáb · 8h às 12h
             <br />
-            Dom 9h as 13h
+            Dom · Fechado / Agendamentos
           </p>
         </div>
 
