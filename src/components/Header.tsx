@@ -27,16 +27,16 @@ export function Header() {
     { label: "SUV", to: "/estoque" as const, search: { category: "SUV" } as const },
     {
       label: "Contato",
-      href: whatsappLink("Olá! Vim pelo site e quero falar com a DM Motors Imports."),
+      href: whatsappLink("Ola! Vim pelo site e quero falar com a DM Motors Imports."),
     },
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3">
+    <header className="sticky top-0 z-40 border-b border-white/6 bg-[rgba(10,9,9,0.82)] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-3.5">
         <Link
           to="/"
-          className="flex items-center rounded-2xl py-1 pr-2 transition-transform duration-300 hover:scale-[1.01]"
+          className="flex items-center gap-3 rounded-2xl pr-2 transition-transform duration-300 hover:scale-[1.01]"
           aria-label="DM Motors Imports - Home"
         >
           <img
@@ -44,73 +44,103 @@ export function Header() {
             alt="DM Motors Imports"
             className="w-[172px] shrink-0 object-contain object-left sm:w-[210px] lg:w-[238px] drop-shadow-[0_0_18px_oklch(0.62_0.24_25/0.24)]"
           />
+          <span className="hidden rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-primary xl:inline-flex">
+            Showroom premium
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 md:flex">
-          {links.map((l) =>
-            "href" in l ? (
+        <nav className="hidden items-center gap-2 lg:flex">
+          {links.map((link) =>
+            "href" in link ? (
               <a
-                key={l.label}
-                href={l.href}
+                key={link.label}
+                href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+                className="rounded-full border border-transparent px-4 py-2.5 text-sm font-semibold text-muted-foreground transition hover:border-white/8 hover:bg-white/[0.03] hover:text-foreground"
               >
-                {l.label}
+                {link.label}
               </a>
             ) : (
               <Link
-                key={l.label}
-                to={l.to}
-                search={l.search as never}
-                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
-                activeProps={{ className: "text-foreground font-semibold" }}
+                key={link.label}
+                to={link.to}
+                search={link.search as never}
+                className="rounded-full border border-transparent px-4 py-2.5 text-sm font-semibold text-muted-foreground transition hover:border-white/8 hover:bg-white/[0.03] hover:text-foreground"
+                activeProps={{
+                  className:
+                    "border-white/10 bg-white/[0.05] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+                }}
               >
-                {l.label}
+                {link.label}
               </Link>
-            )
+            ),
           )}
         </nav>
 
+        <div className="ml-auto hidden items-center gap-3 md:flex">
+          <div className="hidden rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/62 xl:inline-flex">
+            Estoque atualizado
+          </div>
+          <a
+            href={whatsappLink("Ola! Quero falar com a DM Motors Imports agora.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-primary-foreground transition hover:brightness-110"
+          >
+            Falar agora
+          </a>
+        </div>
+
         <button
           aria-label="Menu"
-          onClick={() => setOpen((v) => !v)}
-          className="flex h-10 w-10 items-center justify-center rounded-md border border-border text-foreground md:hidden"
+          onClick={() => setOpen((value) => !value)}
+          className="ml-auto flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-foreground lg:hidden"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
-      {open && (
-        <nav className="border-t border-border bg-background md:hidden">
-          <div className="mx-auto flex max-w-7xl flex-col gap-1 px-5 py-3">
-            {links.map((l) =>
-              "href" in l ? (
+      {open ? (
+        <nav className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(18,14,14,0.98)_0%,rgba(10,9,9,0.98)_100%)] lg:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-4">
+            {links.map((link) =>
+              "href" in link ? (
                 <a
-                  key={l.label}
-                  href={l.href}
+                  key={link.label}
+                  href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                  className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
                 >
-                  {l.label}
+                  {link.label}
                 </a>
               ) : (
                 <Link
-                  key={l.label}
-                  to={l.to}
-                  search={l.search as never}
+                  key={link.label}
+                  to={link.to}
+                  search={link.search as never}
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-3 text-sm font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+                  className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
                 >
-                  {l.label}
+                  {link.label}
                 </Link>
-              )
+              ),
             )}
+
+            <a
+              href={whatsappLink("Ola! Vim pelo site e quero atendimento da DM Motors Imports.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="mt-1 inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-primary-foreground transition hover:brightness-110"
+            >
+              Chamar no WhatsApp
+            </a>
           </div>
         </nav>
-      )}
+      ) : null}
     </header>
   );
 }

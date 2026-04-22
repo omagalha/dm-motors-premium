@@ -37,13 +37,15 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { cars } = Route.useLoaderData() as { cars: Vehicle[] };
-  const activeCarCount = cars.filter((c) => c.active).length;
+  const activeCars = cars.filter((car) => car.active);
+  const activeCarCount = activeCars.length;
+  const spotlightCar = activeCars.find((car) => car.isFeatured) ?? activeCars[0] ?? null;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <Hero activeCarCount={activeCarCount} />
+        <Hero activeCarCount={activeCarCount} spotlightCar={spotlightCar} />
         <div className="flex flex-col">
           <div className="lg:order-2">
             <CategoryBar />
