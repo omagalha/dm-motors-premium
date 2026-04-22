@@ -28,20 +28,6 @@ function createWorkflowResponse(workflowResult, options = {}) {
   };
 }
 
-function matchesKnownExecutionId(saleContract, receivedExecutionId) {
-  const normalizedReceivedExecutionId = normalizeExecutionId(receivedExecutionId);
-  if (!normalizedReceivedExecutionId) {
-    return false;
-  }
-
-  const knownExecutionIds = [
-    normalizeExecutionId(saleContract?.executionId),
-    normalizeExecutionId(saleContract?.providerExecutionId),
-  ].filter(Boolean);
-
-  return knownExecutionIds.includes(normalizedReceivedExecutionId);
-}
-
 async function findVehicleForDocuments(id) {
   if (!mongoose.isValidObjectId(id)) {
     return null;
@@ -90,9 +76,12 @@ async function startSaleContractWorkflow(req, res) {
       return res.status(404).json({ message: "Veiculo nao encontrado." });
     }
 
-    if (vehicleDoc.documentWorkflow?.saleContract?.status === "pending") {
+    const currentSaleContract = vehicleDoc.documentWorkflow?.saleContract;
+
+    if (currentSaleContract?.status === "pending") {
       return res.status(409).json({
-        error: "Ja existe um contrato sendo gerado para este veiculo.",
+        error: "Ja existe uma geracao de contrato em andamento para este veiculo.",
+        currentExecutionId: currentSaleContract.executionId || null,
       });
     }
 
@@ -129,21 +118,23 @@ async function startSaleContractWorkflow(req, res) {
             draft: workflowResult.draft,
           });
           const providerExecutionId = getProviderExecutionId(n8nResponse);
+          const now = new Date();
           automationTriggered = true;
           automationStatus = "pending";
           automationExecutionId = executionId;
           automationProviderExecutionId = providerExecutionId || null;
-          vehicleDoc.documentWorkflow = {
-            saleContract: {
-              status: "pending",
-              executionId,
-              providerExecutionId,
-              triggeredAt: new Date(),
-              completedAt: null,
-              failedAt: null,
-              documentUrl: "",
-              errorMessage: "",
-            },
+          vehicleDoc.documentWorkflow = vehicleDoc.documentWorkflow || {};
+          vehicleDoc.documentWorkflow.saleContract = {
+            executionId,
+            providerExecutionId: providerExecutionId || "",
+            status: "pending",
+            documentUrl: "",
+            errorMessage: "",
+            createdAt: now,
+            updatedAt: now,
+            triggeredAt: now,
+            completedAt: null,
+            failedAt: null,
           };
           await vehicleDoc.save();
         } catch (n8nErr) {
@@ -233,54 +224,57 @@ async function saleContractWorkflowCallback(req, res) {
     );
 
     if (!currentSaleContract?.executionId) {
-      return res.status(409).json({ message: "Nenhum workflow pendente encontrado para este veiculo." });
-    }
-
-    console.log(
-      "COMPARE executionId === current.executionId:",
-      normalizedExecutionId === vehicle.documentWorkflow?.saleContract?.executionId,
-    );
-    console.log(
-      "COMPARE executionId === current.providerExecutionId:",
-      normalizedExecutionId === vehicle.documentWorkflow?.saleContract?.providerExecutionId,
-    );
-
-    if (!matchesKnownExecutionId(currentSaleContract, normalizedExecutionId)) {
-      return res.status(409).json({
-        error: "Callback de execucao antiga. O workflow atual ja foi substituido por uma nova geracao.",
+      return res.status(404).json({
+        error: "Nenhum workflow de contrato encontrado para este veiculo.",
       });
     }
 
-    const currentStatus = currentSaleContract.status;
-    const isPendingWorkflow = currentStatus === "pending";
-    const isIdempotentFinalCallback =
-      (currentStatus === "completed" || currentStatus === "failed") && currentStatus === status;
+    const matchesCurrentExecution =
+      normalizedExecutionId === normalizeExecutionId(currentSaleContract.executionId) ||
+      normalizedExecutionId === normalizeExecutionId(currentSaleContract.providerExecutionId);
 
-    if (!isPendingWorkflow && !isIdempotentFinalCallback) {
-      return res.status(409).json({ message: "Workflow nao esta mais pendente para este callback." });
+    console.log(
+      "COMPARE executionId === current.executionId:",
+      normalizedExecutionId === normalizeExecutionId(vehicle.documentWorkflow?.saleContract?.executionId),
+    );
+    console.log(
+      "COMPARE executionId === current.providerExecutionId:",
+      normalizedExecutionId === normalizeExecutionId(
+        vehicle.documentWorkflow?.saleContract?.providerExecutionId,
+      ),
+    );
+
+    if (!matchesCurrentExecution) {
+      return res.status(409).json({
+        error: "Callback de execucao antiga. O workflow atual ja foi substituido por uma nova geracao.",
+        callbackExecutionId: normalizedExecutionId,
+        currentExecutionId: currentSaleContract.executionId || null,
+        currentProviderExecutionId: currentSaleContract.providerExecutionId || null,
+      });
     }
 
     const now = new Date();
+    currentSaleContract.status = status;
+    currentSaleContract.updatedAt = now;
 
-    vehicle.documentWorkflow = {
-      saleContract: {
-        status,
-        executionId: normalizedExecutionId,
-        providerExecutionId:
-          currentSaleContract.providerExecutionId ||
-          (normalizedExecutionId !== currentSaleContract.executionId ? normalizedExecutionId : ""),
-        triggeredAt: currentSaleContract.triggeredAt ?? now,
-        completedAt:
-          status === "completed" ? currentSaleContract.completedAt ?? now : null,
-        failedAt: status === "failed" ? currentSaleContract.failedAt ?? now : null,
-        documentUrl: documentUrl || currentSaleContract.documentUrl || "",
-        errorMessage: errorMessage || currentSaleContract.errorMessage || "",
-      },
-    };
+    if (status === "completed") {
+      currentSaleContract.documentUrl = documentUrl || "";
+      currentSaleContract.errorMessage = "";
+      currentSaleContract.completedAt = now;
+      currentSaleContract.failedAt = null;
+    }
+
+    if (status === "failed") {
+      currentSaleContract.errorMessage = errorMessage || "Falha ao gerar contrato";
+      currentSaleContract.failedAt = now;
+      currentSaleContract.completedAt = null;
+    }
 
     await vehicle.save();
 
-    return res.status(204).send();
+    return res.status(200).json({
+      message: "Callback processado com sucesso",
+    });
   } catch (err) {
     return res.status(err.statusCode || 500).json({ message: err.message });
   }

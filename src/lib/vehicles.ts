@@ -196,6 +196,8 @@ function normalizeVehicleDocumentWorkflow(
       status: normalizeDocumentWorkflowStatus(value.saleContract.status),
       executionId: normalizeString(value.saleContract.executionId),
       providerExecutionId: normalizeString(value.saleContract.providerExecutionId) || undefined,
+      createdAt: normalizeDateString(value.saleContract.createdAt),
+      updatedAt: normalizeDateString(value.saleContract.updatedAt),
       triggeredAt: normalizeDateString(value.saleContract.triggeredAt),
       completedAt: normalizeDateString(value.saleContract.completedAt),
       failedAt: normalizeDateString(value.saleContract.failedAt),

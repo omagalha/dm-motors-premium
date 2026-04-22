@@ -54,6 +54,8 @@ const DEFAULTS = {
       status: "idle",
       executionId: "",
       providerExecutionId: "",
+      createdAt: "",
+      updatedAt: "",
       triggeredAt: "",
       completedAt: "",
       failedAt: "",
@@ -360,6 +362,14 @@ function normalizeVehicleDocumentWorkflow(value) {
       providerExecutionId: normalizeString(
         value.saleContract.providerExecutionId,
         DEFAULTS.documentWorkflow.saleContract.providerExecutionId,
+      ),
+      createdAt: normalizeDate(
+        value.saleContract.createdAt,
+        DEFAULTS.documentWorkflow.saleContract.createdAt,
+      ),
+      updatedAt: normalizeDate(
+        value.saleContract.updatedAt,
+        DEFAULTS.documentWorkflow.saleContract.updatedAt,
       ),
       triggeredAt: normalizeDate(
         value.saleContract.triggeredAt,

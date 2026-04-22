@@ -54,6 +54,8 @@ export interface VehicleSaleContractWorkflowState {
   status: VehicleDocumentWorkflowStatus;
   executionId: string;
   providerExecutionId?: string;
+  createdAt?: string;
+  updatedAt?: string;
   triggeredAt?: string;
   completedAt?: string;
   failedAt?: string;
