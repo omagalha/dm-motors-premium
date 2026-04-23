@@ -1,6 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, CheckSquare, Phone, Plus, Search, Trash2, Users2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarClock,
+  CheckSquare,
+  Phone,
+  Plus,
+  Search,
+  Trash2,
+  Users2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useCars } from "@/data/carsStore";
 import {
@@ -401,6 +410,14 @@ function AdminCrmLeadsPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        to="/admin/crm/lead/$leadId"
+                        params={{ leadId: lead.id }}
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/40 hover:text-primary"
+                      >
+                        Perfil
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
                       <select
                         value={lead.stage}
                         onChange={(event) =>

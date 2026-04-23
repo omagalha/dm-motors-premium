@@ -6,6 +6,7 @@ const Task = require("../models/Task");
 const Vehicle = require("../models/Vehicle");
 const requireAdminAuth = require("../middleware/requireAdminAuth");
 const {
+  getTodayDate,
   normalizeDateOnly,
   normalizeNumber,
   normalizeString,
@@ -27,6 +28,18 @@ const LEAD_STAGE_VALUES = new Set([
 ]);
 
 const LEAD_PRIORITY_VALUES = new Set(["low", "medium", "high"]);
+const TASK_STATUS_VALUES = new Set(["todo", "in_progress", "done", "cancelled"]);
+const TASK_PRIORITY_VALUES = new Set(["low", "medium", "high"]);
+const DEAL_STAGE_VALUES = new Set([
+  "novo",
+  "qualificacao",
+  "proposta",
+  "negociacao",
+  "fechado_ganho",
+  "fechado_perdido",
+]);
+const OPEN_TASK_STATUS_VALUES = new Set(["todo", "in_progress"]);
+const OPEN_DEAL_STAGE_VALUES = new Set(["novo", "qualificacao", "proposta", "negociacao"]);
 
 function serializeLead(lead) {
   const source = lead && typeof lead.toObject === "function" ? lead.toObject() : lead;
@@ -55,6 +68,189 @@ function serializeLead(lead) {
     createdAt: serializeDateValue(source?.createdAt),
     updatedAt: serializeDateValue(source?.updatedAt),
   };
+}
+
+function serializeTask(task) {
+  const source = task && typeof task.toObject === "function" ? task.toObject() : task;
+
+  return {
+    id: String(source?._id ?? source?.id ?? ""),
+    title: normalizeString(source?.title),
+    description: normalizeString(source?.description),
+    status: TASK_STATUS_VALUES.has(source?.status) ? source.status : "todo",
+    priority: TASK_PRIORITY_VALUES.has(source?.priority) ? source.priority : "medium",
+    dueDate: serializeDateOnly(source?.dueDate),
+    completedAt: serializeDateOnly(source?.completedAt),
+    assignedTo: normalizeString(source?.assignedTo),
+    lead:
+      source?.leadId || source?.leadName
+        ? { id: source?.leadId ? String(source.leadId) : "", name: normalizeString(source?.leadName) }
+        : null,
+    deal:
+      source?.dealId || source?.dealName
+        ? { id: source?.dealId ? String(source.dealId) : "", name: normalizeString(source?.dealName) }
+        : null,
+    createdAt: serializeDateValue(source?.createdAt),
+    updatedAt: serializeDateValue(source?.updatedAt),
+  };
+}
+
+function serializeDeal(deal) {
+  const source = deal && typeof deal.toObject === "function" ? deal.toObject() : deal;
+
+  return {
+    id: String(source?._id ?? source?.id ?? ""),
+    title: normalizeString(source?.title),
+    stage: DEAL_STAGE_VALUES.has(source?.stage) ? source.stage : "novo",
+    value: normalizeNumber(source?.value),
+    probability: normalizeNumber(source?.probability),
+    expectedCloseDate: serializeDateOnly(source?.expectedCloseDate),
+    closedAt: serializeDateOnly(source?.closedAt),
+    owner: normalizeString(source?.owner),
+    source: normalizeString(source?.source, "crm"),
+    notes: normalizeString(source?.notes),
+    lostReason: normalizeString(source?.lostReason),
+    lead:
+      source?.leadId || source?.leadName
+        ? { id: source?.leadId ? String(source.leadId) : "", name: normalizeString(source?.leadName) }
+        : null,
+    vehicle:
+      source?.vehicleId || source?.vehicleName
+        ? {
+            id: source?.vehicleId ? String(source.vehicleId) : "",
+            name: normalizeString(source?.vehicleName),
+          }
+        : null,
+    createdAt: serializeDateValue(source?.createdAt),
+    updatedAt: serializeDateValue(source?.updatedAt),
+  };
+}
+
+function getEventTimestamp(value) {
+  const normalized = normalizeString(value);
+  if (!normalized) return 0;
+
+  const parsed = new Date(normalized.length === 10 ? `${normalized}T12:00:00.000Z` : normalized);
+  const timestamp = parsed.getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function buildTaskHistoryDescription(task) {
+  const parts = [];
+
+  if (task.assignedTo) parts.push(`Responsavel: ${task.assignedTo}`);
+  if (task.dueDate) parts.push(`Prazo: ${task.dueDate}`);
+  if (task.description) parts.push(task.description);
+
+  return parts.join(" - ");
+}
+
+function buildProposalHistoryDescription(proposal) {
+  const parts = [];
+
+  if (proposal.value > 0) parts.push(`Valor: ${proposal.value}`);
+  if (proposal.vehicle?.name) parts.push(`Veiculo: ${proposal.vehicle.name}`);
+  if (proposal.expectedCloseDate) parts.push(`Previsao: ${proposal.expectedCloseDate}`);
+  if (proposal.lostReason) parts.push(`Motivo: ${proposal.lostReason}`);
+
+  return parts.join(" - ");
+}
+
+function buildLeadHistory(lead, tasks, proposals) {
+  const history = [];
+
+  if (lead.createdAt) {
+    history.push({
+      id: `lead-created-${lead.id}`,
+      type: "lead_created",
+      date: lead.createdAt,
+      title: "Lead criado",
+      description: lead.source ? `Origem: ${lead.source}` : "",
+      relatedType: "lead",
+      relatedId: lead.id,
+    });
+  }
+
+  if (lead.lastContactAt) {
+    history.push({
+      id: `lead-contact-${lead.id}`,
+      type: "contact_logged",
+      date: lead.lastContactAt,
+      title: "Ultimo contato registrado",
+      description: lead.assignedTo ? `Responsavel: ${lead.assignedTo}` : "",
+      relatedType: "lead",
+      relatedId: lead.id,
+    });
+  }
+
+  if (lead.nextFollowUpAt) {
+    history.push({
+      id: `lead-follow-up-${lead.id}`,
+      type: "follow_up_scheduled",
+      date: lead.nextFollowUpAt,
+      title: "Follow-up agendado",
+      description: lead.assignedTo ? `Responsavel: ${lead.assignedTo}` : "",
+      relatedType: "lead",
+      relatedId: lead.id,
+    });
+  }
+
+  tasks.forEach((task) => {
+    if (task.createdAt) {
+      history.push({
+        id: `task-created-${task.id}`,
+        type: "task_created",
+        date: task.createdAt,
+        title: `Tarefa criada: ${task.title}`,
+        description: buildTaskHistoryDescription(task),
+        relatedType: "task",
+        relatedId: task.id,
+      });
+    }
+
+    if (task.completedAt) {
+      history.push({
+        id: `task-completed-${task.id}`,
+        type: "task_completed",
+        date: task.completedAt,
+        title: `Tarefa concluida: ${task.title}`,
+        description: buildTaskHistoryDescription(task),
+        relatedType: "task",
+        relatedId: task.id,
+      });
+    }
+  });
+
+  proposals.forEach((proposal) => {
+    if (proposal.createdAt) {
+      history.push({
+        id: `proposal-created-${proposal.id}`,
+        type: "proposal_created",
+        date: proposal.createdAt,
+        title: `Proposta criada: ${proposal.title}`,
+        description: buildProposalHistoryDescription(proposal),
+        relatedType: "proposal",
+        relatedId: proposal.id,
+      });
+    }
+
+    if (proposal.closedAt) {
+      history.push({
+        id: `proposal-closed-${proposal.id}`,
+        type: "proposal_closed",
+        date: proposal.closedAt,
+        title:
+          proposal.stage === "fechado_ganho"
+            ? `Negocio ganho: ${proposal.title}`
+            : `Negocio encerrado: ${proposal.title}`,
+        description: buildProposalHistoryDescription(proposal),
+        relatedType: "proposal",
+        relatedId: proposal.id,
+      });
+    }
+  });
+
+  return history.sort((left, right) => getEventTimestamp(right.date) - getEventTimestamp(left.date));
 }
 
 async function resolveVehicleReference(vehicleId) {
@@ -144,6 +340,64 @@ router.post("/", async (req, res) => {
       message: "Erro ao criar lead.",
       error: error.message,
     });
+  }
+});
+
+router.get("/:id/profile", async (req, res) => {
+  try {
+    const leadId = normalizeString(req.params?.id);
+    if (!mongoose.isValidObjectId(leadId)) {
+      return res.status(404).json({ message: "Lead nao encontrado." });
+    }
+
+    const lead = await Lead.findById(leadId).lean();
+    if (!lead) {
+      return res.status(404).json({ message: "Lead nao encontrado." });
+    }
+
+    const [tasks, proposals] = await Promise.all([
+      Task.find({ leadId: lead._id }).sort({ dueDate: 1, updatedAt: -1, createdAt: -1 }).lean(),
+      Deal.find({ leadId: lead._id }).sort({ updatedAt: -1, createdAt: -1 }).lean(),
+    ]);
+
+    const serializedLead = serializeLead(lead);
+    const serializedTasks = tasks.map(serializeTask);
+    const serializedProposals = proposals.map(serializeDeal);
+    const today = getTodayDate();
+
+    const openTasks = serializedTasks.filter((task) => OPEN_TASK_STATUS_VALUES.has(task.status));
+    const overdueTasks = openTasks.filter((task) => task.dueDate && task.dueDate < today);
+    const openProposals = serializedProposals.filter((proposal) =>
+      OPEN_DEAL_STAGE_VALUES.has(proposal.stage),
+    );
+    const wonProposals = serializedProposals.filter((proposal) => proposal.stage === "fechado_ganho");
+    const lostProposals = serializedProposals.filter(
+      (proposal) => proposal.stage === "fechado_perdido",
+    );
+    const currentProposal = openProposals[0] ?? serializedProposals[0] ?? null;
+
+    return res.status(200).json({
+      lead: serializedLead,
+      tasks: serializedTasks,
+      proposals: serializedProposals,
+      history: buildLeadHistory(serializedLead, serializedTasks, serializedProposals),
+      status: {
+        stage: serializedLead.stage,
+        priority: serializedLead.priority,
+        openTasksCount: openTasks.length,
+        overdueTasksCount: overdueTasks.length,
+        totalProposalsCount: serializedProposals.length,
+        openProposalsCount: openProposals.length,
+        wonProposalsCount: wonProposals.length,
+        lostProposalsCount: lostProposals.length,
+        pipelineValue: openProposals.reduce((sum, proposal) => sum + normalizeNumber(proposal.value), 0),
+        closedValue: wonProposals.reduce((sum, proposal) => sum + normalizeNumber(proposal.value), 0),
+        currentProposalTitle: currentProposal?.title ?? "",
+        currentProposalStage: currentProposal?.stage ?? "",
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro ao carregar o perfil do lead." });
   }
 });
 

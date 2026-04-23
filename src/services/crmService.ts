@@ -3,6 +3,7 @@ import type {
   Deal,
   DealInput,
   Lead,
+  LeadProfile,
   LeadInput,
   Task,
   TaskInput,
@@ -49,6 +50,11 @@ export async function createLead(input: LeadInput): Promise<Lead> {
     method: "POST",
     body: JSON.stringify(input),
   });
+}
+
+export async function getLeadProfile(id: string): Promise<LeadProfile> {
+  requireCrmApi();
+  return apiFetch<LeadProfile>(`/crm/leads/${encodeURIComponent(id)}/profile`);
 }
 
 export async function updateLead(id: string, patch: Partial<LeadInput>): Promise<Lead> {

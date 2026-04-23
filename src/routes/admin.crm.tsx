@@ -18,6 +18,18 @@ const crmTabs = [
   { to: "/admin/crm/financeiro" as const, label: "Financeiro", icon: BadgeDollarSign },
 ];
 
+function isTabActive(pathname: string, tabTo: (typeof crmTabs)[number]["to"]) {
+  if (tabTo === "/admin/crm/leads") {
+    return (
+      pathname === tabTo ||
+      pathname.startsWith("/admin/crm/leads/") ||
+      pathname.startsWith("/admin/crm/lead/")
+    );
+  }
+
+  return pathname === tabTo || pathname.startsWith(`${tabTo}/`);
+}
+
 function AdminCrmLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -45,8 +57,7 @@ function AdminCrmLayout() {
       <nav className="flex flex-wrap gap-2 rounded-2xl border border-border bg-card p-2 shadow-card">
         {crmTabs.map((tab) => {
           const Icon = tab.icon;
-          const active =
-            location.pathname === tab.to || location.pathname.startsWith(`${tab.to}/`);
+          const active = isTabActive(location.pathname, tab.to);
 
           return (
             <Link

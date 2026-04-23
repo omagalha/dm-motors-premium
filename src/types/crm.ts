@@ -31,6 +31,23 @@ export interface Lead {
   updatedAt: string;
 }
 
+export interface LeadHistoryItem {
+  id: string;
+  type:
+    | "lead_created"
+    | "contact_logged"
+    | "follow_up_scheduled"
+    | "task_created"
+    | "task_completed"
+    | "proposal_created"
+    | "proposal_closed";
+  date: string;
+  title: string;
+  description: string;
+  relatedType: "lead" | "task" | "proposal";
+  relatedId: string;
+}
+
 export type TaskStatus = "todo" | "in_progress" | "done" | "cancelled";
 export type TaskPriority = "low" | "medium" | "high";
 
@@ -85,6 +102,27 @@ export interface Deal {
   } | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LeadProfile {
+  lead: Lead;
+  tasks: Task[];
+  proposals: Deal[];
+  history: LeadHistoryItem[];
+  status: {
+    stage: LeadStage;
+    priority: LeadPriority;
+    openTasksCount: number;
+    overdueTasksCount: number;
+    totalProposalsCount: number;
+    openProposalsCount: number;
+    wonProposalsCount: number;
+    lostProposalsCount: number;
+    pipelineValue: number;
+    closedValue: number;
+    currentProposalTitle: string;
+    currentProposalStage: DealStage | "";
+  };
 }
 
 export type VehicleFinanceKind = "income" | "expense";
