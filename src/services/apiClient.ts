@@ -79,6 +79,19 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
       }
     }
 
+    if (
+      !contentType.includes("application/json") &&
+      res.status === 404 &&
+      /<!doctype html/i.test(message)
+    ) {
+      message = `A API ativa nao possui o endpoint ${path}. Reinicie o backend local ou faca deploy do backend atualizado.`;
+    } else if (
+      !contentType.includes("application/json") &&
+      /cannot get\s+\/[^\s<]+/i.test(message)
+    ) {
+      message = `A API ativa nao possui o endpoint ${path}. Reinicie o backend local ou faca deploy do backend atualizado.`;
+    }
+
     if (res.status === 401 && !options.skipAuth) {
       clearStoredAdminSession();
     }
