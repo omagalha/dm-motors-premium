@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const financeRoutes = require("./routes/financeRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const vehicleRoutes = require("./routes/vehicleRoutes");
 
@@ -34,6 +35,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/finance", financeRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/vehicles", vehicleRoutes);
 

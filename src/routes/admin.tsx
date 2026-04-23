@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   BarChart3,
   Car,
+  CircleDollarSign,
   ExternalLink,
   LayoutDashboard,
   LogOut,
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/admin")({
 const navItems = [
   { to: "/admin" as const, label: "Visão geral", icon: LayoutDashboard, exact: true },
   { to: "/admin/veiculos" as const, label: "Veículos", icon: Car, exact: false },
+  { to: "/admin/financeiro" as const, label: "Financeiro", icon: CircleDollarSign, exact: false },
   { to: "/admin/insights" as const, label: "Insights", icon: BarChart3, exact: false },
 ];
 
