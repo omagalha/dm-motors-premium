@@ -5,8 +5,12 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const crmDealRoutes = require("./routes/deals");
 const financeRoutes = require("./routes/financeRoutes");
+const crmLeadRoutes = require("./routes/leads");
+const crmTaskRoutes = require("./routes/tasks");
 const uploadRoutes = require("./routes/uploadRoutes");
+const crmVehicleFinanceRoutes = require("./routes/vehicleFinance");
 const vehicleRoutes = require("./routes/vehicleRoutes");
 
 const app = express();
@@ -35,8 +39,12 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/crm/deals", crmDealRoutes);
 app.use("/finance", financeRoutes);
+app.use("/crm/leads", crmLeadRoutes);
+app.use("/crm/tasks", crmTaskRoutes);
 app.use("/upload", uploadRoutes);
+app.use("/crm/vehicle-finance", crmVehicleFinanceRoutes);
 app.use("/vehicles", vehicleRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {

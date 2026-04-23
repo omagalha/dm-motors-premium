@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Users2,
   X,
 } from "lucide-react";
 import { Toaster } from "sonner";
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/admin")({
 const navItems = [
   { to: "/admin" as const, label: "Visão geral", icon: LayoutDashboard, exact: true },
   { to: "/admin/veiculos" as const, label: "Veículos", icon: Car, exact: false },
+  { to: "/admin/crm" as const, label: "CRM", icon: Users2, exact: false },
   { to: "/admin/financeiro" as const, label: "Financeiro", icon: CircleDollarSign, exact: false },
   { to: "/admin/insights" as const, label: "Insights", icon: BarChart3, exact: false },
 ];

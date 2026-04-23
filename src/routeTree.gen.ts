@@ -18,6 +18,10 @@ import { Route as AdminVeiculosRouteImport } from './routes/admin.veiculos'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInsightsRouteImport } from './routes/admin.insights'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin.financeiro'
+import { Route as AdminCrmRouteImport } from './routes/admin.crm'
+import { Route as AdminCrmLeadsRouteImport } from './routes/admin.crm.leads'
+import { Route as AdminCrmFunilRouteImport } from './routes/admin.crm.funil'
+import { Route as AdminCrmFinanceiroRouteImport } from './routes/admin.crm.financeiro'
 
 const EstoqueRoute = EstoqueRouteImport.update({
   id: '/estoque',
@@ -64,39 +68,71 @@ const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCrmRoute = AdminCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCrmLeadsRoute = AdminCrmLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
+const AdminCrmFunilRoute = AdminCrmFunilRouteImport.update({
+  id: '/funil',
+  path: '/funil',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
+const AdminCrmFinanceiroRoute = AdminCrmFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/estoque': typeof EstoqueRoute
+  '/admin/crm': typeof AdminCrmRouteWithChildren
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/insights': typeof AdminInsightsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/crm/financeiro': typeof AdminCrmFinanceiroRoute
+  '/admin/crm/funil': typeof AdminCrmFunilRoute
+  '/admin/crm/leads': typeof AdminCrmLeadsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/estoque': typeof EstoqueRoute
+  '/admin/crm': typeof AdminCrmRouteWithChildren
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/insights': typeof AdminInsightsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/crm/financeiro': typeof AdminCrmFinanceiroRoute
+  '/admin/crm/funil': typeof AdminCrmFunilRoute
+  '/admin/crm/leads': typeof AdminCrmLeadsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/estoque': typeof EstoqueRoute
+  '/admin/crm': typeof AdminCrmRouteWithChildren
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/insights': typeof AdminInsightsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/crm/financeiro': typeof AdminCrmFinanceiroRoute
+  '/admin/crm/funil': typeof AdminCrmFunilRoute
+  '/admin/crm/leads': typeof AdminCrmLeadsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,33 +140,45 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/estoque'
+    | '/admin/crm'
     | '/admin/financeiro'
     | '/admin/insights'
     | '/admin/login'
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin/'
+    | '/admin/crm/financeiro'
+    | '/admin/crm/funil'
+    | '/admin/crm/leads'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/estoque'
+    | '/admin/crm'
     | '/admin/financeiro'
     | '/admin/insights'
     | '/admin/login'
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin'
+    | '/admin/crm/financeiro'
+    | '/admin/crm/funil'
+    | '/admin/crm/leads'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/estoque'
+    | '/admin/crm'
     | '/admin/financeiro'
     | '/admin/insights'
     | '/admin/login'
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin/'
+    | '/admin/crm/financeiro'
+    | '/admin/crm/funil'
+    | '/admin/crm/leads'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -205,10 +253,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFinanceiroRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/crm': {
+      id: '/admin/crm'
+      path: '/crm'
+      fullPath: '/admin/crm'
+      preLoaderRoute: typeof AdminCrmRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/crm/leads': {
+      id: '/admin/crm/leads'
+      path: '/leads'
+      fullPath: '/admin/crm/leads'
+      preLoaderRoute: typeof AdminCrmLeadsRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
+    '/admin/crm/funil': {
+      id: '/admin/crm/funil'
+      path: '/funil'
+      fullPath: '/admin/crm/funil'
+      preLoaderRoute: typeof AdminCrmFunilRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
+    '/admin/crm/financeiro': {
+      id: '/admin/crm/financeiro'
+      path: '/financeiro'
+      fullPath: '/admin/crm/financeiro'
+      preLoaderRoute: typeof AdminCrmFinanceiroRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
   }
 }
 
+interface AdminCrmRouteChildren {
+  AdminCrmFinanceiroRoute: typeof AdminCrmFinanceiroRoute
+  AdminCrmFunilRoute: typeof AdminCrmFunilRoute
+  AdminCrmLeadsRoute: typeof AdminCrmLeadsRoute
+}
+
+const AdminCrmRouteChildren: AdminCrmRouteChildren = {
+  AdminCrmFinanceiroRoute: AdminCrmFinanceiroRoute,
+  AdminCrmFunilRoute: AdminCrmFunilRoute,
+  AdminCrmLeadsRoute: AdminCrmLeadsRoute,
+}
+
+const AdminCrmRouteWithChildren = AdminCrmRoute._addFileChildren(
+  AdminCrmRouteChildren,
+)
+
 interface AdminRouteChildren {
+  AdminCrmRoute: typeof AdminCrmRouteWithChildren
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
   AdminInsightsRoute: typeof AdminInsightsRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -217,6 +310,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCrmRoute: AdminCrmRouteWithChildren,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
   AdminInsightsRoute: AdminInsightsRoute,
   AdminLoginRoute: AdminLoginRoute,
