@@ -29,7 +29,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { property: "og:title", content: "DM Motors Imports — Carros com procedência e preço diferenciado" },
+      { property: "og:description", content: "Importados e nacionais selecionados com procedência garantida. Financiamento em todos os bancos, troca na hora." },
+      { property: "og:image", content: "https://dmmotorsimports.com.br/og-image.jpg" },
+      { property: "og:url", content: "https://dmmotorsimports.com.br" },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "DM Motors Imports" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://dmmotorsimports.com.br/og-image.jpg" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
