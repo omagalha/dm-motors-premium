@@ -2,7 +2,33 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
+# Permite crawlers de preview de redes sociais
 User-agent: facebookexternalhit
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+# Sobrescreve bloqueios do Cloudflare Managed para bots de indexação
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
 Allow: /
 
 Sitemap: https://dmmotorsimports.com.br/sitemap.xml
