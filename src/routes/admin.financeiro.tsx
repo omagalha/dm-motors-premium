@@ -73,6 +73,8 @@ interface EntryFormState {
   category: string;
   notes: string;
   vehicleId: string;
+  recurrenceKind: "single" | "installment" | "monthly";
+  recurrenceTotal: string;
 }
 
 const EXPENSE_CATEGORIES = [
@@ -194,6 +196,8 @@ function buildEntryForm(month: string, category = ""): EntryFormState {
     category,
     notes: "",
     vehicleId: "",
+    recurrenceKind: "single",
+    recurrenceTotal: "12",
   };
 }
 
@@ -473,6 +477,15 @@ function AdminFinanceiroPage() {
     setSubmitting(type);
 
     try {
+      const recurrenceTotal = Number(form.recurrenceTotal);
+      const shouldRepeat = type === "expense" && form.recurrenceKind !== "single";
+
+      if (shouldRepeat && (!Number.isFinite(recurrenceTotal) || recurrenceTotal < 2)) {
+        toast.error("Informe pelo menos 2 meses ou parcelas.");
+        setSubmitting(null);
+        return;
+      }
+
       await createFinanceEntry({
         type,
         entryDate: form.entryDate,
@@ -481,11 +494,19 @@ function AdminFinanceiroPage() {
         amount,
         notes: form.notes.trim() || undefined,
         vehicleId: form.vehicleId || undefined,
+        recurrenceKind: shouldRepeat ? form.recurrenceKind : "single",
+        recurrenceTotal: shouldRepeat ? recurrenceTotal : 1,
       });
 
       await reloadOverview();
       setActiveDialog(null);
-      toast.success(type === "expense" ? "Despesa registrada." : "Entrada registrada.");
+      toast.success(
+        type === "expense" && shouldRepeat
+          ? "Despesas futuras registradas."
+          : type === "expense"
+            ? "Despesa registrada."
+            : "Entrada registrada.",
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Nao foi possivel salvar o lancamento.");
     } finally {
@@ -1036,7 +1057,15 @@ function AdminFinanceiroPage() {
                   required
                 />
               </Field>
-              <Field label="Valor">
+              <Field
+                label={
+                  expenseForm.recurrenceKind === "installment"
+                    ? "Valor da parcela"
+                    : expenseForm.recurrenceKind === "monthly"
+                      ? "Valor mensal"
+                      : "Valor"
+                }
+              >
                 <input
                   type="number"
                   value={expenseForm.amount}
@@ -1081,6 +1110,54 @@ function AdminFinanceiroPage() {
                 </datalist>
               </Field>
             </div>
+
+            <section className="rounded-2xl border border-border bg-background/30 p-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Recorrencia">
+                  <select
+                    value={expenseForm.recurrenceKind}
+                    onChange={(event) =>
+                      setExpenseForm((current) => ({
+                        ...current,
+                        recurrenceKind: event.target.value as EntryFormState["recurrenceKind"],
+                      }))
+                    }
+                    className="adm-input"
+                  >
+                    <option value="single">Despesa unica</option>
+                    <option value="installment">Parcelada</option>
+                    <option value="monthly">Mensal fixa</option>
+                  </select>
+                </Field>
+
+                {expenseForm.recurrenceKind !== "single" && (
+                  <Field
+                    label={expenseForm.recurrenceKind === "installment" ? "Parcelas" : "Meses"}
+                  >
+                    <input
+                      type="number"
+                      value={expenseForm.recurrenceTotal}
+                      onChange={(event) =>
+                        setExpenseForm((current) => ({
+                          ...current,
+                          recurrenceTotal: event.target.value,
+                        }))
+                      }
+                      className="adm-input"
+                      min={2}
+                      max={120}
+                      step={1}
+                    />
+                  </Field>
+                )}
+              </div>
+              {expenseForm.recurrenceKind !== "single" && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  A primeira data e a escolhida acima; os proximos lancamentos entram nos meses
+                  seguintes.
+                </p>
+              )}
+            </section>
 
             <Field label="Veiculo (opcional)">
               <select

@@ -50,6 +50,12 @@ function normalizeNumber(value, fallback = 0) {
   return fallback;
 }
 
+function normalizeInteger(value, fallback = 1) {
+  const normalized = normalizeNumber(value, fallback);
+  if (!Number.isFinite(normalized)) return fallback;
+  return Math.max(1, Math.floor(normalized));
+}
+
 function getTodayDate() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -76,6 +82,28 @@ function normalizeDateOnly(value, fallback = getTodayDate()) {
   if (year < 1900 || year > 2100) return fallback;
 
   return parsed.toISOString().slice(0, 10);
+}
+
+function addMonthsToDateOnly(value, offset) {
+  const normalized = normalizeDateOnly(value);
+  const [yearString, monthString, dayString] = normalized.split("-");
+  const year = Number(yearString);
+  const month = Number(monthString) - 1;
+  const day = Number(dayString);
+  const target = new Date(Date.UTC(year, month + offset, 1));
+  const lastDay = new Date(
+    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+
+  target.setUTCDate(Math.min(day, lastDay));
+
+  return target.toISOString().slice(0, 10);
+}
+
+function normalizeRecurrenceKind(value) {
+  const normalized = normalizeString(value);
+  if (normalized === "installment" || normalized === "monthly") return normalized;
+  return "single";
 }
 
 function normalizeMonth(value) {
@@ -380,20 +408,45 @@ async function createFinanceEntry(req, res) {
       }
     }
 
-    const created = await FinanceEntry.create({
+    const recurrenceKind = type === "expense" ? normalizeRecurrenceKind(req.body?.recurrenceKind) : "single";
+    const recurrenceTotal =
+      recurrenceKind === "single" ? 1 : Math.min(normalizeInteger(req.body?.recurrenceTotal, 1), 120);
+    const recurrenceId =
+      recurrenceKind === "single"
+        ? ""
+        : `finance_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const entryDate = normalizeDateOnly(req.body?.entryDate);
+    const baseEntry = {
       kind: meta.kind,
       type,
-      entryDate: normalizeDateOnly(req.body?.entryDate),
-      description,
       category: normalizeString(req.body?.category, meta.category),
       amount,
       notes: normalizeString(req.body?.notes),
       vehicleId: vehicle?._id ?? null,
       vehicleName: vehicle?.name ?? "",
       source: "manual",
-    });
+    };
+    const entries = Array.from({ length: recurrenceTotal }, (_, index) => ({
+      ...baseEntry,
+      entryDate: addMonthsToDateOnly(entryDate, index),
+      description:
+        recurrenceKind === "installment"
+          ? `${description} (${index + 1}/${recurrenceTotal})`
+          : description,
+      metadata:
+        recurrenceKind === "single"
+          ? undefined
+          : {
+              recurrenceId,
+              recurrenceKind,
+              recurrenceIndex: index + 1,
+              recurrenceTotal,
+            },
+    }));
+    const createdEntries =
+      entries.length === 1 ? [await FinanceEntry.create(entries[0])] : await FinanceEntry.insertMany(entries);
 
-    return res.status(201).json(serializeFinanceEntry(created));
+    return res.status(201).json(serializeFinanceEntry(createdEntries[0]));
   } catch (error) {
     return res.status(400).json({
       message: "Erro ao criar lancamento financeiro.",

@@ -17,6 +17,9 @@ export async function getVehicles(): Promise<Vehicle[]> {
     } catch (err) {
       if (import.meta.env.DEV) {
         console.warn("[vehicleService] API unreachable, using local data:", err);
+      } else {
+        console.error("[vehicleService] API unreachable:", err);
+        throw err;
       }
     }
   }
@@ -35,6 +38,9 @@ export async function getVehicleById(id: string): Promise<Vehicle | undefined> {
       if (err instanceof ApiError && err.status === 404) return undefined;
       if (import.meta.env.DEV) {
         console.warn("[vehicleService] API unreachable, using local data:", err);
+      } else {
+        console.error("[vehicleService] API unreachable:", err);
+        throw err;
       }
     }
   }

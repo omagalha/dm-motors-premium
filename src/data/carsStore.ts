@@ -1,6 +1,5 @@
 // Local store for vehicles - persists overrides + new vehicles in localStorage.
-// This works as a fallback when the backend API (VITE_API_URL) is not reachable
-// and as a mirror cache when it is. The vehicleService writes to both.
+// Demo seed vehicles are DEV-only; production must never silently replace API data with fake stock.
 
 import { useEffect, useMemo, useState } from "react";
 import { allCars as seedCars } from "./cars";
@@ -14,6 +13,7 @@ export type CarInput = VehicleInput;
 
 const STORAGE_KEY = "dm-motors:cars:v2";
 let volatileCars: Vehicle[] | null = null;
+const canUseSeedCars = import.meta.env.DEV;
 
 function isBrowser() {
   return typeof window !== "undefined";
@@ -67,7 +67,7 @@ export function getCars(): Vehicle[] {
 
   const stored = readState();
   if (stored) return stored;
-  return seedCars;
+  return canUseSeedCars ? seedCars : [];
 }
 
 export function replaceCars(cars: Vehicle[]) {
@@ -139,7 +139,7 @@ export function resetCars() {
 
 export function useCars(initialCars?: Vehicle[]): Vehicle[] {
   const initialSnapshot = useMemo(
-    () => (initialCars ? normalizeVehicleList(initialCars) : seedCars),
+    () => (initialCars ? normalizeVehicleList(initialCars) : canUseSeedCars ? seedCars : []),
     [initialCars],
   );
   const [cars, setCars] = useState<Vehicle[]>(initialSnapshot);

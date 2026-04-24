@@ -83,6 +83,8 @@ export interface CreateFinanceEntryInput {
   amount: number;
   notes?: string;
   vehicleId?: string;
+  recurrenceKind?: "single" | "installment" | "monthly";
+  recurrenceTotal?: number;
 }
 
 export interface CreateFinanceSaleInput {

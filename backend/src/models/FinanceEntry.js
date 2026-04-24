@@ -70,6 +70,25 @@ const financeEntrySchema = new mongoose.Schema(
         default: "",
         trim: true,
       },
+      recurrenceId: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      recurrenceKind: {
+        type: String,
+        enum: ["", "installment", "monthly"],
+        default: "",
+        trim: true,
+      },
+      recurrenceIndex: {
+        type: Number,
+        default: 0,
+      },
+      recurrenceTotal: {
+        type: Number,
+        default: 0,
+      },
     },
   },
   {
