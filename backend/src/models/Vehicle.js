@@ -8,6 +8,8 @@ const vehicleInternalSchema = new mongoose.Schema(
     engineNumber: { type: String, default: "", trim: true },
     buyerDocument: { type: String, default: "", trim: true },
     buyerName: { type: String, default: "", trim: true },
+    buyerContactId: { type: mongoose.Schema.Types.ObjectId, ref: "Contact", default: null },
+    buyerContactName: { type: String, default: "", trim: true },
     previousOwnerDocument: { type: String, default: "", trim: true },
     previousOwnerName: { type: String, default: "", trim: true },
     acquisitionDate: { type: String, default: "", trim: true },

@@ -142,6 +142,8 @@ function normalizeVehicleInternalData(value: unknown): VehicleInternalData | und
     engineNumber: normalizeString(value.engineNumber),
     buyerDocument: normalizeString(value.buyerDocument),
     buyerName: normalizeString(value.buyerName),
+    buyerContactId: normalizeString(value.buyerContactId),
+    buyerContactName: normalizeString(value.buyerContactName),
     previousOwnerDocument: normalizeString(value.previousOwnerDocument),
     previousOwnerName: normalizeString(value.previousOwnerName),
     acquisitionDate: normalizeDateInputString(value.acquisitionDate),

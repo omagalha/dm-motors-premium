@@ -29,6 +29,8 @@ export interface VehicleInternalData {
   engineNumber: string;
   buyerDocument: string;
   buyerName: string;
+  buyerContactId: string;
+  buyerContactName: string;
   previousOwnerDocument: string;
   previousOwnerName: string;
   acquisitionDate: string;

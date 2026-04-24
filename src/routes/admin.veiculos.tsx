@@ -29,6 +29,7 @@ import {
   setCoverImage,
 } from "@/lib/vehicles";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import { getContacts } from "@/services/crmService";
 import {
   getVehicleDocumentPayload,
   getVehicleDocumentReadiness,
@@ -53,6 +54,7 @@ import type {
   VehicleImage,
   VehicleStatus,
 } from "@/types/vehicle";
+import type { Contact } from "@/types/crm";
 import {
   CheckCircle2,
   Copy,
@@ -129,6 +131,8 @@ interface InternalFormState {
   engineNumber: string;
   buyerDocument: string;
   buyerName: string;
+  buyerContactId: string;
+  buyerContactName: string;
   previousOwnerDocument: string;
   previousOwnerName: string;
   acquisitionDate: string;
@@ -246,6 +250,8 @@ const emptyInternalForm: InternalFormState = {
   engineNumber: "",
   buyerDocument: "",
   buyerName: "",
+  buyerContactId: "",
+  buyerContactName: "",
   previousOwnerDocument: "",
   previousOwnerName: "",
   acquisitionDate: "",
@@ -306,11 +312,17 @@ function buildVehicleSearchValue(car: Car) {
       car.status,
       car.active ? "ativo" : "inativo",
       car.isFeatured ? "destaque" : "",
+      car.internal?.buyerContactName,
+      car.internal?.buyerName,
       car.tags.join(" "),
       car.features.join(" "),
       String(car.year),
     ].join(" "),
   );
+}
+
+function getBuyerDisplayName(car: Pick<Car, "internal">) {
+  return safeTrim(car.internal?.buyerContactName) || safeTrim(car.internal?.buyerName);
 }
 
 function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormState {
@@ -343,6 +355,8 @@ function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormSta
       engineNumber: coerceInputText(internal?.engineNumber),
       buyerDocument: coerceInputText(internal?.buyerDocument),
       buyerName: coerceInputText(internal?.buyerName),
+      buyerContactId: coerceInputText(internal?.buyerContactId),
+      buyerContactName: coerceInputText(internal?.buyerContactName),
       previousOwnerDocument: coerceInputText(internal?.previousOwnerDocument),
       previousOwnerName: coerceInputText(internal?.previousOwnerName),
       acquisitionDate: normalizeDateInputValue(internal?.acquisitionDate),
@@ -441,6 +455,8 @@ function buildInternalPayload(internal: InternalFormState): VehicleInternalData 
     engineNumber: safeTrim(internal.engineNumber),
     buyerDocument: safeTrim(internal.buyerDocument),
     buyerName: safeTrim(internal.buyerName),
+    buyerContactId: safeTrim(internal.buyerContactId),
+    buyerContactName: safeTrim(internal.buyerContactName),
     previousOwnerDocument: safeTrim(internal.previousOwnerDocument),
     previousOwnerName: safeTrim(internal.previousOwnerName),
     acquisitionDate: normalizeDateInputValue(internal.acquisitionDate),
@@ -821,6 +837,10 @@ function AdminVeiculos() {
   const [savedDocumentStateKey, setSavedDocumentStateKey] = useState<string | null>(null);
   const [savedEditorStateKey, setSavedEditorStateKey] = useState<string | null>(null);
   const [discardChangesDialogOpen, setDiscardChangesDialogOpen] = useState(false);
+  const [buyerContactSearch, setBuyerContactSearch] = useState("");
+  const [buyerContactResults, setBuyerContactResults] = useState<Contact[]>([]);
+  const [buyerContactLoading, setBuyerContactLoading] = useState(false);
+  const [buyerContactError, setBuyerContactError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingUploadIdRef = useRef(0);
   const isSubmitting = submitStatus !== "idle";
@@ -889,6 +909,7 @@ function AdminVeiculos() {
     () => buildDocumentPayloadSummary(activeDocumentPayload),
     [activeDocumentPayload],
   );
+  const showBuyerContactPicker = form.status === "vendido";
   const documentWorkflowButtonState = documentWorkflowLoading
     ? "loading"
     : !documentNeedsSave && isAutomationPending
@@ -1022,6 +1043,35 @@ function AdminVeiculos() {
     return () => window.clearInterval(intervalId);
   }, [currentDocumentWorkflowStatus, editingId, open]);
 
+  useEffect(() => {
+    if (!open || !showBuyerContactPicker) {
+      setBuyerContactResults([]);
+      setBuyerContactLoading(false);
+      setBuyerContactError(null);
+      return;
+    }
+
+    const search = buyerContactSearch.trim();
+    const timeoutId = window.setTimeout(() => {
+      setBuyerContactLoading(true);
+      setBuyerContactError(null);
+
+      getContacts(search)
+        .then((contacts) => {
+          setBuyerContactResults(contacts.slice(0, 6));
+        })
+        .catch((error) => {
+          setBuyerContactResults([]);
+          setBuyerContactError(
+            error instanceof Error ? error.message : "Nao foi possivel buscar contatos.",
+          );
+        })
+        .finally(() => setBuyerContactLoading(false));
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [buyerContactSearch, open, showBuyerContactPicker]);
+
   function resetEditorState() {
     setOpen(false);
     setEditorMode("create");
@@ -1044,6 +1094,10 @@ function AdminVeiculos() {
     setSavedDocumentStateKey(null);
     setSavedEditorStateKey(null);
     setDiscardChangesDialogOpen(false);
+    setBuyerContactSearch("");
+    setBuyerContactResults([]);
+    setBuyerContactLoading(false);
+    setBuyerContactError(null);
   }
 
   function openNew() {
@@ -1055,6 +1109,11 @@ function AdminVeiculos() {
 
   function openEdit(car: Car) {
     const nextForm = buildFormFromCar(car);
+    setBuyerContactSearch(
+      nextForm.internal.buyerContactName || nextForm.internal.buyerName || "",
+    );
+    setBuyerContactResults([]);
+    setBuyerContactError(null);
     setEditorMode("edit");
     setEditorTab("commercial");
     setEditingId(car.id);
@@ -1085,6 +1144,9 @@ function AdminVeiculos() {
       status: "disponivel",
       internal: emptyInternalForm,
     });
+    setBuyerContactSearch("");
+    setBuyerContactResults([]);
+    setBuyerContactError(null);
     setEditorMode("duplicate");
     setEditorTab("commercial");
     setEditingId(null);
@@ -1422,6 +1484,45 @@ function AdminVeiculos() {
     }));
   }
 
+  function updateVehicleStatus(status: VehicleStatus) {
+    setForm((current) => ({
+      ...current,
+      status,
+      active: status === "vendido" ? false : current.active,
+    }));
+
+    if (status === "vendido") {
+      setBuyerContactSearch(form.internal.buyerContactName || form.internal.buyerName || "");
+    }
+  }
+
+  function updateBuyerContactSearch(value: string) {
+    setBuyerContactSearch(value);
+    setForm((current) => ({
+      ...current,
+      internal: {
+        ...current.internal,
+        buyerContactId: "",
+        buyerContactName: value,
+        buyerName: value,
+      },
+    }));
+  }
+
+  function selectBuyerContact(contact: Contact) {
+    setBuyerContactSearch(contact.name);
+    setBuyerContactResults([]);
+    setForm((current) => ({
+      ...current,
+      internal: {
+        ...current.internal,
+        buyerContactId: contact.id,
+        buyerContactName: contact.name,
+        buyerName: contact.name,
+      },
+    }));
+  }
+
   function clearFilters() {
     setSearchQuery("");
     setActiveFilter("all");
@@ -1433,6 +1534,11 @@ function AdminVeiculos() {
     if (isSubmitting || hasBusyRow) return;
 
     const nextActive = !car.active;
+    if (car.status === "vendido" && nextActive) {
+      toast.warning("Veiculo vendido permanece inativo no estoque.");
+      return;
+    }
+
     setRowAction({ id: car.id, type: "toggle" });
 
     try {
@@ -1552,7 +1658,7 @@ function AdminVeiculos() {
         price,
         badge: form.badge.trim(),
         isFeatured: form.isFeatured,
-        active: form.active,
+        active: form.status === "vendido" ? false : form.active,
         year,
         mileage,
         fuel: form.fuel,
@@ -1822,7 +1928,8 @@ function AdminVeiculos() {
                   const status = statusMeta[car.status];
                   const metrics = getVehicleMetricsSummary(car);
                   const isRowBusy = rowAction?.id === car.id;
-                const isHighlighted = highlightedCarId === car.id;
+                  const buyerName = getBuyerDisplayName(car);
+                  const isHighlighted = highlightedCarId === car.id;
                 return (
                   <tr
                     key={car.id}
@@ -1849,6 +1956,11 @@ function AdminVeiculos() {
                           <p className="text-xs text-muted-foreground">
                             {car.brand} - {car.model}
                           </p>
+                          {buyerName && (
+                            <p className="mt-0.5 text-xs font-semibold text-foreground/80">
+                              Comprador: {buyerName}
+                            </p>
+                          )}
                           <div className="mt-1.5 flex flex-wrap gap-1.5">
                             <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-foreground">
                               {car.category}
@@ -1923,7 +2035,7 @@ function AdminVeiculos() {
                         </button>
                         <button
                           onClick={() => void handleToggleActive(car)}
-                          disabled={isSubmitting || hasBusyRow}
+                          disabled={isSubmitting || hasBusyRow || car.status === "vendido"}
                           className={`inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
                             car.active
                               ? "border-amber-500/40 text-amber-500 hover:border-amber-500"
@@ -1933,7 +2045,9 @@ function AdminVeiculos() {
                           <Power className="h-3.5 w-3.5" />
                           {isRowBusy && rowAction?.type === "toggle"
                             ? "Salvando..."
-                            : car.active
+                            : car.status === "vendido"
+                              ? "Vendido"
+                              : car.active
                               ? "Desativar"
                               : "Ativar"}
                         </button>
@@ -2179,9 +2293,7 @@ function AdminVeiculos() {
                   <Field label="Status">
                     <select
                       value={form.status}
-                      onChange={(event) =>
-                        setForm({ ...form, status: event.target.value as VehicleStatus })
-                      }
+                      onChange={(event) => updateVehicleStatus(event.target.value as VehicleStatus)}
                       className="adm-input"
                     >
                       {statuses.map((item) => (
@@ -2192,6 +2304,61 @@ function AdminVeiculos() {
                     </select>
                   </Field>
                 </div>
+
+                {showBuyerContactPicker && (
+                  <section className="rounded-lg border border-border bg-background/30 p-3">
+                    <Field label="Comprador vinculado ao CRM">
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <input
+                          type="search"
+                          value={buyerContactSearch}
+                          onChange={(event) => updateBuyerContactSearch(event.target.value)}
+                          placeholder="Busque por nome, telefone, cidade ou tag"
+                          className="adm-input pl-9"
+                        />
+                      </div>
+                    </Field>
+
+                    <div className="mt-2 overflow-hidden rounded-md border border-border bg-card">
+                      {buyerContactLoading ? (
+                        <p className="px-3 py-2 text-xs text-muted-foreground">
+                          Buscando contatos...
+                        </p>
+                      ) : buyerContactError ? (
+                        <p className="px-3 py-2 text-xs text-destructive">{buyerContactError}</p>
+                      ) : buyerContactResults.length ? (
+                        buyerContactResults.map((contact) => (
+                          <button
+                            key={contact.id}
+                            type="button"
+                            onClick={() => selectBuyerContact(contact)}
+                            className="block w-full border-t border-border px-3 py-2 text-left first:border-t-0 transition hover:bg-secondary/60"
+                          >
+                            <span className="block text-sm font-semibold text-foreground">
+                              {contact.name}
+                            </span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {[contact.whatsapp, contact.city, contact.company]
+                                .filter(Boolean)
+                                .join(" - ") || "Contato sem telefone cadastrado"}
+                            </span>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="px-3 py-2 text-xs text-muted-foreground">
+                          Nenhum contato encontrado. O nome digitado sera salvo no comprador.
+                        </p>
+                      )}
+                    </div>
+
+                    {form.internal.buyerContactId && (
+                      <p className="mt-2 text-xs font-semibold text-whatsapp">
+                        Comprador selecionado: {form.internal.buyerContactName}
+                      </p>
+                    )}
+                  </section>
+                )}
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Field label="Cor">
@@ -2232,6 +2399,7 @@ function AdminVeiculos() {
                   <ToggleField
                     label="Ativo no estoque"
                     checked={form.active}
+                    disabled={form.status === "vendido"}
                     onChange={(checked) => setForm({ ...form, active: checked })}
                   />
                 </div>
@@ -2815,20 +2983,27 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function ToggleField({
   label,
   checked,
+  disabled = false,
   onChange,
 }: {
   label: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
+    <label
+      className={`flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 ${
+        disabled ? "opacity-60" : ""
+      }`}
+    >
       <span className="text-sm font-semibold text-foreground">{label}</span>
       <input
         type="checkbox"
         checked={checked}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 accent-[oklch(0.62_0.24_25)]"
+        className="h-4 w-4 accent-[oklch(0.62_0.24_25)] disabled:cursor-not-allowed"
       />
     </label>
   );

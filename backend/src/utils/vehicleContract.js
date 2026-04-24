@@ -26,6 +26,8 @@ const DEFAULTS = {
     engineNumber: "",
     buyerDocument: "",
     buyerName: "",
+    buyerContactId: null,
+    buyerContactName: "",
     previousOwnerDocument: "",
     previousOwnerName: "",
     acquisitionDate: "",
@@ -75,6 +77,17 @@ function hasOwn(record, key) {
 
 function normalizeString(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
+}
+
+function normalizeObjectId(value, fallback = null) {
+  const normalized =
+    typeof value === "string"
+      ? value.trim()
+      : value && typeof value.toString === "function"
+        ? value.toString().trim()
+        : "";
+
+  return /^[a-fA-F0-9]{24}$/.test(normalized) ? normalized : fallback;
 }
 
 function normalizeLooseString(value) {
@@ -296,6 +309,10 @@ function normalizeVehicleInternalData(value, options = {}) {
   assign("engineNumber", (entry) => normalizeString(entry, DEFAULTS.internal.engineNumber));
   assign("buyerDocument", (entry) => normalizeString(entry, DEFAULTS.internal.buyerDocument));
   assign("buyerName", (entry) => normalizeString(entry, DEFAULTS.internal.buyerName));
+  assign("buyerContactId", (entry) => normalizeObjectId(entry, DEFAULTS.internal.buyerContactId));
+  assign("buyerContactName", (entry) =>
+    normalizeString(entry, DEFAULTS.internal.buyerContactName),
+  );
   assign("previousOwnerDocument", (entry) =>
     normalizeString(entry, DEFAULTS.internal.previousOwnerDocument),
   );
@@ -446,6 +463,10 @@ function normalizeVehiclePayload(body = {}, options = {}) {
 
   if (hasOwn(body, "internal")) {
     payload.internal = normalizeVehicleInternalData(body.internal, { partial });
+  }
+
+  if (payload.status === "vendido") {
+    payload.active = false;
   }
 
   if (hasOwn(body, "metrics")) {
