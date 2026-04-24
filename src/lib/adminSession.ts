@@ -1,6 +1,10 @@
 export interface AdminUser {
   email: string;
-  role: "admin";
+  name: string;
+  role: "super_admin" | "collaborator";
+  permissions: {
+    canViewGeneralFinance: boolean;
+  };
 }
 
 export interface AdminSession {
@@ -37,7 +41,11 @@ function isValidAdminSession(session: unknown): session is AdminSession {
       candidate.user &&
       typeof candidate.user.email === "string" &&
       candidate.user.email &&
-      candidate.user.role === "admin"
+      typeof candidate.user.name === "string" &&
+      candidate.user.name &&
+      (candidate.user.role === "super_admin" || candidate.user.role === "collaborator") &&
+      Boolean(candidate.user.permissions) &&
+      typeof candidate.user.permissions?.canViewGeneralFinance === "boolean"
   );
 }
 

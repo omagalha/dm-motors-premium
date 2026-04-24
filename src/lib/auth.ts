@@ -10,7 +10,11 @@ interface AuthResponse {
   token?: string;
   user?: {
     email?: string;
+    name?: string;
     role?: string;
+    permissions?: {
+      canViewGeneralFinance?: boolean;
+    };
   };
   loggedInAt?: number;
   expiresAt?: number;
@@ -19,14 +23,18 @@ interface AuthResponse {
 function normalizeAuthSession(payload: AuthResponse, fallbackToken?: string): AdminSession {
   const token = typeof payload.token === "string" && payload.token ? payload.token : fallbackToken;
   const email = payload.user?.email?.trim();
+  const name = payload.user?.name?.trim();
   const role = payload.user?.role;
+  const canViewGeneralFinance = payload.user?.permissions?.canViewGeneralFinance;
   const loggedInAt = payload.loggedInAt;
   const expiresAt = payload.expiresAt;
 
   if (
     !token ||
     !email ||
-    role !== "admin" ||
+    !name ||
+    (role !== "super_admin" && role !== "collaborator") ||
+    typeof canViewGeneralFinance !== "boolean" ||
     typeof loggedInAt !== "number" ||
     !Number.isFinite(loggedInAt) ||
     typeof expiresAt !== "number" ||
@@ -39,7 +47,11 @@ function normalizeAuthSession(payload: AuthResponse, fallbackToken?: string): Ad
     token,
     user: {
       email,
-      role: "admin",
+      name,
+      role,
+      permissions: {
+        canViewGeneralFinance,
+      },
     },
     loggedInAt,
     expiresAt,

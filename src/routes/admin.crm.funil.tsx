@@ -180,7 +180,7 @@ function AdminCrmFunilPage() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-wrap items-center justify-between gap-3">
+      <section className="flex flex-wrap items-center justify-between gap-3 rounded-[2rem] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-5 shadow-card">
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
@@ -326,7 +326,7 @@ function AdminCrmFunilPage() {
       </section>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-hidden border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Novo negócio</DialogTitle>
             <DialogDescription>
@@ -334,7 +334,10 @@ function AdminCrmFunilPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateDeal} className="space-y-4">
+          <form
+            onSubmit={handleCreateDeal}
+            className="max-h-[calc(90vh-8.5rem)] space-y-4 overflow-y-auto pr-1"
+          >
             <Field label="Título">
               <input
                 value={dealForm.title ?? ""}
@@ -523,15 +526,15 @@ function MetricCard({
   accent: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
-      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${accent}`}>
+    <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-5 shadow-card">
+      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ring-1 ring-white/6 ${accent}`}>
         {icon}
       </div>
       <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </p>
       <p className="mt-1 text-4xl font-black tracking-tight text-foreground">{value}</p>
-      <p className="mt-2 text-sm text-muted-foreground">{hint}</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{hint}</p>
     </div>
   );
 }
@@ -547,7 +550,7 @@ function EmptyState({
 }) {
   return (
     <div
-      className={`rounded-3xl border border-dashed border-border bg-background/40 text-center ${
+      className={`rounded-[1.75rem] border border-dashed border-white/10 bg-background/40 text-center ${
         compact ? "px-4 py-10" : "px-5 py-16"
       }`}
     >

@@ -221,7 +221,15 @@ function AdminCrmFinanceiroPage() {
         </div>
       </header>
 
-      <section className="flex flex-wrap justify-end gap-3">
+      <section className="flex flex-wrap items-center justify-between gap-3 rounded-[2rem] border border-white/8 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-5 shadow-card">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
+            Caixa comercial
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Controle de receitas e custos por oportunidade.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setDialogOpen(true)}
@@ -382,7 +390,7 @@ function AdminCrmFinanceiroPage() {
       </section>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
+        <DialogContent className="max-h-[88vh] overflow-hidden border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Novo lançamento do CRM</DialogTitle>
             <DialogDescription>
@@ -390,7 +398,10 @@ function AdminCrmFinanceiroPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateEntry} className="space-y-4">
+          <form
+            onSubmit={handleCreateEntry}
+            className="max-h-[calc(88vh-8.5rem)] space-y-4 overflow-y-auto pr-1"
+          >
             <div className="grid gap-3 sm:grid-cols-3">
               <Field label="Tipo">
                 <select
@@ -559,15 +570,17 @@ function MetricCard({
   accent: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
-      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${accent}`}>
+    <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-5 shadow-card">
+      <div
+        className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 ${accent}`}
+      >
         {icon}
       </div>
       <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </p>
       <p className="mt-1 text-4xl font-black tracking-tight text-foreground">{value}</p>
-      <p className="mt-2 text-sm text-muted-foreground">{hint}</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{hint}</p>
     </div>
   );
 }
@@ -586,7 +599,7 @@ function SummaryBox({
   emptyDescription: string;
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+    <section className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
       <div className="mb-4">
         <h2 className="text-2xl font-black text-foreground">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
@@ -597,7 +610,7 @@ function SummaryBox({
           {items.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-border/70 bg-background/45 px-4 py-3"
+              className="rounded-[1.35rem] border border-white/8 bg-background/45 px-4 py-3"
             >
               <p className="text-sm font-bold text-foreground">{item.label}</p>
               <p className="mt-1 text-xs text-muted-foreground">{item.meta}</p>
@@ -622,7 +635,7 @@ function EmptyState({
 }) {
   return (
     <div
-      className={`rounded-3xl border border-dashed border-border bg-background/40 text-center ${
+      className={`rounded-[1.75rem] border border-dashed border-white/10 bg-background/40 text-center ${
         compact ? "px-4 py-10" : "px-5 py-16"
       }`}
     >

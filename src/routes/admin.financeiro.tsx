@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -33,6 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getStoredAdminSession } from "@/lib/adminSession";
 import type {
   FinanceMovement,
   FinanceOverview,
@@ -210,6 +211,7 @@ function getMovementTypeLabel(type: FinanceMovement["type"]) {
 }
 
 function AdminFinanceiroPage() {
+  const navigate = useNavigate();
   const cars = useCars();
   const [month, setMonth] = useState(getCurrentMonth);
   const [overview, setOverview] = useState<FinanceOverview>(() => createEmptyFinanceOverview(month));
@@ -229,6 +231,8 @@ function AdminFinanceiroPage() {
   const [manualIncomeForm, setManualIncomeForm] = useState<EntryFormState>(() =>
     buildEntryForm(getCurrentMonth(), MANUAL_INCOME_CATEGORIES[0]),
   );
+  const session = getStoredAdminSession();
+  const canViewGeneralFinance = Boolean(session?.user.permissions.canViewGeneralFinance);
 
   const sortedCars = useMemo(
     () =>
@@ -243,6 +247,17 @@ function AdminFinanceiroPage() {
   const totals = overview.totals;
 
   useEffect(() => {
+    if (!canViewGeneralFinance) {
+      toast.error("Seu usuario nao possui acesso ao Financeiro Geral.");
+      navigate({ to: "/admin/crm" });
+    }
+  }, [canViewGeneralFinance, navigate]);
+
+  useEffect(() => {
+    if (!canViewGeneralFinance) {
+      return;
+    }
+
     let cancelled = false;
 
     setLoading(true);
@@ -268,7 +283,7 @@ function AdminFinanceiroPage() {
     return () => {
       cancelled = true;
     };
-  }, [month]);
+  }, [canViewGeneralFinance, month]);
 
   useEffect(() => {
     if (saleForm.vehicleId || !sortedCars.length) return;
@@ -276,6 +291,10 @@ function AdminFinanceiroPage() {
   }, [month, saleForm.vehicleId, sortedCars]);
 
   useEffect(() => {
+    if (!canViewGeneralFinance) {
+      return;
+    }
+
     let cancelled = false;
 
     setBackfillLoading(true);
@@ -303,7 +322,11 @@ function AdminFinanceiroPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [canViewGeneralFinance]);
+
+  if (!canViewGeneralFinance) {
+    return null;
+  }
 
   function resetForms(nextMonth: string) {
     setExpenseForm(buildEntryForm(nextMonth, EXPENSE_CATEGORIES[0]));

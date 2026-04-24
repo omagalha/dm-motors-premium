@@ -558,7 +558,7 @@ function AdminCrmLeadProfilePage() {
 
           <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_360px]">
             <form id="lead-profile-form" onSubmit={handleSaveProfile} className="space-y-6">
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+              <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
                 <div className="mb-5">
                   <h3 className="text-2xl font-black text-foreground">Dados do cliente</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -700,7 +700,7 @@ function AdminCrmLeadProfilePage() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+              <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-2xl font-black text-foreground">Observacoes</h3>
@@ -726,7 +726,7 @@ function AdminCrmLeadProfilePage() {
             </form>
 
             <div className="space-y-6">
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+              <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-2xl font-black text-foreground">Carro de interesse</h3>
@@ -738,7 +738,7 @@ function AdminCrmLeadProfilePage() {
                 </div>
 
                 {profile.lead.interestVehicle ? (
-                  <div className="rounded-2xl border border-border/70 bg-background/45 p-4">
+                  <div className="rounded-[1.35rem] border border-white/8 bg-background/45 p-4">
                     <p className="text-lg font-black text-foreground">
                       {profile.lead.interestVehicle.name}
                     </p>
@@ -768,7 +768,7 @@ function AdminCrmLeadProfilePage() {
                 )}
               </div>
 
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+              <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
                 <div className="mb-4">
                   <h3 className="text-2xl font-black text-foreground">Status da negociacao</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -809,7 +809,7 @@ function AdminCrmLeadProfilePage() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+              <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
                 <div className="mb-4">
                   <h3 className="text-2xl font-black text-foreground">Contato</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -834,7 +834,7 @@ function AdminCrmLeadProfilePage() {
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_380px]">
-            <div className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+            <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
               <div className="mb-4">
                 <h3 className="text-2xl font-black text-foreground">Historico de atendimento</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -847,7 +847,7 @@ function AdminCrmLeadProfilePage() {
                   {profile.history.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-2xl border border-border/70 bg-background/45 p-4"
+                      className="rounded-[1.35rem] border border-white/8 bg-background/45 p-4"
                     >
                       <div className="flex items-start gap-3">
                         <div
@@ -882,7 +882,7 @@ function AdminCrmLeadProfilePage() {
               )}
             </div>
 
-            <aside className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+            <aside className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-2xl font-black text-foreground">Tarefas pendentes</h3>
@@ -900,7 +900,7 @@ function AdminCrmLeadProfilePage() {
                   {pendingTasks.map((task) => (
                     <article
                       key={task.id}
-                      className="rounded-2xl border border-border/70 bg-background/45 p-4"
+                      className="rounded-[1.35rem] border border-white/8 bg-background/45 p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -959,7 +959,7 @@ function AdminCrmLeadProfilePage() {
             </aside>
           </section>
 
-          <section className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-6">
+          <section className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-5 shadow-card md:p-6">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h3 className="text-2xl font-black text-foreground">Propostas</h3>
@@ -977,7 +977,7 @@ function AdminCrmLeadProfilePage() {
                 {profile.proposals.map((proposal) => (
                   <article
                     key={proposal.id}
-                    className="rounded-2xl border border-border/70 bg-background/45 p-4"
+                    className="rounded-[1.35rem] border border-white/8 bg-background/45 p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -1020,7 +1020,7 @@ function AdminCrmLeadProfilePage() {
                           </option>
                         ))}
                       </select>
-                      <div className="rounded-2xl border border-border/70 bg-card px-4 py-3 text-sm text-muted-foreground">
+                      <div className="rounded-[1.35rem] border border-white/8 bg-card px-4 py-3 text-sm text-muted-foreground">
                         {proposal.probability}% de chance
                       </div>
                     </div>
@@ -1054,7 +1054,7 @@ function AdminCrmLeadProfilePage() {
       )}
 
       <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-hidden border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Nova tarefa do lead</DialogTitle>
             <DialogDescription>
@@ -1062,7 +1062,7 @@ function AdminCrmLeadProfilePage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateTask} className="space-y-4">
+          <form onSubmit={handleCreateTask} className="max-h-[calc(90vh-8.5rem)] space-y-4 overflow-y-auto pr-1">
             <Field label="Titulo">
               <input
                 value={taskForm.title ?? ""}
@@ -1165,7 +1165,7 @@ function AdminCrmLeadProfilePage() {
       </Dialog>
 
       <Dialog open={proposalDialogOpen} onOpenChange={setProposalDialogOpen}>
-        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-hidden border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Nova proposta</DialogTitle>
             <DialogDescription>
@@ -1173,7 +1173,7 @@ function AdminCrmLeadProfilePage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateProposal} className="space-y-4">
+          <form onSubmit={handleCreateProposal} className="max-h-[calc(90vh-8.5rem)] space-y-4 overflow-y-auto pr-1">
             <Field label="Titulo">
               <input
                 value={proposalForm.title ?? ""}
@@ -1344,22 +1344,24 @@ function MetricCard({
   accent: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
-      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${accent}`}>
+    <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-5 shadow-card">
+      <div
+        className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 ${accent}`}
+      >
         {icon}
       </div>
       <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </p>
       <p className="mt-1 text-3xl font-black tracking-tight text-foreground">{value}</p>
-      <p className="mt-2 text-sm text-muted-foreground">{hint}</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{hint}</p>
     </div>
   );
 }
 
 function StatusRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-border/70 bg-background/45 px-4 py-3">
+    <div className="flex items-start justify-between gap-4 rounded-[1.35rem] border border-white/8 bg-background/45 px-4 py-3">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right font-semibold text-foreground">{value}</span>
     </div>
@@ -1368,8 +1370,8 @@ function StatusRow({ label, value }: { label: string; value: string }) {
 
 function QuickInfo({ icon, text }: { icon: ReactNode; text: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-background/45 px-4 py-3 text-sm text-foreground">
-      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/8 text-muted-foreground">
+    <div className="flex items-center gap-3 rounded-[1.35rem] border border-white/8 bg-background/45 px-4 py-3 text-sm text-foreground">
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/8 bg-white/8 text-muted-foreground">
         {icon}
       </span>
       <span className="min-w-0 truncate">{text}</span>
@@ -1388,7 +1390,7 @@ function EmptyState({
 }) {
   return (
     <div
-      className={`rounded-3xl border border-dashed border-border bg-background/40 text-center ${
+      className={`rounded-[1.75rem] border border-dashed border-white/10 bg-background/40 text-center ${
         compact ? "px-4 py-10" : "px-5 py-16"
       }`}
     >

@@ -1,5 +1,6 @@
 const express = require("express");
 const requireAdminAuth = require("../middleware/requireAdminAuth");
+const requireGeneralFinanceAccess = require("../middleware/requireGeneralFinanceAccess");
 const {
   getFinanceOverview,
   getFinanceSaleBackfillPreview,
@@ -11,11 +12,21 @@ const {
 
 const router = express.Router();
 
-router.get("/overview", requireAdminAuth, getFinanceOverview);
-router.get("/backfill-sales/preview", requireAdminAuth, getFinanceSaleBackfillPreview);
-router.post("/entries", requireAdminAuth, createFinanceEntry);
-router.post("/sales", requireAdminAuth, createFinanceSale);
-router.post("/backfill-sales", requireAdminAuth, importFinanceSaleBackfill);
-router.delete("/entries/:id", requireAdminAuth, deleteFinanceEntry);
+router.get("/overview", requireAdminAuth, requireGeneralFinanceAccess, getFinanceOverview);
+router.get(
+  "/backfill-sales/preview",
+  requireAdminAuth,
+  requireGeneralFinanceAccess,
+  getFinanceSaleBackfillPreview,
+);
+router.post("/entries", requireAdminAuth, requireGeneralFinanceAccess, createFinanceEntry);
+router.post("/sales", requireAdminAuth, requireGeneralFinanceAccess, createFinanceSale);
+router.post(
+  "/backfill-sales",
+  requireAdminAuth,
+  requireGeneralFinanceAccess,
+  importFinanceSaleBackfill,
+);
+router.delete("/entries/:id", requireAdminAuth, requireGeneralFinanceAccess, deleteFinanceEntry);
 
 module.exports = router;

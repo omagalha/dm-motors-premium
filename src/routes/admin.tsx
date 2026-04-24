@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Toaster } from "sonner";
 import { isAuthenticated, logout, restoreSession } from "@/lib/auth";
+import { getStoredAdminSession } from "@/lib/adminSession";
 import { subscribeToAdminSessionChanges } from "@/lib/adminSession";
 
 export const Route = createFileRoute("/admin")({
@@ -166,6 +167,15 @@ function AdminLayout() {
     return location.pathname === to || location.pathname.startsWith(`${to}/`);
   }
 
+  const session = getStoredAdminSession();
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.to === "/admin/financeiro") {
+      return Boolean(session?.user.permissions.canViewGeneralFinance);
+    }
+
+    return true;
+  });
+
   async function handleLogout() {
     await logout();
     navigate({ to: "/admin/login" });
@@ -192,7 +202,7 @@ function AdminLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <Toaster theme="dark" position="top-center" richColors />
 
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
           <div className="flex items-center gap-3">
             <button
@@ -203,8 +213,8 @@ function AdminLayout() {
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             <Link to="/admin" className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black tracking-tighter text-primary">DM</span>
-              <span className="text-lg font-black tracking-tight text-foreground">MOTORS</span>
+              <span className="text-2xl font-black tracking-[0.04em] text-primary">DM</span>
+              <span className="text-lg font-black tracking-[0.24em] text-foreground">MOTORS</span>
               <span className="ml-2 hidden rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
                 Admin
               </span>
@@ -212,6 +222,14 @@ function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-2">
+            {session?.user?.name && (
+              <div className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 md:block">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                  Sessao
+                </p>
+                <p className="text-sm font-semibold text-foreground">{session.user.name}</p>
+              </div>
+            )}
             <Link
               to="/"
               className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
@@ -231,29 +249,44 @@ function AdminLayout() {
       </header>
 
       <div className="flex">
-        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 border-r border-border/60 bg-card/30 px-3 py-6 md:block">
-          <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Gestão
+        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-72 shrink-0 border-r border-border/60 bg-[linear-gradient(180deg,rgba(15,15,20,0.96),rgba(11,11,16,0.92))] px-4 py-6 md:block">
+          <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-card">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary/80">
+              Painel administrativo
+            </p>
+            <h2 className="mt-2 text-xl font-black tracking-[-0.03em] text-foreground">
+              Operacao premium DM Motors
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Navegue pelos modulos com mais clareza e mantenha a equipe focada no que importa.
+            </p>
+          </div>
+          <p className="mb-3 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+            Navegacao
           </p>
-          <nav className="flex flex-col gap-1">
-            {navItems.map((item) => {
+          <nav className="flex flex-col gap-2">
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.to, item.exact);
               return (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                  className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold tracking-[-0.01em] transition ${
                     active
-                      ? "bg-primary/15 text-foreground"
-                      : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                      ? "border-primary/30 bg-primary/12 text-foreground shadow-[0_18px_40px_rgba(209,255,43,0.08)]"
+                      : "border-transparent text-muted-foreground hover:border-white/8 hover:bg-white/[0.04] hover:text-foreground"
                   }`}
                 >
-                  <Icon
-                    className={`h-4 w-4 ${
-                      active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                  <span
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border transition ${
+                      active
+                        ? "border-primary/30 bg-primary/15 text-primary"
+                        : "border-white/8 bg-white/[0.03] text-muted-foreground group-hover:text-foreground"
                     }`}
-                  />
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
                   {item.label}
                   {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
                 </Link>
@@ -278,10 +311,19 @@ function AdminLayout() {
           >
             <aside
               onClick={(event) => event.stopPropagation()}
-              className="h-full w-72 border-r border-border bg-card px-3 pb-6 pt-20"
+              className="h-full w-80 border-r border-border bg-[linear-gradient(180deg,rgba(15,15,20,0.98),rgba(11,11,16,0.95))] px-4 pb-6 pt-20"
             >
-              <nav className="flex flex-col gap-1">
-                {navItems.map((item) => {
+              <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-card">
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary/80">
+                  Painel DM Motors
+                </p>
+                <p className="mt-2 text-lg font-black tracking-[-0.03em] text-foreground">
+                  Acesso rapido aos modulos
+                </p>
+              </div>
+
+              <nav className="mt-6 flex flex-col gap-2">
+                {visibleNavItems.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.to, item.exact);
                   return (
@@ -289,13 +331,21 @@ function AdminLayout() {
                       key={item.to}
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition ${
+                      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold tracking-[-0.01em] transition ${
                         active
-                          ? "bg-primary/15 text-foreground"
-                          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                          ? "border-primary/30 bg-primary/12 text-foreground shadow-[0_18px_40px_rgba(209,255,43,0.08)]"
+                          : "border-transparent text-muted-foreground hover:border-white/8 hover:bg-white/[0.04] hover:text-foreground"
                       }`}
                     >
-                      <Icon className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
+                      <span
+                        className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${
+                          active
+                            ? "border-primary/30 bg-primary/15 text-primary"
+                            : "border-white/8 bg-white/[0.03] text-muted-foreground"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
                       {item.label}
                     </Link>
                   );
