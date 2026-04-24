@@ -10,6 +10,7 @@ import {
   CircleDollarSign,
   History,
   Plus,
+  Search,
   Trash2,
   Wallet,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import {
   getFinanceSaleBackfillPreview,
   importFinanceSaleBackfill,
 } from "@/services/financeService";
+import { getContacts } from "@/services/crmService";
 import { getVehicles } from "@/services/vehicleService";
 import {
   Dialog,
@@ -40,6 +42,7 @@ import type {
   FinanceSaleBackfillCandidate,
   FinanceSaleBackfillPreview,
 } from "@/types/finance";
+import type { Contact } from "@/types/crm";
 
 export const Route = createFileRoute("/admin/financeiro")({
   head: () => ({
@@ -59,6 +62,8 @@ interface SaleFormState {
   entryDate: string;
   description: string;
   notes: string;
+  buyerContactId: string;
+  buyerContactName: string;
 }
 
 interface EntryFormState {
@@ -176,6 +181,8 @@ function buildSaleForm(month: string, vehicle?: VehicleCar): SaleFormState {
     entryDate: getDefaultEntryDateForMonth(month),
     description: vehicle?.name ?? "",
     notes: "",
+    buyerContactId: vehicle?.internal?.buyerContactId ?? "",
+    buyerContactName: vehicle?.internal?.buyerContactName || vehicle?.internal?.buyerName || "",
   };
 }
 
@@ -225,6 +232,10 @@ function AdminFinanceiroPage() {
   const [activeDialog, setActiveDialog] = useState<ActiveDialog>(null);
   const [submitting, setSubmitting] = useState<ActiveDialog>(null);
   const [saleForm, setSaleForm] = useState<SaleFormState>(() => buildSaleForm(getCurrentMonth()));
+  const [buyerContactSearch, setBuyerContactSearch] = useState("");
+  const [buyerContactResults, setBuyerContactResults] = useState<Contact[]>([]);
+  const [buyerContactLoading, setBuyerContactLoading] = useState(false);
+  const [buyerContactError, setBuyerContactError] = useState<string | null>(null);
   const [expenseForm, setExpenseForm] = useState<EntryFormState>(() =>
     buildEntryForm(getCurrentMonth(), EXPENSE_CATEGORIES[0]),
   );
@@ -291,6 +302,33 @@ function AdminFinanceiroPage() {
   }, [month, saleForm.vehicleId, sortedCars]);
 
   useEffect(() => {
+    if (activeDialog !== "sale") {
+      setBuyerContactResults([]);
+      setBuyerContactLoading(false);
+      setBuyerContactError(null);
+      return;
+    }
+
+    const search = buyerContactSearch.trim();
+    const timeoutId = window.setTimeout(() => {
+      setBuyerContactLoading(true);
+      setBuyerContactError(null);
+
+      getContacts(search)
+        .then((contacts) => setBuyerContactResults(contacts.slice(0, 6)))
+        .catch((err) => {
+          setBuyerContactResults([]);
+          setBuyerContactError(
+            err instanceof Error ? err.message : "Nao foi possivel buscar contatos.",
+          );
+        })
+        .finally(() => setBuyerContactLoading(false));
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [activeDialog, buyerContactSearch]);
+
+  useEffect(() => {
     if (!canViewGeneralFinance) {
       return;
     }
@@ -336,7 +374,11 @@ function AdminFinanceiroPage() {
 
   function openDialog(dialog: Exclude<ActiveDialog, null>) {
     if (dialog === "sale") {
-      setSaleForm(buildSaleForm(month, selectedSaleVehicle ?? sortedCars[0]));
+      const nextSaleForm = buildSaleForm(month, selectedSaleVehicle ?? sortedCars[0]);
+      setSaleForm(nextSaleForm);
+      setBuyerContactSearch(nextSaleForm.buyerContactName);
+      setBuyerContactResults([]);
+      setBuyerContactError(null);
     }
 
     if (dialog === "expense") {
@@ -395,6 +437,8 @@ function AdminFinanceiroPage() {
         amount,
         description: saleForm.description.trim() || undefined,
         notes: saleForm.notes.trim() || undefined,
+        buyerContactId: saleForm.buyerContactId || undefined,
+        buyerContactName: saleForm.buyerContactName.trim() || undefined,
       });
 
       await reloadOverview({ refreshVehicles: true });
@@ -491,12 +535,37 @@ function AdminFinanceiroPage() {
 
   function handleSaleVehicleChange(vehicleId: string) {
     const vehicle = sortedCars.find((car) => car.id === vehicleId);
+    const buyerContactName =
+      vehicle?.internal?.buyerContactName || vehicle?.internal?.buyerName || "";
 
     setSaleForm((current) => ({
       ...current,
       vehicleId,
       amount: vehicle ? String(vehicle.price) : current.amount,
       description: vehicle?.name ?? current.description,
+      buyerContactId: vehicle?.internal?.buyerContactId ?? "",
+      buyerContactName,
+    }));
+    setBuyerContactSearch(buyerContactName);
+    setBuyerContactResults([]);
+  }
+
+  function handleBuyerContactSearch(value: string) {
+    setBuyerContactSearch(value);
+    setSaleForm((current) => ({
+      ...current,
+      buyerContactId: "",
+      buyerContactName: value,
+    }));
+  }
+
+  function selectBuyerContact(contact: Contact) {
+    setBuyerContactSearch(contact.name);
+    setBuyerContactResults([]);
+    setSaleForm((current) => ({
+      ...current,
+      buyerContactId: contact.id,
+      buyerContactName: contact.name,
     }));
   }
 
@@ -854,6 +923,57 @@ function AdminFinanceiroPage() {
                 placeholder="Ex: Hyundai Hb20 2014"
               />
             </Field>
+
+            <section className="rounded-2xl border border-border bg-background/30 p-3">
+              <Field label="Comprador">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                  <input
+                    type="search"
+                    value={buyerContactSearch}
+                    onChange={(event) => handleBuyerContactSearch(event.target.value)}
+                    className="adm-input pl-9"
+                    placeholder="Busque por nome, WhatsApp, cidade ou tag"
+                  />
+                </div>
+              </Field>
+
+              <div className="mt-2 overflow-hidden rounded-xl border border-border bg-card">
+                {buyerContactLoading ? (
+                  <p className="px-3 py-2 text-xs text-muted-foreground">Buscando contatos...</p>
+                ) : buyerContactError ? (
+                  <p className="px-3 py-2 text-xs text-destructive">{buyerContactError}</p>
+                ) : buyerContactResults.length ? (
+                  buyerContactResults.map((contact) => (
+                    <button
+                      key={contact.id}
+                      type="button"
+                      onClick={() => selectBuyerContact(contact)}
+                      className="block w-full border-t border-border px-3 py-2 text-left first:border-t-0 transition hover:bg-secondary/60"
+                    >
+                      <span className="block text-sm font-semibold text-foreground">
+                        {contact.name}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {[contact.whatsapp, contact.city, contact.company]
+                          .filter(Boolean)
+                          .join(" - ") || "Contato sem telefone cadastrado"}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <p className="px-3 py-2 text-xs text-muted-foreground">
+                    Nenhum contato encontrado. O nome digitado sera salvo no comprador.
+                  </p>
+                )}
+              </div>
+
+              {saleForm.buyerContactId && (
+                <p className="mt-2 text-xs font-semibold text-primary">
+                  Comprador selecionado: {saleForm.buyerContactName}
+                </p>
+              )}
+            </section>
 
             <Field label="Observacoes">
               <textarea

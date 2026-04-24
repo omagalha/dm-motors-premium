@@ -92,4 +92,6 @@ export interface CreateFinanceSaleInput {
   description?: string;
   category?: string;
   notes?: string;
+  buyerContactId?: string;
+  buyerContactName?: string;
 }

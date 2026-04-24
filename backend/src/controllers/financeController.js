@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const FinanceEntry = require("../models/FinanceEntry");
+const Contact = require("../models/Contact");
 const Vehicle = require("../models/Vehicle");
 
 const TYPE_META = {
@@ -25,6 +26,17 @@ function isRecord(value) {
 
 function normalizeString(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
+}
+
+function normalizeObjectId(value) {
+  const normalized =
+    typeof value === "string"
+      ? value.trim()
+      : value && typeof value.toString === "function"
+        ? value.toString().trim()
+        : "";
+
+  return /^[a-fA-F0-9]{24}$/.test(normalized) ? normalized : "";
 }
 
 function normalizeNumber(value, fallback = 0) {
@@ -418,6 +430,19 @@ async function createFinanceSale(req, res) {
     const previousVehicleStatus = VEHICLE_STATUS_VALUES.has(vehicle.status)
       ? vehicle.status
       : "disponivel";
+    const buyerContactId = normalizeObjectId(req.body?.buyerContactId);
+    const buyerContactName = normalizeString(req.body?.buyerContactName);
+    let buyerContact = null;
+
+    if (buyerContactId) {
+      buyerContact = await Contact.findById(buyerContactId).select({ _id: 1, name: 1 }).lean();
+      if (!buyerContact) {
+        return res.status(404).json({ message: "Comprador nao encontrado no CRM." });
+      }
+    }
+
+    const resolvedBuyerContactId = buyerContact?._id ?? null;
+    const resolvedBuyerContactName = normalizeString(buyerContact?.name, buyerContactName);
 
     const created = await FinanceEntry.create({
       kind: TYPE_META.sale.kind,
@@ -437,8 +462,16 @@ async function createFinanceSale(req, res) {
 
     if (vehicle.status !== "vendido") {
       vehicle.status = "vendido";
-      await vehicle.save();
     }
+
+    vehicle.active = false;
+    vehicle.internal = {
+      ...(vehicle.internal?.toObject ? vehicle.internal.toObject() : vehicle.internal ?? {}),
+      buyerContactId: resolvedBuyerContactId,
+      buyerContactName: resolvedBuyerContactName,
+      buyerName: resolvedBuyerContactName || normalizeString(vehicle.internal?.buyerName),
+    };
+    await vehicle.save();
 
     return res.status(201).json(serializeFinanceEntry(created));
   } catch (error) {
