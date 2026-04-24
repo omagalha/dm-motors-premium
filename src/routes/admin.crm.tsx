@@ -46,29 +46,15 @@ function AdminCrmLayout() {
   }, [location.pathname, navigate]);
 
   return (
-    <div className="space-y-6">
-      <header className="overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6 shadow-card md:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-primary">CRM</p>
-            <h1 className="mt-2 text-3xl font-black tracking-[0.02em] text-foreground md:text-5xl">
-              Relacionamento e operacao comercial
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-[15px]">
-              Leads, contatos, funil, tarefas e financeiro comercial organizados em um fluxo mais
-              claro, elegante e orientado a fechamento.
-            </p>
-          </div>
-          <div className="rounded-3xl border border-white/8 bg-black/10 px-5 py-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-muted-foreground">
-              Modulo ativo
-            </p>
-            <p className="mt-2 text-lg font-black tracking-[0.08em] text-foreground">CRM DM Motors</p>
-          </div>
-        </div>
+    <div className="space-y-5">
+      <header>
+        <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-primary">CRM</p>
+        <h1 className="mt-1.5 text-2xl font-black tracking-tight text-foreground md:text-3xl">
+          Relacionamento comercial
+        </h1>
       </header>
 
-      <nav className="flex flex-wrap gap-2 rounded-3xl border border-white/8 bg-card/90 p-2 shadow-card backdrop-blur">
+      <nav className="flex flex-wrap gap-1.5 rounded-2xl border border-border/60 bg-card p-1.5">
         {crmTabs.map((tab) => {
           const Icon = tab.icon;
           const active = isTabActive(location.pathname, tab.to);
@@ -77,10 +63,10 @@ function AdminCrmLayout() {
             <Link
               key={tab.to}
               to={tab.to}
-              className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition ${
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                 active
                   ? "bg-primary text-primary-foreground shadow-red"
-                  : "text-muted-foreground hover:bg-white/6 hover:text-foreground"
+                  : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" />

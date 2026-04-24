@@ -378,18 +378,18 @@ interface KpiCardProps {
 function KpiCard({ label, value, subtext, icon, accent }: KpiCardProps) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-      <div className="flex items-start justify-between">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${accent}`}>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] leading-snug text-muted-foreground">
+          {label}
+        </p>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${accent}`}>
           {icon}
         </div>
       </div>
-      <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 text-5xl font-black tabular-nums leading-none text-foreground md:text-[3.25rem]">
+      <p className="mt-4 text-4xl font-black tabular-nums leading-none text-foreground md:text-[2.75rem]">
         {value.toLocaleString("pt-BR")}
       </p>
-      <p className="mt-3 text-xs font-semibold text-muted-foreground">{subtext}</p>
+      <p className="mt-3 text-xs text-muted-foreground">{subtext}</p>
     </div>
   );
 }

@@ -249,22 +249,11 @@ function AdminLayout() {
       </header>
 
       <div className="flex">
-        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-72 shrink-0 border-r border-border/60 bg-[linear-gradient(180deg,rgba(15,15,20,0.96),rgba(11,11,16,0.92))] px-4 py-6 md:block">
-          <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-card">
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary/80">
-              Painel administrativo
-            </p>
-            <h2 className="mt-2 text-xl font-black tracking-[-0.03em] text-foreground">
-              Operação DM Motors
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Navegue pelos modulos com mais clareza e mantenha a equipe focada no que importa.
-            </p>
-          </div>
-          <p className="mb-3 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-            Navegacao
+        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col border-r border-border/60 bg-background px-3 py-5 md:flex">
+          <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+            Menu
           </p>
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-col gap-0.5">
             {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.to, item.exact);
@@ -272,14 +261,14 @@ function AdminLayout() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold tracking-[-0.01em] transition ${
+                  className={`group flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-sm font-semibold transition ${
                     active
-                      ? "border-primary/30 bg-primary/12 text-foreground shadow-[0_18px_40px_rgba(209,255,43,0.08)]"
-                      : "border-transparent text-muted-foreground hover:border-white/8 hover:bg-white/[0.04] hover:text-foreground"
+                      ? "bg-primary/12 text-foreground"
+                      : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
                   }`}
                 >
                   <span
-                    className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border transition ${
+                    className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition ${
                       active
                         ? "border-primary/30 bg-primary/15 text-primary"
                         : "border-white/8 bg-white/[0.03] text-muted-foreground group-hover:text-foreground"
@@ -294,14 +283,15 @@ function AdminLayout() {
             })}
           </nav>
 
-          <DmMotorsAiLink className="mt-8 px-4 py-3" />
-
-          <Link
-            to="/"
-            className="mt-6 inline-flex items-center gap-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
-          </Link>
+          <div className="mt-auto pt-6">
+            <DmMotorsAiLink className="px-3 py-2.5" />
+            <Link
+              to="/"
+              className="mt-3 inline-flex items-center gap-2 px-2.5 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
+            </Link>
+          </div>
         </aside>
 
         {mobileOpen && (
@@ -311,18 +301,12 @@ function AdminLayout() {
           >
             <aside
               onClick={(event) => event.stopPropagation()}
-              className="h-full w-80 border-r border-border bg-[linear-gradient(180deg,rgba(15,15,20,0.98),rgba(11,11,16,0.95))] px-4 pb-6 pt-20"
+              className="h-full w-72 border-r border-border bg-background px-3 pb-6 pt-20"
             >
-              <div className="rounded-[1.75rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-4 shadow-card">
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary/80">
-                  Painel DM Motors
-                </p>
-                <p className="mt-2 text-lg font-black tracking-[-0.03em] text-foreground">
-                  Acesso rapido aos modulos
-                </p>
-              </div>
-
-              <nav className="mt-6 flex flex-col gap-2">
+              <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+                Menu
+              </p>
+              <nav className="flex flex-col gap-0.5">
                 {visibleNavItems.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.to, item.exact);
@@ -331,14 +315,14 @@ function AdminLayout() {
                       key={item.to}
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold tracking-[-0.01em] transition ${
+                      className={`flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-sm font-semibold transition ${
                         active
-                          ? "border-primary/30 bg-primary/12 text-foreground shadow-[0_18px_40px_rgba(209,255,43,0.08)]"
-                          : "border-transparent text-muted-foreground hover:border-white/8 hover:bg-white/[0.04] hover:text-foreground"
+                          ? "bg-primary/12 text-foreground"
+                          : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
                       }`}
                     >
                       <span
-                        className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${
+                        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
                           active
                             ? "border-primary/30 bg-primary/15 text-primary"
                             : "border-white/8 bg-white/[0.03] text-muted-foreground"
@@ -351,26 +335,28 @@ function AdminLayout() {
                   );
                 })}
               </nav>
-              <DmMotorsAiLink
-                className="mt-5 px-3 py-3"
-                onClick={() => setMobileOpen(false)}
-              />
-              <button
-                onClick={() => {
-                  setMobileOpen(false);
-                  void handleLogout();
-                }}
-                className="mt-4 flex w-full items-center gap-2 rounded-lg px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-destructive"
-              >
-                <LogOut className="h-3.5 w-3.5" /> Sair
-              </button>
-              <Link
-                to="/"
-                onClick={() => setMobileOpen(false)}
-                className="mt-2 flex items-center gap-2 rounded-lg px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
-              </Link>
+              <div className="mt-6">
+                <DmMotorsAiLink
+                  className="px-3 py-2.5"
+                  onClick={() => setMobileOpen(false)}
+                />
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    void handleLogout();
+                  }}
+                  className="mt-2 flex w-full items-center gap-2 rounded-xl px-2.5 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-destructive"
+                >
+                  <LogOut className="h-3.5 w-3.5" /> Sair
+                </button>
+                <Link
+                  to="/"
+                  onClick={() => setMobileOpen(false)}
+                  className="mt-1 flex items-center gap-2 rounded-xl px-2.5 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
+                </Link>
+              </div>
             </aside>
           </div>
         )}
