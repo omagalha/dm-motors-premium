@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+User-agent: facebookexternalhit
+Allow: /
+
+Sitemap: https://dmmotorsimports.com.br/sitemap.xml
