@@ -31,7 +31,7 @@ import {
 export const Route = createFileRoute("/admin/crm/financeiro")({
   head: () => ({
     meta: [
-      { title: "CRM Financeiro - Admin DM Motors" },
+      { title: "Financeiro Comercial - CRM DM Motors" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -187,13 +187,13 @@ function AdminCrmFinanceiroPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary">
-            Financeiro do CRM
+            Financeiro Comercial
           </p>
           <h2 className="mt-1 text-3xl font-black tracking-tight text-foreground">
-            Entradas e saídas por negócio
+            Entradas e saidas por negociacao
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Controle de caixa orientado a leads, negócios e veículos.
+            Visao comercial ligada a leads, propostas, negocios e custos de cada oportunidade.
           </p>
         </div>
 
@@ -642,3 +642,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </label>
   );
 }
+

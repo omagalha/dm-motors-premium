@@ -1,5 +1,7 @@
 import { apiFetch, isApiConfigured } from "./apiClient";
 import type {
+  Contact,
+  ContactInput,
   Deal,
   DealInput,
   Lead,
@@ -42,6 +44,34 @@ export async function getLeads(search = ""): Promise<Lead[]> {
 
   const query = search ? `?search=${encodeURIComponent(search)}` : "";
   return apiFetch<Lead[]>(`/crm/leads${query}`);
+}
+
+export async function getContacts(search = ""): Promise<Contact[]> {
+  if (!isApiConfigured) return [];
+
+  const query = search ? `?search=${encodeURIComponent(search)}` : "";
+  return apiFetch<Contact[]>(`/crm/contacts${query}`);
+}
+
+export async function createContact(input: ContactInput): Promise<Contact> {
+  requireCrmApi();
+  return apiFetch<Contact>("/crm/contacts", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateContact(id: string, patch: Partial<ContactInput>): Promise<Contact> {
+  requireCrmApi();
+  return apiFetch<Contact>(`/crm/contacts/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+}
+
+export async function deleteContact(id: string): Promise<void> {
+  requireCrmApi();
+  await apiFetch<void>(`/crm/contacts/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 
 export async function createLead(input: LeadInput): Promise<Lead> {

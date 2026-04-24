@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { BadgeDollarSign, KanbanSquare, Users2 } from "lucide-react";
+import { BadgeDollarSign, ContactRound, KanbanSquare, Users2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/crm")({
   head: () => ({
@@ -14,8 +14,13 @@ export const Route = createFileRoute("/admin/crm")({
 
 const crmTabs = [
   { to: "/admin/crm/leads" as const, label: "Leads", icon: Users2 },
+  { to: "/admin/crm/contatos" as const, label: "Contatos", icon: ContactRound },
   { to: "/admin/crm/funil" as const, label: "Funil", icon: KanbanSquare },
-  { to: "/admin/crm/financeiro" as const, label: "Financeiro", icon: BadgeDollarSign },
+  {
+    to: "/admin/crm/financeiro" as const,
+    label: "Financeiro Comercial",
+    icon: BadgeDollarSign,
+  },
 ];
 
 function isTabActive(pathname: string, tabTo: (typeof crmTabs)[number]["to"]) {
@@ -49,7 +54,7 @@ function AdminCrmLayout() {
             Relacionamento e operacao comercial
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Leads, funil, tarefas e financeiro vinculado a negociacoes.
+            Leads, contatos, funil, tarefas e financeiro comercial vinculado a negociacoes.
           </p>
         </div>
       </header>

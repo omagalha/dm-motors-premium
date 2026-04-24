@@ -31,6 +31,25 @@ export interface Lead {
   updatedAt: string;
 }
 
+export interface Contact {
+  id: string;
+  name: string;
+  company: string;
+  city: string;
+  whatsapp: string;
+  phones: string[];
+  emails: string[];
+  tags: string[];
+  assignedTo: string;
+  notes: string;
+  linkedLead: {
+    id: string;
+    name: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface LeadHistoryItem {
   id: string;
   type:
@@ -184,6 +203,19 @@ export interface LeadInput {
   lastContactAt?: string;
   nextFollowUpAt?: string;
   interestVehicleId?: string;
+}
+
+export interface ContactInput {
+  name: string;
+  company?: string;
+  city?: string;
+  whatsapp?: string;
+  phones?: string[] | string;
+  emails?: string[] | string;
+  tags?: string[] | string;
+  assignedTo?: string;
+  notes?: string;
+  linkedLeadId?: string;
 }
 
 export interface TaskInput {

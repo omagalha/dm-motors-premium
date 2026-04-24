@@ -22,6 +22,7 @@ import { Route as AdminCrmRouteImport } from './routes/admin.crm'
 import { Route as AdminCrmLeadsRouteImport } from './routes/admin.crm.leads'
 import { Route as AdminCrmFunilRouteImport } from './routes/admin.crm.funil'
 import { Route as AdminCrmFinanceiroRouteImport } from './routes/admin.crm.financeiro'
+import { Route as AdminCrmContatosRouteImport } from './routes/admin.crm.contatos'
 import { Route as AdminCrmLeadLeadIdRouteImport } from './routes/admin.crm.lead.$leadId'
 
 const EstoqueRoute = EstoqueRouteImport.update({
@@ -89,6 +90,11 @@ const AdminCrmFinanceiroRoute = AdminCrmFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AdminCrmRoute,
 } as any)
+const AdminCrmContatosRoute = AdminCrmContatosRouteImport.update({
+  id: '/contatos',
+  path: '/contatos',
+  getParentRoute: () => AdminCrmRoute,
+} as any)
 const AdminCrmLeadLeadIdRoute = AdminCrmLeadLeadIdRouteImport.update({
   id: '/lead/$leadId',
   path: '/lead/$leadId',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/crm/contatos': typeof AdminCrmContatosRoute
   '/admin/crm/financeiro': typeof AdminCrmFinanceiroRoute
   '/admin/crm/funil': typeof AdminCrmFunilRoute
   '/admin/crm/leads': typeof AdminCrmLeadsRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/crm/contatos': typeof AdminCrmContatosRoute
   '/admin/crm/financeiro': typeof AdminCrmFinanceiroRoute
   '/admin/crm/funil': typeof AdminCrmFunilRoute
   '/admin/crm/leads': typeof AdminCrmLeadsRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/admin/veiculos': typeof AdminVeiculosRoute
   '/veiculo/$carId': typeof VeiculoCarIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/crm/contatos': typeof AdminCrmContatosRoute
   '/admin/crm/financeiro': typeof AdminCrmFinanceiroRoute
   '/admin/crm/funil': typeof AdminCrmFunilRoute
   '/admin/crm/leads': typeof AdminCrmLeadsRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin/'
+    | '/admin/crm/contatos'
     | '/admin/crm/financeiro'
     | '/admin/crm/funil'
     | '/admin/crm/leads'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin'
+    | '/admin/crm/contatos'
     | '/admin/crm/financeiro'
     | '/admin/crm/funil'
     | '/admin/crm/leads'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/admin/veiculos'
     | '/veiculo/$carId'
     | '/admin/'
+    | '/admin/crm/contatos'
     | '/admin/crm/financeiro'
     | '/admin/crm/funil'
     | '/admin/crm/leads'
@@ -293,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCrmFinanceiroRouteImport
       parentRoute: typeof AdminCrmRoute
     }
+    '/admin/crm/contatos': {
+      id: '/admin/crm/contatos'
+      path: '/contatos'
+      fullPath: '/admin/crm/contatos'
+      preLoaderRoute: typeof AdminCrmContatosRouteImport
+      parentRoute: typeof AdminCrmRoute
+    }
     '/admin/crm/lead/$leadId': {
       id: '/admin/crm/lead/$leadId'
       path: '/lead/$leadId'
@@ -304,6 +323,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminCrmRouteChildren {
+  AdminCrmContatosRoute: typeof AdminCrmContatosRoute
   AdminCrmFinanceiroRoute: typeof AdminCrmFinanceiroRoute
   AdminCrmFunilRoute: typeof AdminCrmFunilRoute
   AdminCrmLeadsRoute: typeof AdminCrmLeadsRoute
@@ -311,6 +331,7 @@ interface AdminCrmRouteChildren {
 }
 
 const AdminCrmRouteChildren: AdminCrmRouteChildren = {
+  AdminCrmContatosRoute: AdminCrmContatosRoute,
   AdminCrmFinanceiroRoute: AdminCrmFinanceiroRoute,
   AdminCrmFunilRoute: AdminCrmFunilRoute,
   AdminCrmLeadsRoute: AdminCrmLeadsRoute,

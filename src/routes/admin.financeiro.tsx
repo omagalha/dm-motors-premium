@@ -43,7 +43,7 @@ import type {
 export const Route = createFileRoute("/admin/financeiro")({
   head: () => ({
     meta: [
-      { title: "Financeiro - Admin DM Motors" },
+      { title: "Financeiro Geral - Admin DM Motors" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -482,13 +482,13 @@ function AdminFinanceiroPage() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary">
-            Financeiro
+            Financeiro Geral
           </p>
           <h1 className="mt-1.5 text-3xl font-black tracking-tight text-foreground md:text-4xl">
-            Resumo mensal
+            Caixa e resultado da operacao
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Entradas, despesas e caixa do periodo selecionado.
+            Visao administrativa da loja com vendas, despesas, lucro e saldo do periodo.
           </p>
         </div>
 

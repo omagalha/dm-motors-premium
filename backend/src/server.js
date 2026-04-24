@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const crmContactRoutes = require("./routes/contacts");
 const crmDealRoutes = require("./routes/deals");
 const financeRoutes = require("./routes/financeRoutes");
 const crmLeadRoutes = require("./routes/leads");
@@ -39,6 +40,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/crm/contacts", crmContactRoutes);
 app.use("/crm/deals", crmDealRoutes);
 app.use("/finance", financeRoutes);
 app.use("/crm/leads", crmLeadRoutes);
