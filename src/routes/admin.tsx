@@ -255,7 +255,7 @@ function AdminLayout() {
               Painel administrativo
             </p>
             <h2 className="mt-2 text-xl font-black tracking-[-0.03em] text-foreground">
-              Operacao premium DM Motors
+              Operação DM Motors
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               Navegue pelos modulos com mais clareza e mantenha a equipe focada no que importa.
