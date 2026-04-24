@@ -5,7 +5,7 @@ const requireAdminAuth = require("../middleware/requireAdminAuth");
 
 const router = express.Router();
 
-router.post("/images", requireAdminAuth, upload.array("images", 10), uploadImages);
+router.post("/images", requireAdminAuth, upload.array("images", 15), uploadImages);
 router.delete("/images", requireAdminAuth, deleteImages);
 
 module.exports = router;
