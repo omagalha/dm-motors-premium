@@ -1,34 +1,50 @@
+# =========================
+# DM Motors Imports - robots.txt
+# =========================
+
+# Permite todos os crawlers
 User-agent: *
 Allow: /
-Disallow: /admin
 
-# Permite crawlers de preview de redes sociais
+# Bloqueia áreas internas/sensíveis
+Disallow: /admin
+Disallow: /api
+Disallow: /dashboard
+
+# =========================
+# Social media crawlers (IMPORTANTE)
+# =========================
+
+# Facebook / Meta
 User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
 Allow: /
 
 User-agent: meta-externalagent
 Allow: /
 
-# Sobrescreve bloqueios do Cloudflare Managed para bots de indexação
-User-agent: Amazonbot
+# Twitter / X
+User-agent: Twitterbot
 Allow: /
 
-User-agent: Applebot-Extended
+# LinkedIn
+User-agent: LinkedInBot
 Allow: /
 
-User-agent: Bytespider
+# =========================
+# Search engines
+# =========================
+
+User-agent: Googlebot
 Allow: /
 
-User-agent: CCBot
+User-agent: Bingbot
 Allow: /
 
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: GPTBot
-Allow: /
+# =========================
+# Sitemap
+# =========================
 
 Sitemap: https://dmmotorsimports.com.br/sitemap.xml
