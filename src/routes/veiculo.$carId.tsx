@@ -466,6 +466,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
     whatsapp: "",
     cpf: "",
     birthDate: "",
+    hasDriverLicense: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -482,7 +483,6 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
   const clampedDownPayment = Math.min(Math.max(parsedDownPayment, 0), car.price);
   const financedValue = Math.max(car.price - clampedDownPayment, 0);
   const monthlyPayment = calculateMonthlyPayment(financedValue, term);
-  const totalEstimated = clampedDownPayment + monthlyPayment * term;
   const entryPercent = car.price > 0 ? Math.round((clampedDownPayment / car.price) * 100) : 0;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -516,16 +516,16 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
           `Valor financiado: ${formatSimulationCurrency(financedValue)}`,
           `Prazo: ${term} meses`,
           `Parcela estimada: ${formatSimulationCurrency(monthlyPayment)}`,
-          `Total estimado: ${formatSimulationCurrency(totalEstimated)}`,
           form.cpf ? `CPF: ${form.cpf}` : "",
           form.birthDate ? `Data de nascimento: ${form.birthDate}` : "",
+          form.hasDriverLicense ? `Tem CNH: ${form.hasDriverLicense === "yes" ? "Sim" : "Nao"}` : "",
         ]
           .filter(Boolean)
           .join("\n"),
       });
 
       setSuccessMessage("Sua simulação será entregue em até 30 minutos.");
-      setForm({ name: "", whatsapp: "", cpf: "", birthDate: "" });
+      setForm({ name: "", whatsapp: "", cpf: "", birthDate: "", hasDriverLicense: "" });
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -543,19 +543,16 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
         onSubmit={handleSubmit}
         className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-8"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 pb-6">
+        <div className="border-b border-white/10 pb-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
-              {term}x de
+              Parcela indicativa em {term}x
             </p>
             <p className="mt-1 text-4xl font-black text-primary md:text-5xl">
               {formatSimulationCurrency(monthlyPayment)}
             </p>
-          </div>
-          <div className="text-left md:text-right">
-            <p className="text-sm font-semibold text-muted-foreground">Total a pagar</p>
-            <p className="mt-1 text-xl font-black text-foreground">
-              {formatSimulationCurrency(totalEstimated)}
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              O valor final depende da taxa aprovada na analise de credito.
             </p>
           </div>
         </div>
@@ -620,10 +617,6 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
                 <dt className="text-muted-foreground">Prazo</dt>
                 <dd className="font-black text-foreground">{term} meses</dd>
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-muted-foreground">Total estimado</dt>
-                <dd className="font-black text-foreground">{formatSimulationCurrency(totalEstimated)}</dd>
-              </div>
             </dl>
           </div>
 
@@ -667,6 +660,48 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
                   className="simulation-input"
                 />
               </label>
+
+              <fieldset className="md:col-span-2">
+                <legend className="mb-3 text-sm font-semibold text-muted-foreground">
+                  Tem CNH?
+                </legend>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    { value: "yes", label: "Sim" },
+                    { value: "no", label: "Nao" },
+                  ].map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex cursor-pointer items-center justify-center rounded-2xl border px-4 py-3 text-sm font-black transition ${
+                        form.hasDriverLicense === option.value
+                          ? "border-primary bg-primary text-primary-foreground shadow-red"
+                          : "border-border bg-background/35 text-muted-foreground hover:border-primary/45 hover:text-foreground"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="hasDriverLicense"
+                        value={option.value}
+                        checked={form.hasDriverLicense === option.value}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            hasDriverLicense: event.target.value,
+                          }))
+                        }
+                        className="sr-only"
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </div>
+                {form.hasDriverLicense === "yes" && (
+                  <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                    Em caso de aprovacao, a financeira podera solicitar uma foto da CNH para
+                    validar o cadastro.
+                  </p>
+                )}
+              </fieldset>
             </div>
           </div>
 
