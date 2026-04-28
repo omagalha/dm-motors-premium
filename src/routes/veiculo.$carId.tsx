@@ -541,14 +541,14 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
     <section className="mx-auto max-w-7xl px-5 pb-16">
       <form
         onSubmit={handleSubmit}
-        className="rounded-3xl border border-border bg-[#101014] p-5 shadow-card md:p-8"
+        className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-8"
       >
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 pb-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
               {term}x de
             </p>
-            <p className="mt-1 text-4xl font-black text-[#c8ff24] md:text-5xl">
+            <p className="mt-1 text-4xl font-black text-primary md:text-5xl">
               {formatSimulationCurrency(monthlyPayment)}
             </p>
           </div>
@@ -600,8 +600,8 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
                   onClick={() => setTerm(option)}
                   className={`rounded-2xl border px-4 py-3 text-sm font-black transition ${
                     term === option
-                      ? "border-[#c8ff24] bg-[#c8ff24] text-black"
-                      : "border-white/10 bg-transparent text-muted-foreground hover:border-[#c8ff24]/45 hover:text-foreground"
+                      ? "border-primary bg-primary text-primary-foreground shadow-red"
+                      : "border-border bg-background/35 text-muted-foreground hover:border-primary/45 hover:text-foreground"
                   }`}
                 >
                   {option}
@@ -671,7 +671,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
           </div>
 
           {successMessage && (
-            <div className="rounded-2xl border border-[#c8ff24]/35 bg-[#c8ff24]/10 px-4 py-3 text-sm font-bold text-[#d8ff66]">
+            <div className="rounded-2xl border border-primary/35 bg-primary/10 px-4 py-3 text-sm font-bold text-primary">
               {successMessage}
             </div>
           )}
@@ -685,7 +685,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
           <button
             type="submit"
             disabled={submitting}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#c8ff24] px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Send className="h-4 w-4" />
             {submitting ? "Enviando..." : "Solicitar simulação"}
@@ -706,12 +706,12 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
             transition: border-color 0.15s, background 0.15s;
           }
           .simulation-input:focus {
-            border-color: rgba(200, 255, 36, 0.55);
+            border-color: var(--color-primary);
             background: rgba(255, 255, 255, 0.06);
           }
           .simulation-range {
             width: 100%;
-            accent-color: #c8ff24;
+            accent-color: var(--color-primary);
           }
         `}</style>
       </form>
