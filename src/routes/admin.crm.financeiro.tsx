@@ -190,10 +190,10 @@ function AdminCrmFinanceiroPage() {
             Financeiro Comercial
           </p>
           <h2 className="mt-1 text-3xl font-black tracking-tight text-foreground">
-            Entradas e saidas por negociacao
+            Entradas e saídas por negociação
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Visao comercial ligada a leads, propostas, negocios e custos de cada oportunidade.
+            Visão comercial ligada a leads, propostas, negócios e custos de cada oportunidade.
           </p>
         </div>
 

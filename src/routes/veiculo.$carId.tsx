@@ -509,16 +509,16 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
         interestVehicleName: `${car.name} ${car.year}`,
         tags: ["simulacao", "site", "financiamento"],
         notes: [
-          "Solicitacao de simulacao de financiamento pelo site.",
-          `Veiculo: ${car.name} ${car.year}`,
-          `Preco a vista: ${formatSimulationCurrency(car.price)}`,
+          "Solicitação de simulação de financiamento pelo site.",
+          `Veículo: ${car.name} ${car.year}`,
+          `Preço à vista: ${formatSimulationCurrency(car.price)}`,
           `Entrada informada: ${formatSimulationCurrency(clampedDownPayment)} (${entryPercent}% do valor)`,
           `Valor financiado: ${formatSimulationCurrency(financedValue)}`,
           `Prazo: ${term} meses`,
           `Parcela estimada: ${formatSimulationCurrency(monthlyPayment)}`,
           form.cpf ? `CPF: ${form.cpf}` : "",
           form.birthDate ? `Data de nascimento: ${form.birthDate}` : "",
-          form.hasDriverLicense ? `Tem CNH: ${form.hasDriverLicense === "yes" ? "Sim" : "Nao"}` : "",
+          form.hasDriverLicense ? `Tem CNH: ${form.hasDriverLicense === "yes" ? "Sim" : "Não"}` : "",
         ]
           .filter(Boolean)
           .join("\n"),
@@ -530,7 +530,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel enviar sua simulacao agora.",
+          : "Não foi possível enviar sua simulação agora.",
       );
     } finally {
       setSubmitting(false);
@@ -546,14 +546,14 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
         <div className="border-b border-white/10 pb-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
-              Simulacao de financiamento
+              Simulação de financiamento
             </p>
             <p className="mt-2 text-3xl font-black uppercase leading-tight text-primary md:text-4xl">
-              Receba uma condicao personalizada
+              Receba uma condição personalizada
             </p>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              Informe entrada e prazo desejados. A parcela final depende da analise de credito,
-              taxa aprovada e politica da financeira.
+              Informe entrada e prazo desejados. A parcela final depende da análise de crédito,
+              taxa aprovada e política da financeira.
             </p>
           </div>
         </div>
@@ -669,7 +669,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
                 <div className="grid gap-3 sm:grid-cols-2">
                   {[
                     { value: "yes", label: "Sim" },
-                    { value: "no", label: "Nao" },
+                    { value: "no", label: "Não" },
                   ].map((option) => (
                     <label
                       key={option.value}
@@ -698,7 +698,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
                 </div>
                 {form.hasDriverLicense === "yes" && (
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                    Em caso de aprovacao, a financeira podera solicitar uma foto da CNH para
+                    Em caso de aprovação, a financeira poderá solicitar uma foto da CNH para
                     validar o cadastro.
                   </p>
                 )}

@@ -78,18 +78,18 @@ interface EntryFormState {
 }
 
 const EXPENSE_CATEGORIES = [
-  "Documentacao",
-  "Mecanica",
+  "Documentação",
+  "Mecânica",
   "Funilaria",
-  "Estetica",
+  "Estética",
   "Transporte",
   "Marketing",
-  "Comissao",
+  "Comissão",
   "Impostos",
   "Outros",
 ];
 
-const MANUAL_INCOME_CATEGORIES = ["Entrada manual", "Reembolso", "Bonus", "Outros"];
+const MANUAL_INCOME_CATEGORIES = ["Entrada manual", "Reembolso", "Bônus", "Outros"];
 
 function getTodayDate() {
   return new Date().toISOString().slice(0, 10);
@@ -165,15 +165,15 @@ function formatMargin(profit: number, revenue: number) {
 }
 
 function getBackfillInferenceLabel(candidate: FinanceSaleBackfillCandidate) {
-  if (candidate.inferredFrom === "updatedAt") return "Data sugerida pela ultima atualizacao";
-  if (candidate.inferredFrom === "createdAt") return "Data sugerida pela criacao do cadastro";
+  if (candidate.inferredFrom === "updatedAt") return "Data sugerida pela última atualização";
+  if (candidate.inferredFrom === "createdAt") return "Data sugerida pela criação do cadastro";
   return "Data sugerida com fallback para hoje";
 }
 
 function getVehicleStatusLabel(status: VehicleCar["status"]) {
   if (status === "vendido") return "Vendido";
   if (status === "reservado") return "Reservado";
-  return "Disponivel";
+  return "Disponível";
 }
 
 function buildSaleForm(month: string, vehicle?: VehicleCar): SaleFormState {
@@ -263,7 +263,7 @@ function AdminFinanceiroPage() {
 
   useEffect(() => {
     if (!canViewGeneralFinance) {
-      toast.error("Seu usuario nao possui acesso ao Financeiro Geral.");
+      toast.error("Seu usuário não possui acesso ao Financeiro Geral.");
       navigate({ to: "/admin/crm" });
     }
   }, [canViewGeneralFinance, navigate]);
@@ -287,7 +287,7 @@ function AdminFinanceiroPage() {
       .catch((err) => {
         if (cancelled) return;
         setOverview(createEmptyFinanceOverview(month));
-        setError(err instanceof Error ? err.message : "Nao foi possivel carregar o financeiro.");
+        setError(err instanceof Error ? err.message : "Não foi possível carregar o financeiro.");
       })
       .finally(() => {
         if (!cancelled) {
@@ -323,7 +323,7 @@ function AdminFinanceiroPage() {
         .catch((err) => {
           setBuyerContactResults([]);
           setBuyerContactError(
-            err instanceof Error ? err.message : "Nao foi possivel buscar contatos.",
+            err instanceof Error ? err.message : "Não foi possível buscar contatos.",
           );
         })
         .finally(() => setBuyerContactLoading(false));
@@ -352,7 +352,7 @@ function AdminFinanceiroPage() {
         if (cancelled) return;
         setBackfillPreview(createEmptyFinanceSaleBackfillPreview());
         setBackfillError(
-          err instanceof Error ? err.message : "Nao foi possivel carregar vendas antigas.",
+          err instanceof Error ? err.message : "Não foi possível carregar vendas antigas.",
         );
       })
       .finally(() => {
@@ -413,7 +413,7 @@ function AdminFinanceiroPage() {
     } catch (err) {
       setBackfillPreview(createEmptyFinanceSaleBackfillPreview());
       setBackfillError(
-        err instanceof Error ? err.message : "Nao foi possivel atualizar vendas antigas.",
+        err instanceof Error ? err.message : "Não foi possível atualizar vendas antigas.",
       );
     }
   }
@@ -422,13 +422,13 @@ function AdminFinanceiroPage() {
     event.preventDefault();
 
     if (!saleForm.vehicleId) {
-      toast.error("Selecione um veiculo para registrar a venda.");
+      toast.error("Selecione um veículo para registrar a venda.");
       return;
     }
 
     const amount = Number(saleForm.amount);
     if (!(amount > 0)) {
-      toast.error("Informe um valor de venda valido.");
+      toast.error("Informe um valor de venda válido.");
       return;
     }
 
@@ -450,7 +450,7 @@ function AdminFinanceiroPage() {
       setActiveDialog(null);
       toast.success("Venda registrada no financeiro.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nao foi possivel registrar a venda.");
+      toast.error(err instanceof Error ? err.message : "Não foi possível registrar a venda.");
     } finally {
       setSubmitting(null);
     }
@@ -465,12 +465,12 @@ function AdminFinanceiroPage() {
 
     const amount = Number(form.amount);
     if (!form.description.trim()) {
-      toast.error("Preencha a descricao do lancamento.");
+      toast.error("Preencha a descrição do lançamento.");
       return;
     }
 
     if (!(amount > 0)) {
-      toast.error("Informe um valor valido.");
+      toast.error("Informe um valor válido.");
       return;
     }
 
@@ -508,7 +508,7 @@ function AdminFinanceiroPage() {
             : "Entrada registrada.",
       );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nao foi possivel salvar o lancamento.");
+      toast.error(err instanceof Error ? err.message : "Não foi possível salvar o lançamento.");
     } finally {
       setSubmitting(null);
     }
@@ -527,9 +527,9 @@ function AdminFinanceiroPage() {
       if (movement.type === "sale") {
         await reloadBackfillPreview();
       }
-      toast.success("Lancamento removido.");
+      toast.success("Lançamento removido.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Nao foi possivel remover o lancamento.");
+      toast.error(err instanceof Error ? err.message : "Não foi possível remover o lançamento.");
     }
   }
 
@@ -543,7 +543,7 @@ function AdminFinanceiroPage() {
       setActiveDialog(null);
 
       const skippedNotice = result.skippedCount
-        ? ` ${result.skippedCount} veiculo(s) ficaram de fora por estarem sem valor.`
+        ? ` ${result.skippedCount} veículo(s) ficaram de fora por estarem sem valor.`
         : "";
 
       toast.success(`${result.importedCount} venda(s) antiga(s) importada(s).${skippedNotice}`);
@@ -598,10 +598,10 @@ function AdminFinanceiroPage() {
             Financeiro Geral
           </p>
           <h1 className="mt-1.5 text-3xl font-black tracking-tight text-foreground md:text-4xl">
-            Caixa e resultado da operacao
+            Caixa e resultado da operação
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Visao administrativa da loja com vendas, despesas, lucro e saldo do periodo.
+            Visão administrativa da loja com vendas, despesas, lucro e saldo do período.
           </p>
         </div>
 
@@ -614,7 +614,7 @@ function AdminFinanceiroPage() {
               resetForms(nextMonth);
             }}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition hover:text-foreground"
-            aria-label="Mes anterior"
+            aria-label="Mês anterior"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -632,7 +632,7 @@ function AdminFinanceiroPage() {
               resetForms(nextMonth);
             }}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition hover:text-foreground"
-            aria-label="Proximo mes"
+            aria-label="Próximo mês"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -704,7 +704,7 @@ function AdminFinanceiroPage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">
-                Importacao retroativa
+                Importação retroativa
               </p>
               <h2 className="mt-1 text-xl font-black text-foreground">
                 {backfillPreview.totals.pendingCount} venda
@@ -713,8 +713,8 @@ function AdminFinanceiroPage() {
                 {backfillPreview.totals.pendingCount === 1 ? "" : "s"} para importar
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                A sugestao usa a ultima atualizacao do veiculo e cai para a criacao do cadastro ou
-                para hoje quando necessario.
+                A sugestão usa a última atualização do veículo e cai para a criação do cadastro ou
+                para hoje quando necessário.
               </p>
             </div>
 
@@ -734,16 +734,16 @@ function AdminFinanceiroPage() {
         backfillPreview.totals.skippedMissingPriceCount > 0 && (
           <section className="rounded-3xl border border-amber-500/30 bg-amber-500/10 p-5 shadow-card">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-amber-200">
-              Importacao retroativa
+              Importação retroativa
             </p>
             <h2 className="mt-1 text-xl font-black text-foreground">
-              {backfillPreview.totals.skippedMissingPriceCount} veiculo
+              {backfillPreview.totals.skippedMissingPriceCount} veículo
               {backfillPreview.totals.skippedMissingPriceCount === 1 ? "" : "s"} vendido
               {backfillPreview.totals.skippedMissingPriceCount === 1 ? "" : "s"} sem valor
             </h2>
             <p className="mt-1 text-sm text-amber-100/85">
               Para importar essas vendas antigas, primeiro preencha o valor de venda no cadastro do
-              veiculo.
+              veículo.
             </p>
           </section>
         )}
@@ -765,10 +765,10 @@ function AdminFinanceiroPage() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-2xl font-black tracking-tight text-foreground">
-                Movimentacoes
+                Movimentações
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {totals.entriesCount} registro{totals.entriesCount === 1 ? "" : "s"} no mes
+                {totals.entriesCount} registro{totals.entriesCount === 1 ? "" : "s"} no mês
               </p>
             </div>
             {loading && (
@@ -843,8 +843,8 @@ function AdminFinanceiroPage() {
             </div>
           ) : (
             <EmptyState
-              title="Nenhuma movimentacao registrada"
-              description="Assim que voce registrar vendas, despesas ou entradas manuais, elas vao aparecer aqui."
+              title="Nenhuma movimentação registrada"
+              description="Assim que você registrar vendas, despesas ou entradas manuais, elas vão aparecer aqui."
             />
           )}
         </div>
@@ -852,22 +852,22 @@ function AdminFinanceiroPage() {
         <div className="space-y-6">
           <SummaryBox
             title="Por categoria"
-            subtitle="Categorias de despesas do mes"
+            subtitle="Categorias de despesas do mês"
             emptyTitle="Sem despesas registradas"
-            emptyDescription="As categorias vao aparecer quando houver saidas no periodo."
+            emptyDescription="As categorias vão aparecer quando houver saídas no período."
             items={overview.byCategory.map((item) => ({
               id: item.category,
               label: item.category,
               value: formatCurrency(item.total),
-              meta: `${item.count} lancamento${item.count === 1 ? "" : "s"}`,
+              meta: `${item.count} lançamento${item.count === 1 ? "" : "s"}`,
             }))}
           />
 
           <SummaryBox
             title="Por veiculo"
-            subtitle="Despesas vinculadas a veiculos"
-            emptyTitle="Nenhuma despesa vinculada a veiculo"
-            emptyDescription="Use o campo de veiculo na despesa para visualizar esse agrupamento."
+            subtitle="Despesas vinculadas a veículos"
+            emptyTitle="Nenhuma despesa vinculada a veículo"
+            emptyDescription="Use o campo de veículo na despesa para visualizar esse agrupamento."
             items={overview.byVehicle.map((item) => ({
               id: item.vehicleId,
               label: item.vehicleName,
@@ -886,7 +886,7 @@ function AdminFinanceiroPage() {
           <DialogHeader>
             <DialogTitle>Registrar venda</DialogTitle>
             <DialogDescription>
-              Cria a entrada no financeiro e marca o veiculo como vendido.
+              Cria a entrada no financeiro e marca o veículo como vendido.
             </DialogDescription>
           </DialogHeader>
 
@@ -898,7 +898,7 @@ function AdminFinanceiroPage() {
                 className="adm-input"
                 required
               >
-                <option value="">Selecione um veiculo</option>
+                <option value="">Selecione um veículo</option>
                 {sortedCars.map((car) => (
                   <option key={car.id} value={car.id}>
                     {car.name} - {getVehicleStatusLabel(car.status)}
@@ -934,7 +934,7 @@ function AdminFinanceiroPage() {
               </Field>
             </div>
 
-            <Field label="Descricao">
+            <Field label="Descrição">
               <input
                 type="text"
                 value={saleForm.description}
@@ -997,7 +997,7 @@ function AdminFinanceiroPage() {
               )}
             </section>
 
-            <Field label="Observacoes">
+            <Field label="Observações">
               <textarea
                 value={saleForm.notes}
                 onChange={(event) =>
@@ -1005,7 +1005,7 @@ function AdminFinanceiroPage() {
                 }
                 className="adm-input min-h-[96px] resize-y"
                 rows={4}
-                placeholder="Notas internas da operacao"
+                placeholder="Notas internas da operação"
               />
             </Field>
 
@@ -1037,7 +1037,7 @@ function AdminFinanceiroPage() {
           <DialogHeader>
             <DialogTitle>Registrar despesa</DialogTitle>
             <DialogDescription>
-              Lance gastos gerais ou vinculados a um veiculo especifico.
+              Lance gastos gerais ou vinculados a um veículo específico.
             </DialogDescription>
           </DialogHeader>
 
@@ -1046,7 +1046,7 @@ function AdminFinanceiroPage() {
             className="space-y-4"
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Descricao">
+              <Field label="Descrição">
                 <input
                   type="text"
                   value={expenseForm.description}
@@ -1054,7 +1054,7 @@ function AdminFinanceiroPage() {
                     setExpenseForm((current) => ({ ...current, description: event.target.value }))
                   }
                   className="adm-input"
-                  placeholder="Ex: Transferencia, oficina, marketing"
+                  placeholder="Ex: Transferência, oficina, marketing"
                   required
                 />
               </Field>
@@ -1102,7 +1102,7 @@ function AdminFinanceiroPage() {
                     setExpenseForm((current) => ({ ...current, category: event.target.value }))
                   }
                   className="adm-input"
-                  placeholder="Ex: Mecanica"
+                  placeholder="Ex: Mecânica"
                 />
                 <datalist id="expense-categories">
                   {EXPENSE_CATEGORIES.map((item) => (
@@ -1114,7 +1114,7 @@ function AdminFinanceiroPage() {
 
             <section className="rounded-2xl border border-border bg-background/30 p-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Recorrencia">
+                <Field label="Recorrência">
                   <select
                     value={expenseForm.recurrenceKind}
                     onChange={(event) =>
@@ -1125,7 +1125,7 @@ function AdminFinanceiroPage() {
                     }
                     className="adm-input"
                   >
-                    <option value="single">Despesa unica</option>
+                    <option value="single">Despesa única</option>
                     <option value="installment">Parcelada</option>
                     <option value="monthly">Mensal fixa</option>
                   </select>
@@ -1154,13 +1154,13 @@ function AdminFinanceiroPage() {
               </div>
               {expenseForm.recurrenceKind !== "single" && (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  A primeira data e a escolhida acima; os proximos lancamentos entram nos meses
+                  A primeira data é a escolhida acima; os próximos lançamentos entram nos meses
                   seguintes.
                 </p>
               )}
             </section>
 
-            <Field label="Veiculo (opcional)">
+            <Field label="Veículo (opcional)">
               <select
                 value={expenseForm.vehicleId}
                 onChange={(event) =>
@@ -1168,7 +1168,7 @@ function AdminFinanceiroPage() {
                 }
                 className="adm-input"
               >
-                <option value="">Nao vincular</option>
+                <option value="">Não vincular</option>
                 {sortedCars.map((car) => (
                   <option key={car.id} value={car.id}>
                     {car.name}
@@ -1177,7 +1177,7 @@ function AdminFinanceiroPage() {
               </select>
             </Field>
 
-            <Field label="Observacoes">
+            <Field label="Observações">
               <textarea
                 value={expenseForm.notes}
                 onChange={(event) =>
@@ -1217,7 +1217,7 @@ function AdminFinanceiroPage() {
           <DialogHeader>
             <DialogTitle>Entrada manual</DialogTitle>
             <DialogDescription>
-              Use para receitas que nao vieram de uma venda de veiculo.
+              Use para receitas que não vieram de uma venda de veículo.
             </DialogDescription>
           </DialogHeader>
 
@@ -1226,7 +1226,7 @@ function AdminFinanceiroPage() {
             className="space-y-4"
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Descricao">
+              <Field label="Descrição">
                 <input
                   type="text"
                   value={manualIncomeForm.description}
@@ -1293,7 +1293,7 @@ function AdminFinanceiroPage() {
               </Field>
             </div>
 
-            <Field label="Observacoes">
+            <Field label="Observações">
               <textarea
                 value={manualIncomeForm.notes}
                 onChange={(event) =>
@@ -1301,7 +1301,7 @@ function AdminFinanceiroPage() {
                 }
                 className="adm-input min-h-[96px] resize-y"
                 rows={4}
-                placeholder="Informacoes adicionais"
+                placeholder="Informações adicionais"
               />
             </Field>
 
@@ -1333,7 +1333,7 @@ function AdminFinanceiroPage() {
           <DialogHeader>
             <DialogTitle>Importar vendas antigas</DialogTitle>
             <DialogDescription>
-              Isso cria lancamentos para veiculos ja vendidos que ainda nao entraram no
+              Isso cria lançamentos para veículos já vendidos que ainda não entraram no
               financeiro.
             </DialogDescription>
           </DialogHeader>
@@ -1356,21 +1356,21 @@ function AdminFinanceiroPage() {
             </div>
 
             <div className="rounded-2xl border border-border/70 bg-background/40 px-4 py-3 text-sm text-muted-foreground">
-              A data sugerida de cada venda e inferida pela ultima atualizacao do veiculo. Se isso
-              nao existir, usamos a criacao do cadastro e, por ultimo, a data de hoje.
+              A data sugerida de cada venda é inferida pela última atualização do veículo. Se isso
+              não existir, usamos a criação do cadastro e, por último, a data de hoje.
             </div>
 
             {backfillPreview.totals.skippedMissingPriceCount > 0 && (
               <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-                {backfillPreview.totals.skippedMissingPriceCount} veiculo(s) vendido(s) ficaram
-                fora desta importacao por nao terem valor de venda preenchido.
+                {backfillPreview.totals.skippedMissingPriceCount} veículo(s) vendido(s) ficaram
+                fora desta importação por não terem valor de venda preenchido.
               </div>
             )}
 
             {backfillLoading ? (
               <EmptyState
                 title="Carregando vendas antigas"
-                description="Estamos montando a revisao antes da importacao."
+                description="Estamos montando a revisão antes da importação."
                 compact
               />
             ) : backfillPreview.candidates.length ? (
@@ -1400,7 +1400,7 @@ function AdminFinanceiroPage() {
             ) : (
               <EmptyState
                 title="Nenhuma venda antiga pendente"
-                description="Tudo que estava vendido no cadastro ja possui entrada no financeiro."
+                description="Tudo que estava vendido no cadastro já possui entrada no financeiro."
                 compact
               />
             )}
