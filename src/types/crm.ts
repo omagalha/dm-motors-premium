@@ -203,6 +203,7 @@ export interface LeadInput {
   lastContactAt?: string;
   nextFollowUpAt?: string;
   interestVehicleId?: string;
+  interestVehicleName?: string;
 }
 
 export interface ContactInput {

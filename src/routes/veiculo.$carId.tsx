@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
@@ -14,6 +14,7 @@ import {
 } from "@/lib/vehicles";
 import { whatsappLink } from "@/lib/whatsapp";
 import { trackVehicleView, trackVehicleWhatsappClick } from "@/services/analyticsService";
+import { createPublicLead } from "@/services/crmService";
 import { getVehicleById, getVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "@/types/vehicle";
 import {
@@ -38,6 +39,7 @@ import {
   Share2,
   MapPin,
   Tag,
+  Send,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -82,6 +84,25 @@ function BadgeIcon({ icon }: { icon: ReturnType<typeof getVehicleBadgeStyle>["ic
   if (icon === "zap") return <Zap className="h-3.5 w-3.5" />;
   if (icon === "badge-percent") return <BadgePercent className="h-3.5 w-3.5" />;
   return <Tag className="h-3.5 w-3.5" />;
+}
+
+const SIMULATION_TERMS = [12, 24, 36, 48, 60];
+const SIMULATION_MONTHLY_RATE = 0.0145;
+
+function calculateMonthlyPayment(financedValue: number, term: number) {
+  if (financedValue <= 0 || term <= 0) return 0;
+
+  const factor = (1 + SIMULATION_MONTHLY_RATE) ** term;
+  return (financedValue * SIMULATION_MONTHLY_RATE * factor) / (factor - 1);
+}
+
+function formatSimulationCurrency(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.max(0, value));
 }
 
 function VehiclePage() {
@@ -369,6 +390,8 @@ function VehiclePage() {
         </div>
       </section>
 
+      <VehicleSimulationForm car={car} />
+
       <section className="mx-auto max-w-7xl px-5 pb-16">
         <h2 className="mb-6 text-2xl font-black uppercase text-foreground md:text-3xl">
           Veja também
@@ -431,6 +454,268 @@ function VehiclePage() {
         </a>
       </div>
     </div>
+  );
+}
+
+function VehicleSimulationForm({ car }: { car: Vehicle }) {
+  const defaultDownPayment = Math.round(car.price * 0.2);
+  const [downPayment, setDownPayment] = useState(String(defaultDownPayment));
+  const [term, setTerm] = useState(48);
+  const [form, setForm] = useState({
+    name: "",
+    whatsapp: "",
+    cpf: "",
+    birthDate: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    setDownPayment(String(Math.round(car.price * 0.2)));
+    setTerm(48);
+    setSuccessMessage("");
+    setErrorMessage("");
+  }, [car.id, car.price]);
+
+  const parsedDownPayment = Number(downPayment) || 0;
+  const clampedDownPayment = Math.min(Math.max(parsedDownPayment, 0), car.price);
+  const financedValue = Math.max(car.price - clampedDownPayment, 0);
+  const monthlyPayment = calculateMonthlyPayment(financedValue, term);
+  const totalEstimated = clampedDownPayment + monthlyPayment * term;
+  const entryPercent = car.price > 0 ? Math.round((clampedDownPayment / car.price) * 100) : 0;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    if (!form.name.trim() || !form.whatsapp.trim()) {
+      setErrorMessage("Informe nome completo e WhatsApp para receber a simulacao.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await createPublicLead({
+        name: form.name,
+        phone: form.whatsapp,
+        source: "simulacao_carro_site",
+        stage: "novo",
+        priority: "high",
+        budget: car.price,
+        interestVehicleId: car.id,
+        interestVehicleName: `${car.name} ${car.year}`,
+        tags: ["simulacao", "site", "financiamento"],
+        notes: [
+          "Solicitacao de simulacao de financiamento pelo site.",
+          `Veiculo: ${car.name} ${car.year}`,
+          `Preco a vista: ${formatSimulationCurrency(car.price)}`,
+          `Entrada informada: ${formatSimulationCurrency(clampedDownPayment)} (${entryPercent}% do valor)`,
+          `Valor financiado: ${formatSimulationCurrency(financedValue)}`,
+          `Prazo: ${term} meses`,
+          `Parcela estimada: ${formatSimulationCurrency(monthlyPayment)}`,
+          `Total estimado: ${formatSimulationCurrency(totalEstimated)}`,
+          form.cpf ? `CPF: ${form.cpf}` : "",
+          form.birthDate ? `Data de nascimento: ${form.birthDate}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      });
+
+      setSuccessMessage("Sua simulação será entregue em até 30 minutos.");
+      setForm({ name: "", whatsapp: "", cpf: "", birthDate: "" });
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel enviar sua simulacao agora.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl px-5 pb-16">
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-3xl border border-border bg-[#101014] p-5 shadow-card md:p-8"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 pb-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
+              {term}x de
+            </p>
+            <p className="mt-1 text-4xl font-black text-[#c8ff24] md:text-5xl">
+              {formatSimulationCurrency(monthlyPayment)}
+            </p>
+          </div>
+          <div className="text-left md:text-right">
+            <p className="text-sm font-semibold text-muted-foreground">Total a pagar</p>
+            <p className="mt-1 text-xl font-black text-foreground">
+              {formatSimulationCurrency(totalEstimated)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-7 space-y-7">
+          <div>
+            <div className="mb-3 flex items-center justify-between text-sm font-semibold text-muted-foreground">
+              <span>Entrada</span>
+              <span>{entryPercent}% do valor</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={car.price}
+              step={500}
+              value={clampedDownPayment}
+              onChange={(event) => setDownPayment(event.target.value)}
+              className="simulation-range"
+              aria-label="Entrada"
+            />
+            <div className="mt-4 flex items-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+              <span className="mr-2 text-sm font-semibold text-muted-foreground">R$</span>
+              <input
+                type="number"
+                min={0}
+                max={car.price}
+                step={500}
+                value={downPayment}
+                onChange={(event) => setDownPayment(event.target.value)}
+                className="w-full bg-transparent text-base font-semibold text-foreground outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-3 text-sm font-semibold text-muted-foreground">Prazo</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+              {SIMULATION_TERMS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setTerm(option)}
+                  className={`rounded-2xl border px-4 py-3 text-sm font-black transition ${
+                    term === option
+                      ? "border-[#c8ff24] bg-[#c8ff24] text-black"
+                      : "border-white/10 bg-transparent text-muted-foreground hover:border-[#c8ff24]/45 hover:text-foreground"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <dl className="space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">Valor financiado</dt>
+                <dd className="font-black text-foreground">{formatSimulationCurrency(financedValue)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">Prazo</dt>
+                <dd className="font-black text-foreground">{term} meses</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">Total estimado</dt>
+                <dd className="font-black text-foreground">{formatSimulationCurrency(totalEstimated)}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="border-t border-white/10 pt-7">
+            <p className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
+              Seus dados para contato
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <input
+                value={form.name}
+                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                placeholder="Nome completo"
+                className="simulation-input md:col-span-2"
+                required
+              />
+              <input
+                value={form.whatsapp}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, whatsapp: event.target.value }))
+                }
+                placeholder="WhatsApp (com DDD)"
+                className="simulation-input"
+                required
+              />
+              <input
+                value={form.cpf}
+                onChange={(event) => setForm((current) => ({ ...current, cpf: event.target.value }))}
+                placeholder="CPF"
+                className="simulation-input"
+              />
+              <label className="md:col-span-2">
+                <span className="mb-2 block text-sm font-semibold text-muted-foreground">
+                  Data de nascimento
+                </span>
+                <input
+                  type="date"
+                  value={form.birthDate}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, birthDate: event.target.value }))
+                  }
+                  className="simulation-input"
+                />
+              </label>
+            </div>
+          </div>
+
+          {successMessage && (
+            <div className="rounded-2xl border border-[#c8ff24]/35 bg-[#c8ff24]/10 px-4 py-3 text-sm font-bold text-[#d8ff66]">
+              {successMessage}
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="rounded-2xl border border-red-500/35 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-300">
+              {errorMessage}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#c8ff24] px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Send className="h-4 w-4" />
+            {submitting ? "Enviando..." : "Solicitar simulação"}
+          </button>
+        </div>
+
+        <style>{`
+          .simulation-input {
+            width: 100%;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.95rem 1rem;
+            color: var(--color-foreground);
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            transition: border-color 0.15s, background 0.15s;
+          }
+          .simulation-input:focus {
+            border-color: rgba(200, 255, 36, 0.55);
+            background: rgba(255, 255, 255, 0.06);
+          }
+          .simulation-range {
+            width: 100%;
+            accent-color: #c8ff24;
+          }
+        `}</style>
+      </form>
+    </section>
   );
 }
 

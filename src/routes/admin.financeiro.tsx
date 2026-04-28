@@ -209,9 +209,9 @@ function getMovementToneClasses(kind: FinanceMovement["kind"]) {
         value: "text-red-400",
       }
     : {
-        chip: "bg-primary/12 text-primary",
-        icon: "bg-primary/12 text-primary",
-        value: "text-primary",
+        chip: "bg-emerald-500/12 text-emerald-400",
+        icon: "bg-emerald-500/12 text-emerald-400",
+        value: "text-emerald-400",
       };
 }
 
@@ -645,7 +645,8 @@ function AdminFinanceiroPage() {
           value={formatCurrency(totals.revenue)}
           subtext={`${totals.salesCount} venda${totals.salesCount === 1 ? "" : "s"}`}
           icon={<ArrowUpRight className="h-5 w-5" />}
-          accent="bg-primary/12 text-primary"
+          accent="bg-emerald-500/12 text-emerald-400"
+          valueClassName="text-emerald-400"
         />
         <FinanceKpiCard
           label="Despesas"
@@ -660,7 +661,7 @@ function AdminFinanceiroPage() {
           subtext={formatMargin(totals.profit, totals.revenue)}
           icon={<CircleDollarSign className="h-5 w-5" />}
           accent="bg-emerald-500/12 text-emerald-400"
-          valueClassName={totals.profit < 0 ? "text-red-400" : "text-primary"}
+          valueClassName={totals.profit < 0 ? "text-red-400" : "text-emerald-400"}
         />
         <FinanceKpiCard
           label="Caixa"
@@ -675,7 +676,7 @@ function AdminFinanceiroPage() {
         <button
           type="button"
           onClick={() => openDialog("sale")}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-black text-primary-foreground shadow-red transition hover:brightness-110"
+          className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-black text-white shadow-[0_18px_45px_rgba(16,185,129,0.22)] transition hover:brightness-110"
         >
           <CarIcon className="h-4 w-4" />
           Registrar venda
@@ -691,7 +692,7 @@ function AdminFinanceiroPage() {
         <button
           type="button"
           onClick={() => openDialog("manual_income")}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-black text-foreground transition hover:border-primary/40 hover:text-primary"
+          className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/8 px-5 py-3 text-sm font-black text-emerald-400 transition hover:bg-emerald-500/12"
         >
           <Plus className="h-4 w-4" />
           Entrada manual
@@ -699,10 +700,10 @@ function AdminFinanceiroPage() {
       </section>
 
       {backfillPreview.totals.pendingCount > 0 && (
-        <section className="rounded-3xl border border-primary/25 bg-primary/8 p-5 shadow-card">
+        <section className="rounded-3xl border border-emerald-500/25 bg-emerald-500/8 p-5 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">
                 Importacao retroativa
               </p>
               <h2 className="mt-1 text-xl font-black text-foreground">
@@ -720,7 +721,7 @@ function AdminFinanceiroPage() {
             <button
               type="button"
               onClick={() => setActiveDialog("backfill")}
-              className="inline-flex items-center gap-2 rounded-full border border-primary/35 bg-primary px-5 py-3 text-sm font-black text-primary-foreground shadow-red transition hover:brightness-110"
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-500/35 bg-emerald-500 px-5 py-3 text-sm font-black text-white shadow-[0_18px_45px_rgba(16,185,129,0.22)] transition hover:brightness-110"
             >
               <History className="h-4 w-4" />
               Revisar importacao
@@ -990,7 +991,7 @@ function AdminFinanceiroPage() {
               </div>
 
               {saleForm.buyerContactId && (
-                <p className="mt-2 text-xs font-semibold text-primary">
+                <p className="mt-2 text-xs font-semibold text-emerald-400">
                   Comprador selecionado: {saleForm.buyerContactName}
                 </p>
               )}
@@ -1019,7 +1020,7 @@ function AdminFinanceiroPage() {
               <button
                 type="submit"
                 disabled={submitting === "sale"}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white shadow-[0_18px_45px_rgba(16,185,129,0.22)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting === "sale" ? "Salvando..." : "Registrar venda"}
               </button>
@@ -1315,7 +1316,7 @@ function AdminFinanceiroPage() {
               <button
                 type="submit"
                 disabled={submitting === "manual_income"}
-                className="rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary transition hover:bg-primary/14 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-bold text-emerald-400 transition hover:bg-emerald-500/14 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting === "manual_income" ? "Salvando..." : "Registrar entrada"}
               </button>
@@ -1389,7 +1390,7 @@ function AdminFinanceiroPage() {
                           {getBackfillInferenceLabel(candidate)}
                         </p>
                       </div>
-                      <p className="text-sm font-black text-primary">
+                      <p className="text-sm font-black text-emerald-400">
                         {formatCurrency(candidate.amount)}
                       </p>
                     </div>
@@ -1417,7 +1418,7 @@ function AdminFinanceiroPage() {
               type="button"
               onClick={() => void handleImportBackfillSales()}
               disabled={submitting === "backfill" || !backfillPreview.candidates.length}
-              className="rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white shadow-[0_18px_45px_rgba(16,185,129,0.22)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting === "backfill"
                 ? "Importando..."
@@ -1508,7 +1509,7 @@ function SummaryBox({
                   <p className="truncate text-sm font-bold text-foreground">{item.label}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{item.meta}</p>
                 </div>
-                <p className="text-sm font-black text-primary">{item.value}</p>
+                <p className="text-sm font-black text-red-400">{item.value}</p>
               </div>
             </div>
           ))}
@@ -1533,14 +1534,14 @@ function BackfillStatCard({
     <div
       className={`rounded-2xl border px-4 py-3 ${
         tone === "primary"
-          ? "border-primary/30 bg-primary/10"
+          ? "border-emerald-500/30 bg-emerald-500/10"
           : "border-border/70 bg-background/50"
       }`}
     >
       <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </p>
-      <p className={`mt-2 text-2xl font-black ${tone === "primary" ? "text-primary" : "text-foreground"}`}>
+      <p className={`mt-2 text-2xl font-black ${tone === "primary" ? "text-emerald-400" : "text-foreground"}`}>
         {value}
       </p>
     </div>

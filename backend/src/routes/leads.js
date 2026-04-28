@@ -5,6 +5,7 @@ const Deal = require("../models/Deal");
 const Task = require("../models/Task");
 const Vehicle = require("../models/Vehicle");
 const requireAdminAuth = require("../middleware/requireAdminAuth");
+const { sendTextMessage } = require("../services/evolutionService");
 const {
   getTodayDate,
   normalizeDateOnly,
@@ -40,6 +41,17 @@ const DEAL_STAGE_VALUES = new Set([
 ]);
 const OPEN_TASK_STATUS_VALUES = new Set(["todo", "in_progress"]);
 const OPEN_DEAL_STAGE_VALUES = new Set(["novo", "qualificacao", "proposta", "negociacao"]);
+
+function buildSimulationAutoReply(name, vehicleName) {
+  const firstName = normalizeString(name).split(/\s+/)[0] || "tudo bem";
+  const vehicleText = vehicleName ? ` do ${vehicleName}` : "";
+
+  return [
+    `Ola ${firstName}! Recebemos sua simulacao${vehicleText} na DM Motors.`,
+    "Nossa equipe vai preparar as condicoes e te retornar em ate 30 minutos.",
+    "Se quiser adiantar, pode responder por aqui com a melhor forma de pagamento ou se tem usado na troca.",
+  ].join("\n\n");
+}
 
 function serializeLead(lead) {
   const source = lead && typeof lead.toObject === "function" ? lead.toObject() : lead;
@@ -273,6 +285,101 @@ async function resolveVehicleReference(vehicleId) {
     interestVehicleName: normalizeString(vehicle.name),
   };
 }
+
+async function resolvePublicVehicleReference(vehicleId, vehicleName) {
+  const normalizedVehicleId = normalizeString(vehicleId);
+  const normalizedVehicleName = normalizeString(vehicleName);
+
+  if (!normalizedVehicleId) {
+    return { interestVehicleId: null, interestVehicleName: normalizedVehicleName };
+  }
+
+  if (!mongoose.isValidObjectId(normalizedVehicleId)) {
+    return { interestVehicleId: null, interestVehicleName: normalizedVehicleName };
+  }
+
+  const vehicle = await Vehicle.findById(normalizedVehicleId).select({ _id: 1, name: 1 }).lean();
+  if (!vehicle) {
+    return { interestVehicleId: null, interestVehicleName: normalizedVehicleName };
+  }
+
+  return {
+    interestVehicleId: vehicle._id,
+    interestVehicleName: normalizeString(vehicle.name, normalizedVehicleName),
+  };
+}
+
+router.post("/site-simulation", async (req, res) => {
+  try {
+    const name = normalizeString(req.body?.name);
+    const phone = normalizeString(req.body?.phone);
+
+    if (!name) {
+      return res.status(400).json({ message: "Nome do lead obrigatorio." });
+    }
+
+    if (!phone) {
+      return res.status(400).json({ message: "WhatsApp obrigatorio." });
+    }
+
+    const vehicleReference = await resolvePublicVehicleReference(
+      req.body?.interestVehicleId,
+      req.body?.interestVehicleName,
+    );
+
+    const created = await Lead.create({
+      name,
+      phone,
+      email: normalizeString(req.body?.email),
+      source: "simulacao_carro_site",
+      stage: "novo",
+      priority: "high",
+      assignedTo: normalizeString(req.body?.assignedTo),
+      budget: normalizeNumber(req.body?.budget),
+      tags: ["simulacao", "site", "financiamento"],
+      notes: normalizeString(req.body?.notes),
+      lastContactAt: getTodayDate(),
+      nextFollowUpAt: getTodayDate(),
+      ...vehicleReference,
+    });
+
+    await Task.create({
+      title: "Enviar simulação para o cliente",
+      description: [
+        `Lead solicitou simulacao pelo site${vehicleReference.interestVehicleName ? ` para ${vehicleReference.interestVehicleName}` : ""}.`,
+        "Retornar com a simulacao em ate 30 minutos.",
+        normalizeString(req.body?.notes),
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
+      status: "todo",
+      priority: "high",
+      dueDate: getTodayDate(),
+      leadId: created._id,
+      leadName: name,
+    });
+
+    try {
+      const whatsappResult = await sendTextMessage(
+        phone,
+        buildSimulationAutoReply(name, vehicleReference.interestVehicleName),
+      );
+
+      if (whatsappResult.skipped) {
+        console.log("[evolution] simulation auto-message skipped:", whatsappResult.reason);
+      }
+    } catch (whatsappError) {
+      console.error("[evolution] simulation auto-message error:", whatsappError.message);
+    }
+
+    return res.status(201).json(serializeLead(created));
+  } catch (error) {
+    return res.status(400).json({
+      message: "Erro ao enviar simulacao.",
+      error: error.message,
+    });
+  }
+});
 
 router.use(requireAdminAuth);
 

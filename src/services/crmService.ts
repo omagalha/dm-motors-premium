@@ -82,6 +82,15 @@ export async function createLead(input: LeadInput): Promise<Lead> {
   });
 }
 
+export async function createPublicLead(input: LeadInput): Promise<Lead> {
+  requireCrmApi();
+  return apiFetch<Lead>("/crm/leads/site-simulation", {
+    method: "POST",
+    skipAuth: true,
+    body: JSON.stringify(input),
+  });
+}
+
 export async function getLeadProfile(id: string): Promise<LeadProfile> {
   requireCrmApi();
   return apiFetch<LeadProfile>(`/crm/leads/${encodeURIComponent(id)}/profile`);
