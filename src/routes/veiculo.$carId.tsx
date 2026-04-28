@@ -546,13 +546,14 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
         <div className="border-b border-white/10 pb-6">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
-              Parcela indicativa em {term}x
+              Simulacao de financiamento
             </p>
-            <p className="mt-1 text-4xl font-black text-primary md:text-5xl">
-              {formatSimulationCurrency(monthlyPayment)}
+            <p className="mt-2 text-3xl font-black uppercase leading-tight text-primary md:text-4xl">
+              Receba uma condicao personalizada
             </p>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              O valor final depende da taxa aprovada na analise de credito.
+              Informe entrada e prazo desejados. A parcela final depende da analise de credito,
+              taxa aprovada e politica da financeira.
             </p>
           </div>
         </div>
