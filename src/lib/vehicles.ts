@@ -364,6 +364,7 @@ export function normalizeVehicleRecord(vehicle: VehicleRecordLike): Vehicle {
     price: normalizeNumber(vehicle.price),
     badge: normalizeString(vehicle.badge),
     isFeatured: normalizeBoolean(vehicle.isFeatured),
+    isSpotlight: normalizeBoolean(vehicle.isSpotlight),
     active: normalizeBoolean(vehicle.active, true),
     year: normalizeNumber(vehicle.year),
     mileage: normalizeNumber(vehicle.mileage),

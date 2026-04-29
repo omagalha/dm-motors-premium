@@ -169,6 +169,7 @@ interface FormState {
   features: string;
   tags: string;
   isFeatured: boolean;
+  isSpotlight: boolean;
   active: boolean;
   internal: InternalFormState;
 }
@@ -288,6 +289,7 @@ const emptyForm: FormState = {
   features: "",
   tags: "",
   isFeatured: false,
+  isSpotlight: false,
   active: true,
   internal: emptyInternalForm,
 };
@@ -347,6 +349,7 @@ function buildFormFromCar(car: Car, overrides: Partial<FormState> = {}): FormSta
     features: joinList(car.features),
     tags: joinList(car.tags),
     isFeatured: car.isFeatured,
+    isSpotlight: car.isSpotlight,
     active: car.active,
     internal: {
       plate: coerceInputText(internal?.plate),
@@ -1141,6 +1144,7 @@ function AdminVeiculos() {
       name: getDuplicateName(car.name),
       active: false,
       isFeatured: false,
+      isSpotlight: false,
       status: "disponivel",
       internal: emptyInternalForm,
     });
@@ -1658,6 +1662,7 @@ function AdminVeiculos() {
         price,
         badge: form.badge.trim(),
         isFeatured: form.isFeatured,
+        isSpotlight: form.isSpotlight,
         active: form.status === "vendido" ? false : form.active,
         year,
         mileage,
@@ -1977,6 +1982,11 @@ function AdminVeiculos() {
                             {car.isFeatured && (
                               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                                 Destaque
+                              </span>
+                            )}
+                            {car.isSpotlight && (
+                              <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                                Spotlight
                               </span>
                             )}
                           </div>
@@ -2395,6 +2405,11 @@ function AdminVeiculos() {
                     label="Destaque"
                     checked={form.isFeatured}
                     onChange={(checked) => setForm({ ...form, isFeatured: checked })}
+                  />
+                  <ToggleField
+                    label="Spotlight (destaque principal)"
+                    checked={form.isSpotlight}
+                    onChange={(checked) => setForm({ ...form, isSpotlight: checked })}
                   />
                   <ToggleField
                     label="Ativo no estoque"

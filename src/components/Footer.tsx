@@ -131,7 +131,18 @@ export function Footer() {
       </div>
 
       <div className="mx-auto max-w-7xl border-t border-border px-5 py-5 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} DM Motors Imports - Todos os direitos reservados.
+        <p>© {new Date().getFullYear()} DM Motors Imports - Todos os direitos reservados.</p>
+        <p className="mt-1">
+          Made by{" "}
+          <a
+            href="https://instagram.com/usecarvys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-muted-foreground/80 transition hover:text-primary"
+          >
+            @usecarvys
+          </a>
+        </p>
       </div>
     </footer>
   );

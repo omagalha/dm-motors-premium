@@ -85,6 +85,7 @@ export interface Vehicle {
   price: number;
   badge: string;
   isFeatured: boolean;
+  isSpotlight: boolean;
   active: boolean;
 
   // Tecnica

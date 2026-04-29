@@ -52,7 +52,8 @@ export function FeaturedCars({ initialCars }: FeaturedCarsProps) {
 
   if (!featuredCars.length) return null;
 
-  const [spotlightCar, ...gridCars] = featuredCars;
+  const spotlightCar = featuredCars.find((car) => car.isSpotlight) ?? featuredCars[0];
+  const gridCars = featuredCars.filter((car) => car !== spotlightCar);
   const spotlightImage = getVehiclePrimaryImage(spotlightCar);
   const spotlightBadge = getVehicleBadgeStyle(spotlightCar.badge);
 
