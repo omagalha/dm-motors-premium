@@ -6,6 +6,7 @@ const STATUS_VALUES = ["disponivel", "reservado", "vendido"];
 const DEFAULTS = {
   badge: "",
   isFeatured: false,
+  isSpotlight: false,
   active: true,
   mileage: 0,
   fuel: "Nao informado",
@@ -430,6 +431,11 @@ function normalizeVehiclePayload(body = {}, options = {}) {
     "isFeatured" in body || "featured" in body,
     normalizeBoolean(body.isFeatured ?? body.featured, DEFAULTS.isFeatured),
   );
+  assign(
+    "isSpotlight",
+    "isSpotlight" in body,
+    normalizeBoolean(body.isSpotlight, DEFAULTS.isSpotlight),
+  );
   assign("active", "active" in body, normalizeBoolean(body.active, DEFAULTS.active));
   assign("year", "year" in body, normalizeNumber(body.year));
   assign(
@@ -495,6 +501,7 @@ function serializeVehicle(vehicle, options = {}) {
     price: normalizeNumber(vehicle.price),
     badge: normalizeString(vehicle.badge, DEFAULTS.badge),
     isFeatured: normalizeBoolean(vehicle.isFeatured ?? vehicle.featured, DEFAULTS.isFeatured),
+    isSpotlight: normalizeBoolean(vehicle.isSpotlight, DEFAULTS.isSpotlight),
     active: normalizeBoolean(vehicle.active, DEFAULTS.active),
     year: normalizeNumber(vehicle.year),
     mileage: normalizeNumber(vehicle.mileage, DEFAULTS.mileage),
