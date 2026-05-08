@@ -1,6 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import dmMotorsFavicon from "../assets/dm-motors-logo.png";
 
 function NotFoundComponent() {
   return (
@@ -39,6 +40,7 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://dmmotorsimports.com.br/og-image.jpg" },
     ],
     links: [
+      { rel: "icon", href: dmMotorsFavicon, type: "image/png" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
