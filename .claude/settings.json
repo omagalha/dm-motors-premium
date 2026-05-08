@@ -3,7 +3,8 @@
     "allow": [
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(dir \"c:\\\\Users\\\\Thales Magalhães\\\\OneDrive\\\\Desktop\\\\dm motors web\\\\dm-motors-premium\")"
     ]
   }
 }
