@@ -1,7 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import dmMotorsFavicon from "../assets/dm-motors-logo.png";
 
 function NotFoundComponent() {
   return (
@@ -40,7 +39,10 @@ export const Route = createRootRoute({
       { name: "twitter:image", content: "https://dmmotorsimports.com.br/og-image.jpg" },
     ],
     links: [
-      { rel: "icon", href: dmMotorsFavicon, type: "image/png" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
