@@ -1,8 +1,10 @@
 // DM Motors Imports - central WhatsApp config
-export const WHATSAPP_NUMBER = "5532999264848";
+export const WHATSAPP_NUMBER = "5522997313229";
+const LEGACY_WHATSAPP_NUMBER = "5532999264848";
 
 function normalizePhone(value?: string) {
-  return (value ?? "").replace(/\D/g, "");
+  const digits = (value ?? "").replace(/\D/g, "");
+  return digits === LEGACY_WHATSAPP_NUMBER ? WHATSAPP_NUMBER : digits;
 }
 
 export function whatsappLink(message?: string, number = WHATSAPP_NUMBER) {

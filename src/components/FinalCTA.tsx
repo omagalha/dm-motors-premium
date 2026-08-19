@@ -42,7 +42,7 @@ export function FinalCTA() {
         </div>
 
         <p className="mt-6 text-xs text-white/20">
-          (32) 99926-4848 / Seg-Sex 8h-18h / Sáb 8h-12h
+          (22) 99731-3229 / Seg-Sex 8h-18h / Sáb 8h-12h
         </p>
       </motion.div>
     </section>

@@ -78,7 +78,7 @@ export function Footer() {
               </span>
             </li>
             <li className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-primary" /> (32) 99926-4848
+              <Phone className="h-4 w-4 text-primary" /> (22) 99731-3229
             </li>
           </ul>
         </div>

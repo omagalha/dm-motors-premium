@@ -13,6 +13,7 @@ import type {
 import { WHATSAPP_NUMBER } from "./whatsapp";
 
 export const DEFAULT_VEHICLE_IMAGE = "https://via.placeholder.com/800x600?text=DM+Motors";
+const LEGACY_WHATSAPP_NUMBER = "5532999264848";
 
 type VehicleRecordLike = Partial<Vehicle> & {
   _id?: string;
@@ -38,6 +39,7 @@ function normalizeString(value: unknown, fallback = "") {
 
 function normalizePhone(value: unknown, fallback = WHATSAPP_NUMBER) {
   const digits = normalizeString(value).replace(/\D/g, "");
+  if (digits === LEGACY_WHATSAPP_NUMBER) return WHATSAPP_NUMBER;
   return digits || fallback;
 }
 
