@@ -1,99 +1,73 @@
 import { motion } from "framer-motion";
-import { Search, MessageCircle, Key } from "lucide-react";
+import { Key, MessageCircle, Search } from "lucide-react";
 
 const steps = [
   {
     number: "01",
     icon: Search,
     title: "Escolha seu carro",
-    desc: "Navegue pelo estoque, filtre por modelo, preço ou categoria e encontre o ideal para você.",
+    desc: "Navegue pelo estoque com fotos, preço e informações essenciais para comparar com calma.",
   },
   {
     number: "02",
     icon: MessageCircle,
-    title: "Chama no Zap",
-    desc: "Fale direto com nosso time. Sem robô, sem espera. Tiramos todas as dúvidas na hora.",
+    title: "Fale no WhatsApp",
+    desc: "Tire dúvidas, negocie, avalie troca e simule financiamento com atendimento direto.",
   },
   {
     number: "03",
     icon: Key,
-    title: "Leve hoje",
-    desc: "Documentação rápida e financiamento aprovado na hora. Seu carro sai na mesma visita.",
+    title: "Retire com segurança",
+    desc: "Documentação orientada pela equipe e entrega preparada para sair dirigindo.",
   },
 ];
 
-function StepPlate({ number }: { number: string }) {
-  return (
-    <div className="inline-flex flex-col overflow-hidden rounded-[3px] border border-white/15 shadow-card">
-      <div className="bg-[#002868] px-3 py-[2px] text-center text-[6px] font-black tracking-[0.5em] text-yellow-300">
-        ★ BR ★
-      </div>
-      <div className="bg-primary px-5 py-1.5">
-        <span className="font-display text-2xl font-black tracking-[0.15em] text-white leading-none">
-          {number}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export function HowItWorks() {
   return (
-    <section className="bg-background py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-5">
+    <section className="border-b border-white/[0.06] bg-[#0d0d0d] px-5 py-20 lg:px-10">
+      <div className="mx-auto max-w-[1400px]">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mb-14 text-center"
+          transition={{ duration: 0.55 }}
+          className="mb-10"
         >
-          <span className="inline-flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-primary">
-            <span className="inline-block h-px w-10 bg-primary" />
+          <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.32em] text-primary">
+            <span className="h-px w-8 bg-primary" />
             Como funciona
-            <span className="inline-block h-px w-10 bg-primary" />
-          </span>
-          <h2 className="mt-3 text-4xl font-black uppercase text-foreground md:text-5xl">
-            3 passos para
+          </p>
+          <h2 className="mt-4 font-display text-5xl font-black uppercase leading-[0.88] text-white md:text-7xl">
+            Do interesse
             <br />
-            <span className="text-primary">o seu próximo carro</span>
+            <span className="text-primary">à entrega</span>
           </h2>
         </motion.div>
 
-        <div className="relative grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div
-            aria-hidden="true"
-            className="absolute left-[calc(16.67%+32px)] right-[calc(16.67%+32px)] top-[22px] hidden h-px bg-gradient-to-r from-primary/50 via-primary/20 to-primary/50 md:block"
-          />
-
-          {steps.map((step, i) => (
-            <motion.div
+        <div className="grid gap-0.5 md:grid-cols-3">
+          {steps.map((step, index) => (
+            <motion.article
               key={step.number}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.13 }}
-              className="group"
+              transition={{ duration: 0.5, delay: index * 0.08 }}
+              className="relative overflow-hidden bg-card p-8 md:p-10"
             >
-              <div className="mb-5 flex items-center gap-4 md:justify-center">
-                <StepPlate number={step.number} />
-                {i < 2 && (
-                  <div className="h-px flex-1 bg-border md:hidden" />
-                )}
+              <div className="pointer-events-none absolute -right-1 top-0 font-display text-[8rem] leading-none text-white/[0.025]">
+                {step.number}
               </div>
-
-              <div className="rounded-2xl border border-border bg-card p-6 transition-colors group-hover:border-primary/40 md:text-center">
-                <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary transition group-hover:bg-primary group-hover:text-white">
-                  <step.icon className="h-5 w-5" />
-                </div>
-                <h3 className="font-display text-lg font-black uppercase tracking-tight text-foreground">
-                  {step.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {step.desc}
-                </p>
+              <p className="font-display text-xs tracking-[0.36em] text-primary">
+                {step.number}
+              </p>
+              <div className="mt-8 flex h-11 w-11 items-center justify-center border border-white/10 text-primary">
+                <step.icon className="h-5 w-5" />
               </div>
-            </motion.div>
+              <h3 className="mt-7 text-lg font-bold uppercase tracking-[0.08em] text-white">
+                {step.title}
+              </h3>
+              <p className="mt-4 text-sm leading-[1.8] text-white/44">{step.desc}</p>
+            </motion.article>
           ))}
         </div>
       </div>

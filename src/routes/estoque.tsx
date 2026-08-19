@@ -30,11 +30,15 @@ import { getVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "@/types/vehicle";
 import {
   BadgePercent,
+  Calendar,
+  Eye,
   Flame,
+  Fuel as FuelIcon,
   Gauge,
   MessageCircle,
   Search,
   SlidersHorizontal,
+  Settings2,
   Tag,
   X,
   Zap,
@@ -270,7 +274,7 @@ function EstoquePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <section className="relative overflow-hidden border-b border-border bg-gradient-hero">
+      <section className="relative overflow-hidden border-b border-white/[0.06] bg-[#060606]">
         {/* Background images crossfade */}
         <div className="absolute inset-0">
           <AnimatePresence mode="sync">
@@ -291,11 +295,10 @@ function EstoquePage() {
         </div>
 
         {/* Overlays — fixed for consistency */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/30" />
-        <div className="pointer-events-none absolute -right-20 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-red opacity-40 blur-2xl" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#060606] via-[#060606]/82 to-[#060606]/36" />
 
         {/* Fixed structural container — height never changes */}
-        <div className="relative mx-auto max-w-7xl px-5 py-12 md:py-16">
+        <div className="relative mx-auto max-w-[1400px] px-5 py-14 md:py-20 lg:px-10">
           <nav className="mb-3 text-xs text-muted-foreground">
             <Link to="/" className="hover:text-foreground">
               Home
@@ -318,14 +321,14 @@ function EstoquePage() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                  <span className="inline-flex items-center gap-2 border-l-2 border-primary pl-3 text-[10px] font-black uppercase tracking-[0.28em] text-primary">
                     {heroContent.eyebrow}
                   </span>
-                  <h1 className="mt-3 text-3xl font-black uppercase leading-[0.95] tracking-tight text-foreground md:text-5xl">
+                  <h1 className="mt-4 font-display text-5xl font-black uppercase leading-[0.88] text-white md:text-7xl">
                     {heroContent.title}{" "}
                     <span className="text-primary">{heroContent.highlight}</span>
                   </h1>
-                  <p className="mt-2 max-w-md text-xs text-muted-foreground md:text-sm">
+                  <p className="mt-4 max-w-md text-sm leading-[1.75] text-white/42">
                     {heroContent.subtitle}
                   </p>
                 </motion.div>
@@ -335,8 +338,8 @@ function EstoquePage() {
         </div>
       </section>
 
-      <section className="sticky top-[68px] z-30 border-b border-border bg-background/90 backdrop-blur-lg">
-        <div className="mx-auto max-w-7xl px-5 py-3">
+      <section className="sticky top-[65px] z-30 border-b border-white/[0.06] bg-[#080808]/94 backdrop-blur-xl">
+        <div className="mx-auto max-w-[1400px] px-5 py-3 lg:px-10">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -345,12 +348,12 @@ function EstoquePage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar por marca, modelo, cidade ou cor..."
-                className="w-full rounded-full border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                className="w-full rounded-none border border-white/10 bg-black/30 py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-white/24 focus:border-primary focus:outline-none"
               />
             </div>
             <button
               onClick={() => setFiltersOpen(true)}
-              className="relative flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
+              className="relative flex shrink-0 items-center gap-2 border border-white/10 bg-black/30 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
             >
               <SlidersHorizontal className="h-4 w-4" />
               Filtrar
@@ -363,7 +366,7 @@ function EstoquePage() {
             <select
               value={sort}
               onChange={(event) => setSort(event.target.value as SortKey)}
-              className="hidden rounded-full border border-border bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground focus:border-primary focus:outline-none md:block"
+              className="hidden rounded-none border border-white/10 bg-black/30 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground focus:border-primary focus:outline-none md:block"
             >
               <option value="destaque">Destaques</option>
               <option value="menor-preco">Menor preço</option>
@@ -382,7 +385,7 @@ function EstoquePage() {
                   key={filter.key}
                   type="button"
                   onClick={() => toggleQuickFilter(filter.patch)}
-                  className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                  className={`shrink-0 border px-4 py-2 text-xs font-semibold transition ${
                     isActive
                       ? "border-primary bg-primary/15 text-primary shadow-[0_0_0_1px_oklch(0.62_0.24_25/0.5)]"
                       : "border-border/60 bg-card/60 text-muted-foreground hover:border-primary/60 hover:bg-primary/10 hover:text-primary"
@@ -393,10 +396,22 @@ function EstoquePage() {
               );
             })}
           </div>
+
+          <select
+            value={sort}
+            onChange={(event) => setSort(event.target.value as SortKey)}
+            className="mt-3 w-full rounded-none border border-white/10 bg-black/30 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground focus:border-primary focus:outline-none md:hidden"
+          >
+            <option value="destaque">Destaques</option>
+            <option value="menor-preco">Menor preço</option>
+            <option value="maior-preco">Maior preço</option>
+            <option value="menor-km">Menor KM</option>
+            <option value="novos">Mais novos</option>
+          </select>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-8">
+      <section className="mx-auto max-w-[1400px] px-5 py-10 lg:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             <span className="text-2xl font-black tabular-nums text-primary">{filtered.length}</span>{" "}
@@ -412,13 +427,13 @@ function EstoquePage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+          <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
             <p className="text-base font-semibold text-foreground">
               Nenhum veículo encontrado com esses filtros.
             </p>
             <button
               onClick={reset}
-              className="mt-4 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase text-primary-foreground"
+              className="mt-4 rounded-md bg-primary px-5 py-2.5 text-xs font-bold uppercase text-primary-foreground"
             >
               Limpar filtros
             </button>
@@ -435,12 +450,12 @@ function EstoquePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.3) }}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-primary/50 hover:shadow-red"
+                  className="group flex flex-col overflow-hidden border border-white/[0.07] bg-card shadow-card transition hover:border-primary/50"
                 >
                   <Link
                     to="/veiculo/$carId"
                     params={{ carId: car.id }}
-                    className="relative block aspect-[4/3] overflow-hidden bg-muted"
+                    className="relative block aspect-[16/10] overflow-hidden bg-muted"
                   >
                     <img
                       src={primaryImage}
@@ -452,7 +467,7 @@ function EstoquePage() {
                     />
                     {car.badge && (
                       <span
-                        className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
+                        className={`absolute left-3 top-3 inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
                       >
                         <BadgeIcon icon={badgeStyle.icon} />
                         {car.badge}
@@ -464,33 +479,33 @@ function EstoquePage() {
                     <Link
                       to="/veiculo/$carId"
                       params={{ carId: car.id }}
-                      className="text-sm font-semibold uppercase tracking-tight text-muted-foreground transition hover:text-primary"
+                      className="text-sm font-semibold uppercase text-muted-foreground transition hover:text-primary"
                     >
                       {car.name}
                     </Link>
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 text-[11px] text-white/34">
                       {car.brand} - {car.color}
                     </div>
 
-                    <p className="mt-2 text-3xl font-black tabular-nums text-primary">
+                    <p className="mt-2 font-display text-3xl font-black tabular-nums text-primary">
                       {formatPrice(car.price)}
                     </p>
 
-                    <ul className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] text-foreground">
-                      <li className="flex items-center gap-1.5">
-                        <span aria-hidden>📅</span>
+                    <ul className="mt-3 grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-foreground">
+                      <li className="flex items-center gap-1.5 border border-white/10 px-2 py-1.5">
+                        <Calendar className="h-3.5 w-3.5 text-primary" />
                         <span className="tabular-nums">{car.year}</span>
                       </li>
-                      <li className="flex items-center gap-1.5">
-                        <span aria-hidden>🔢</span>
+                      <li className="flex items-center gap-1.5 border border-white/10 px-2 py-1.5">
+                        <Gauge className="h-3.5 w-3.5 text-primary" />
                         <span className="tabular-nums">{formatKm(car.mileage)}</span>
                       </li>
-                      <li className="flex items-center gap-1.5">
-                        <span aria-hidden>⚙️</span>
+                      <li className="flex items-center gap-1.5 border border-white/10 px-2 py-1.5">
+                        <Settings2 className="h-3.5 w-3.5 text-primary" />
                         <span>{car.transmission}</span>
                       </li>
-                      <li className="flex items-center gap-1.5">
-                        <span aria-hidden>⛽</span>
+                      <li className="flex items-center gap-1.5 border border-white/10 px-2 py-1.5">
+                        <FuelIcon className="h-3.5 w-3.5 text-primary" />
                         <span>{car.fuel}</span>
                       </li>
                     </ul>
@@ -505,11 +520,19 @@ function EstoquePage() {
                       onClick={() => {
                         void trackVehicleWhatsappClick(car.id, { source: "listing" });
                       }}
-                      className="mt-5 flex items-center justify-center gap-2 rounded-full bg-whatsapp py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
+                      className="mt-5 flex items-center justify-center gap-2 bg-whatsapp py-3 text-xs font-black uppercase tracking-wider text-whatsapp-foreground transition hover:brightness-110"
                     >
                       <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
                       Chamar no WhatsApp
                     </a>
+                    <Link
+                      to="/veiculo/$carId"
+                      params={{ carId: car.id }}
+                      className="mt-2 flex items-center justify-center gap-2 border border-white/10 bg-background py-3 text-xs font-black uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Ver detalhes
+                    </Link>
                   </div>
                 </motion.article>
               );
@@ -541,7 +564,7 @@ function EstoquePage() {
             />
             <button
               onClick={() => setFiltersOpen(false)}
-              className="mt-5 w-full rounded-full bg-primary py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground"
+              className="mt-5 w-full rounded-md bg-primary py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground"
             >
               Ver {filtered.length} resultados
             </button>
@@ -571,7 +594,7 @@ function FilterPanel({
   recentMinYear,
 }: FilterPanelProps) {
   return (
-    <div className="space-y-6 rounded-2xl border border-border bg-card p-5">
+    <div className="space-y-6 rounded-lg border border-border bg-card p-5">
       <div>
         <h4 className="mb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
           Categoria
@@ -682,7 +705,7 @@ function FilterPanel({
 
       <button
         onClick={onReset}
-        className="w-full rounded-full border border-border bg-background py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
+        className="w-full rounded-md border border-border bg-background py-2.5 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
       >
         Limpar filtros
       </button>
@@ -703,7 +726,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+      className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition ${
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-background text-foreground hover:border-primary"

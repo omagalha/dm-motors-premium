@@ -1,158 +1,104 @@
-import {
-  Banknote,
-  Building2,
-  Clock3,
-  RefreshCw,
-  ShieldCheck,
-  Star,
-  Trophy,
-  Users,
-  Wrench,
-} from "lucide-react";
+import { Banknote, Building2, MessageCircle, RefreshCw, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
+import heroCar from "@/assets/hero-car.jpg";
 
-const items = [
+const commitments = [
+  ["01", "Seleção rigorosa", "Inspeção criteriosa antes de cada veículo entrar no estoque."],
+  ["02", "Procedência garantida", "Histórico, documentação e apresentação tratados com transparência."],
+  ["03", "Atendimento direto", "Você fala com quem entende do carro e pode conduzir a negociação."],
+  ["04", "Financiamento ágil", "Simulação com múltiplos bancos para buscar uma condição viável."],
+];
+
+const pillars = [
   {
     icon: ShieldCheck,
-    title: "Procedência garantida",
-    desc: "Histórico e apresentação avaliados antes de cada carro entrar na vitrine.",
+    title: "Procedência validada",
+    desc: "Histórico e documentação conferidos antes do anúncio.",
   },
   {
-    icon: Wrench,
-    title: "Revisão antes da entrega",
-    desc: "Cada carro segue para a loja com um padrão mais alinhado de cuidado e entrega.",
-  },
-  {
-    icon: Banknote,
-    title: "Crédito com agilidade",
-    desc: "Análise com diferentes bancos para buscar agilidade e melhores condições.",
+    icon: MessageCircle,
+    title: "Negociação consultiva",
+    desc: "Atendimento pelo WhatsApp com informação clara e retorno rápido.",
   },
   {
     icon: RefreshCw,
     title: "Troca facilitada",
-    desc: "Seu carro atual entra na negociação com avaliação clara e mais praticidade.",
+    desc: "Avaliação do seu usado para compor uma proposta objetiva.",
   },
-];
-
-const commitments = [
-  "Loja física para ver, comparar e decidir com mais segurança.",
-  "Atendimento consultivo do primeiro contato até o fechamento.",
-  "Fotos fortes, preço claro e contato rápido no mesmo bloco.",
-  "Confiança, transparência e condições claras na negociação.",
-];
-
-const stats = [
-  { icon: Users, value: "+500", label: "clientes atendidos" },
-  { icon: Trophy, value: "+800", label: "veículos vendidos" },
-  { icon: Star, value: "4.9", label: "avaliação Google" },
-  { icon: Clock3, value: "7 dias", label: "de atendimento" },
+  {
+    icon: Banknote,
+    title: "Crédito assistido",
+    desc: "Financiamento conduzido com bancos parceiros e acompanhamento da equipe.",
+  },
 ];
 
 export function Differentials() {
   return (
-    <section className="relative overflow-hidden bg-background py-18 md:py-24">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-56 w-[48rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,oklch(0.62_0.24_25/0.14),transparent_68%)] blur-3xl" />
+    <section className="grid min-h-[720px] border-b border-white/[0.06] bg-background lg:grid-cols-2">
+      <div className="relative min-h-[420px] overflow-hidden lg:min-h-full">
+        <img
+          src={heroCar}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover opacity-64"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.12)_0%,rgba(0,0,0,0.74)_100%)]" />
+        <div className="absolute bottom-8 left-5 right-5 lg:left-10 lg:right-10">
+          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-primary">
+            DM Motors Imports
+          </p>
+          <p className="mt-3 max-w-lg text-2xl font-semibold leading-tight text-white md:text-4xl">
+            Uma compra premium começa antes da visita ao showroom.
+          </p>
+        </div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-5">
-        <div className="mb-10 grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-primary">
-              <Building2 className="h-4 w-4" />
-              Confiança antes da visita
-            </span>
-            <h2 className="mt-3 text-[2.15rem] font-black uppercase leading-[0.95] text-foreground md:text-[3rem]">
-              Confiança para visitar,
-              <br className="hidden md:block" />
-              avaliar e decidir.
-            </h2>
-            <p className="mt-4 max-w-[38rem] text-sm leading-[1.68] text-muted-foreground md:text-base">
-              Estoque atualizado, informações claras e atendimento que acompanha você em
-              cada etapa da compra.
-            </p>
-          </div>
+      <div className="flex items-center px-5 py-16 lg:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.55 }}
+          className="w-full"
+        >
+          <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.32em] text-primary">
+            <Building2 className="h-4 w-4" />
+            Sobre a experiência
+          </p>
+          <h2 className="mt-5 font-display text-5xl font-black uppercase leading-[0.9] text-white md:text-7xl">
+            Confiança
+            <br />
+            <span className="text-primary">sem ruído</span>
+          </h2>
+          <p className="mt-6 max-w-xl text-sm leading-[1.9] text-white/46 md:text-base">
+            A proposta é simples: apresentar veículos bem selecionados, com informação
+            honesta, atendimento próximo e negociação conduzida com clareza até a entrega.
+          </p>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: index * 0.05 }}
-                className="rounded-[26px] border border-white/8 bg-card px-5 py-5"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                    <stat.icon className={`h-5 w-5 ${stat.icon === Star ? "fill-current" : ""}`} />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-black uppercase text-foreground">{stat.value}</p>
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      {stat.label}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+          <div className="mt-8 grid gap-0.5 sm:grid-cols-2">
+            {commitments.map(([number, title, desc]) => (
+              <div key={number} className="bg-card p-6">
+                <p className="font-display text-xs tracking-[0.36em] text-primary">{number}</p>
+                <h3 className="mt-4 text-sm font-bold text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-[1.7] text-white/42">{desc}</p>
+              </div>
             ))}
           </div>
-        </div>
 
-        <div className="grid gap-5 lg:grid-cols-[1.02fr_0.98fr]">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="rounded-[32px] border border-white/8 bg-[linear-gradient(180deg,oklch(0.18_0.01_20)_0%,oklch(0.12_0.008_20)_100%)] p-7 md:p-9"
-          >
-            <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
-              Padrão DM Motors
-            </span>
-            <h3 className="mt-3 text-[2rem] font-black uppercase leading-[0.96] text-foreground md:text-[2.55rem]">
-              Confiança para comprar
-              <br />
-              com mais tranquilidade.
-            </h3>
-            <p className="mt-4 max-w-2xl text-sm leading-[1.7] text-muted-foreground md:text-base">
-              A DM Motors reúne atendimento direto, estoque selecionado e uma apresentação
-              pensada para facilitar sua decisão na hora de fechar negócio.
-            </p>
-
-            <div className="mt-7 grid gap-3">
-              {commitments.map((commitment) => (
-                <div
-                  key={commitment}
-                  className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-[1.6] text-white/78"
-                >
-                  {commitment}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {items.map((item, index) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: index * 0.06 }}
-                className="group rounded-[28px] border border-border bg-card p-6 transition hover:border-primary/35"
+          <div className="mt-8 flex flex-wrap gap-3">
+            <WhatsAppButton label="Falar com a equipe" />
+            {pillars.slice(0, 2).map((pillar) => (
+              <div
+                key={pillar.title}
+                className="flex items-center gap-2 border border-white/10 px-3 py-2 text-xs font-semibold text-white/54"
               >
-                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/14 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                  <item.icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-[15px] font-bold uppercase tracking-[0.08em] text-foreground">
-                  {item.title}
-                </h3>
-                <p className="mt-3 text-sm leading-[1.65] text-muted-foreground">{item.desc}</p>
-              </motion.div>
+                <pillar.icon className="h-4 w-4 text-primary" />
+                {pillar.title}
+              </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

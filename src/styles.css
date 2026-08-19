@@ -43,26 +43,26 @@
  * Inspired by TCar / WebMotors with bold Brazilian dealership energy.
  */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
   /* Surfaces */
-  --background: oklch(0.16 0.01 20);          /* near black with warm tilt */
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.20 0.012 20);
+  --background: oklch(0.125 0.006 20);
+  --foreground: oklch(0.965 0.003 80);
+  --card: oklch(0.17 0.006 20);
   --card-foreground: oklch(0.97 0 0);
   --popover: oklch(0.18 0.01 20);
   --popover-foreground: oklch(0.97 0 0);
 
   /* Brand red */
-  --primary: oklch(0.62 0.24 25);              /* vivid signal red */
+  --primary: oklch(0.54 0.19 25);
   --primary-foreground: oklch(0.99 0 0);
   --primary-glow: oklch(0.70 0.26 25);
 
-  --secondary: oklch(0.26 0.012 20);
+  --secondary: oklch(0.215 0.007 20);
   --secondary-foreground: oklch(0.97 0 0);
 
-  --muted: oklch(0.24 0.01 20);
-  --muted-foreground: oklch(0.72 0.01 20);
+  --muted: oklch(0.205 0.006 20);
+  --muted-foreground: oklch(0.70 0.008 60);
 
   --accent: oklch(0.30 0.04 25);
   --accent-foreground: oklch(0.97 0 0);
@@ -70,7 +70,7 @@
   --destructive: oklch(0.62 0.24 25);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.28 0.01 20);
+  --border: oklch(0.275 0.006 30);
   --input: oklch(0.24 0.01 20);
   --ring: oklch(0.62 0.24 25);
 
@@ -79,15 +79,14 @@
   --whatsapp-foreground: oklch(0.99 0 0);
 
   /* Gradients */
-  --gradient-red: radial-gradient(circle at 50% 50%, oklch(0.62 0.24 25 / 0.95), oklch(0.45 0.22 25 / 0.4) 55%, transparent 75%);
-  --gradient-hero: radial-gradient(ellipse at 75% 40%, oklch(0.45 0.22 25 / 0.55), transparent 60%),
-                   linear-gradient(180deg, oklch(0.18 0.01 20) 0%, oklch(0.13 0.008 20) 100%);
-  --gradient-cta: linear-gradient(135deg, oklch(0.62 0.24 25), oklch(0.55 0.24 18));
+  --gradient-red: linear-gradient(135deg, oklch(0.54 0.19 25), oklch(0.43 0.16 25));
+  --gradient-hero: linear-gradient(180deg, oklch(0.145 0.006 20) 0%, oklch(0.105 0.005 20) 100%);
+  --gradient-cta: linear-gradient(135deg, oklch(0.54 0.19 25), oklch(0.42 0.15 25));
 
   /* Shadows */
-  --shadow-red: 0 10px 40px -10px oklch(0.62 0.24 25 / 0.6);
-  --shadow-card: 0 8px 30px -10px oklch(0 0 0 / 0.6);
-  --shadow-glow: 0 0 60px oklch(0.62 0.24 25 / 0.45);
+  --shadow-red: 0 18px 46px -28px oklch(0.54 0.19 25 / 0.45);
+  --shadow-card: 0 18px 60px -42px oklch(0 0 0 / 0.9);
+  --shadow-glow: 0 0 42px oklch(0.54 0.19 25 / 0.22);
 
   /* Motion */
   --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
@@ -103,7 +102,9 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background:
+      linear-gradient(180deg, oklch(0.145 0.006 20) 0%, var(--color-background) 480px),
+      var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -111,7 +112,7 @@
 
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     line-height: 0.95;
   }
 }
@@ -123,6 +124,13 @@
   .shadow-red { box-shadow: var(--shadow-red); }
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
+  .brand-logo-glow {
+    filter:
+      drop-shadow(0 0 7px rgb(255 255 255 / 0.24))
+      drop-shadow(0 0 18px rgb(229 9 20 / 0.34))
+      drop-shadow(0 0 34px rgb(229 9 20 / 0.18));
+    animation: logo-glow 4s ease-in-out infinite;
+  }
   .text-stroke {
     -webkit-text-stroke: 1.5px oklch(0.97 0 0);
     color: transparent;
@@ -144,6 +152,26 @@
 }
 
 .animate-float { animation: float-slow 6s ease-in-out infinite; }
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes logo-glow {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 6px rgb(255 255 255 / 0.18))
+      drop-shadow(0 0 15px rgb(229 9 20 / 0.28))
+      drop-shadow(0 0 28px rgb(229 9 20 / 0.14));
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 10px rgb(255 255 255 / 0.30))
+      drop-shadow(0 0 24px rgb(229 9 20 / 0.42))
+      drop-shadow(0 0 44px rgb(229 9 20 / 0.22));
+  }
+}
 
 .scrollbar-hide {
   -ms-overflow-style: none;

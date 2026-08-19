@@ -146,7 +146,7 @@ function AdminOverview() {
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary">
             Painel · métricas reais
           </p>
-          <h1 className="mt-1.5 text-3xl font-black tracking-tight text-foreground md:text-4xl">
+          <h1 className="mt-2 font-display text-5xl font-black uppercase leading-none text-foreground md:text-6xl">
             Visão geral
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -189,15 +189,15 @@ function AdminOverview() {
       </section>
 
       {topClicked && topInsight && (
-        <section className="overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card p-5 shadow-card md:p-6">
+        <section className="overflow-hidden border border-primary/35 bg-gradient-to-br from-primary/12 via-card to-card p-5 shadow-card md:p-6">
           <div className="flex flex-col gap-5 md:flex-row md:items-center">
             <div className="relative shrink-0">
               <img
                 src={getVehiclePrimaryImage(topClicked)}
                 alt={topClicked.name}
-                className="h-32 w-full rounded-xl object-cover md:h-28 md:w-44"
+                className="h-32 w-full object-cover md:h-28 md:w-44"
               />
-              <span className="absolute -left-2 -top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary-foreground shadow-red">
+              <span className="absolute -left-2 -top-2 inline-flex items-center gap-1 bg-primary px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary-foreground shadow-red">
                 <Trophy className="h-3 w-3" /> Top do painel
               </span>
             </div>
@@ -205,18 +205,18 @@ function AdminOverview() {
               <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary">
                 <Flame className="h-3.5 w-3.5" /> Mais clicado até agora
               </p>
-              <h2 className="mt-1 text-2xl font-black uppercase tracking-tight text-foreground md:text-3xl">
+              <h2 className="mt-1 font-display text-3xl font-black uppercase leading-none text-foreground md:text-4xl">
                 {topClicked.name}
               </h2>
               <p className="text-sm text-muted-foreground">
                 {topClicked.year} · {formatPrice(topClicked.price)}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-whatsapp/15 px-3 py-1.5 font-bold text-whatsapp">
+                <span className="inline-flex items-center gap-1.5 bg-whatsapp/15 px-3 py-1.5 font-bold text-whatsapp">
                   <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
                   {topInsight.whatsappClicks} cliques
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1.5 font-bold text-primary">
+                <span className="inline-flex items-center gap-1.5 bg-primary/15 px-3 py-1.5 font-bold text-primary">
                   <Eye className="h-4 w-4" />
                   {topInsight.views.toLocaleString("pt-BR")} views
                 </span>
@@ -244,7 +244,7 @@ function AdminOverview() {
                     {topSources.map(([source, total]) => (
                       <span
                         key={source}
-                        className="rounded-full bg-background/80 px-3 py-1 text-[11px] font-semibold text-foreground"
+                        className="bg-background/80 px-3 py-1 text-[11px] font-semibold text-foreground"
                       >
                         {source} · {total}
                       </span>
@@ -256,7 +256,7 @@ function AdminOverview() {
             <Link
               to="/veiculo/$carId"
               params={{ carId: topClicked.id }}
-              className="shrink-0 rounded-full bg-primary px-5 py-3 text-center text-xs font-black uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110"
+              className="shrink-0 bg-primary px-5 py-3 text-center text-xs font-black uppercase tracking-wider text-primary-foreground shadow-red transition hover:brightness-110"
             >
               Ver veículo
             </Link>
@@ -264,7 +264,7 @@ function AdminOverview() {
         </section>
       )}
 
-      <section className="rounded-2xl border border-border bg-card p-5 shadow-card md:p-6">
+      <section className="border border-white/[0.07] bg-card p-5 shadow-card md:p-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-foreground">Atividade · 7 dias</h2>
@@ -272,7 +272,7 @@ function AdminOverview() {
               Visualizações e cliques no WhatsApp registrados no backend
             </p>
           </div>
-          <span className="hidden items-center gap-1 rounded-full bg-whatsapp/10 px-3 py-1 text-xs font-semibold text-whatsapp sm:inline-flex">
+          <span className="hidden items-center gap-1 bg-whatsapp/10 px-3 py-1 text-xs font-semibold text-whatsapp sm:inline-flex">
             <TrendingUp className="h-3.5 w-3.5" />
             dados reais
           </span>
@@ -353,7 +353,7 @@ function AdminOverview() {
             </div>
           </>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border bg-background/50 px-5 py-10 text-center">
+          <div className="border border-dashed border-border bg-background/50 px-5 py-10 text-center">
             <p className="text-sm font-semibold text-foreground">
               O gráfico vai aparecer assim que o backend acumular histórico diário.
             </p>
@@ -377,16 +377,16 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, subtext, icon, accent }: KpiCardProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
+    <div className="border border-white/[0.07] bg-card p-5 shadow-card">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] leading-snug text-muted-foreground">
           {label}
         </p>
-        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${accent}`}>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center ${accent}`}>
           {icon}
         </div>
       </div>
-      <p className="mt-4 text-4xl font-black tabular-nums leading-none text-foreground md:text-[2.75rem]">
+      <p className="mt-4 font-display text-5xl font-black tabular-nums leading-none text-foreground">
         {value.toLocaleString("pt-BR")}
       </p>
       <p className="mt-3 text-xs text-muted-foreground">{subtext}</p>
@@ -404,7 +404,7 @@ function MetricInfo({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3">
+    <div className="border border-border/60 bg-background/70 px-4 py-3">
       <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
         {icon}
         {label}

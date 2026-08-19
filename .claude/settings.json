@@ -8,7 +8,8 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Thales Magalhães\\\\OneDrive\\\\Desktop\\\\dm motors web\\\\dm-motors-premium\" -Force)",
       "Read(//c/Users/Thales Magalh�es/OneDrive/Desktop/dm motors web/**)",
       "Bash(grep -E '\\\\.\\(ts|js|html\\)$')",
-      "Bash(dir \"c:\\\\Users\\\\Thales Magalhães\\\\OneDrive\\\\Desktop\\\\dm motors web\\\\dm-motors-premium\" /b)"
+      "Bash(dir \"c:\\\\Users\\\\Thales Magalhães\\\\OneDrive\\\\Desktop\\\\dm motors web\\\\dm-motors-premium\" /b)",
+      "Bash(curl -s -X GET https://api.render.com/v1/services/srv-d7jantmgvqtc73e07gag/env-vars -H 'Authorization: Bearer rnd_CBH5xfO8ej6sLBfQuwRoj2kOfrub' -H 'Accept: application/json')"
     ]
   }
 }

@@ -89,9 +89,9 @@ function DmMotorsAiLink({
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className={`group flex items-center gap-3 rounded-2xl border border-white/8 bg-gradient-to-br from-white/[0.07] via-white/[0.04] to-transparent text-foreground transition hover:border-white/15 hover:bg-white/[0.08] ${className}`}
+      className={`group flex items-center gap-3 border border-white/8 bg-gradient-to-br from-white/[0.07] via-white/[0.04] to-transparent text-foreground transition hover:border-white/15 hover:bg-white/[0.08] ${className}`}
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-white shadow-[0_0_24px_rgba(255,255,255,0.08)]">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/10 bg-white/[0.06] text-white shadow-[0_0_24px_rgba(255,255,255,0.08)]">
         <ChatAiMark className="h-4.5 w-4.5" />
       </span>
       {!compact && (
@@ -199,10 +199,10 @@ function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#080808] text-foreground">
       <Toaster theme="dark" position="top-center" richColors />
 
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-[#060606]/92 backdrop-blur-xl">
         <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
           <div className="flex items-center gap-3">
             <button
@@ -215,7 +215,7 @@ function AdminLayout() {
             <Link to="/admin" className="flex items-baseline gap-1.5">
               <span className="text-2xl font-black tracking-[0.04em] text-primary">DM</span>
               <span className="text-lg font-black tracking-[0.24em] text-foreground">MOTORS</span>
-              <span className="ml-2 hidden rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
+                <span className="ml-2 hidden border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
                 Admin
               </span>
             </Link>
@@ -223,7 +223,7 @@ function AdminLayout() {
 
           <div className="flex items-center gap-2">
             {session?.user?.name && (
-              <div className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 md:block">
+              <div className="hidden border border-white/10 bg-white/[0.04] px-4 py-2 md:block">
                 <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
                   Sessao
                 </p>
@@ -232,14 +232,14 @@ function AdminLayout() {
             )}
             <Link
               to="/"
-              className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
+              className="inline-flex items-center gap-2 border border-white/10 px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Ver site</span>
             </Link>
             <button
               onClick={() => void handleLogout()}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
+              className="inline-flex items-center gap-2 border border-white/10 px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-destructive hover:text-destructive"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Sair</span>
@@ -249,7 +249,7 @@ function AdminLayout() {
       </header>
 
       <div className="flex">
-        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col border-r border-border/60 bg-background px-3 py-5 md:flex">
+        <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-60 shrink-0 flex-col border-r border-white/[0.07] bg-[#060606] px-3 py-5 md:flex">
           <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
             Menu
           </p>
@@ -261,14 +261,14 @@ function AdminLayout() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`group flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-sm font-semibold transition ${
+                  className={`group flex items-center gap-2.5 px-2.5 py-2.5 text-sm font-semibold transition ${
                     active
                       ? "bg-primary/12 text-foreground"
                       : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
                   }`}
                 >
                   <span
-                    className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition ${
+                    className={`inline-flex h-8 w-8 shrink-0 items-center justify-center border transition ${
                       active
                         ? "border-primary/30 bg-primary/15 text-primary"
                         : "border-white/8 bg-white/[0.03] text-muted-foreground group-hover:text-foreground"

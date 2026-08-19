@@ -29,6 +29,8 @@ import {
   ShieldCheck,
   Wrench,
   Banknote,
+  Calculator,
+  Handshake,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
@@ -136,6 +138,7 @@ function VehiclePage() {
 
   const badgeStyle = getVehicleBadgeStyle(car.badge);
   const whatsappMessage = `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`;
+  const tradeMessage = `Olá! Vi o veículo ${car.name} ${car.year} no site e quero avaliar meu usado na troca.`;
   const handleWhatsappClick = () => {
     void trackVehicleWhatsappClick(car.id, { source: "detail" });
   };
@@ -159,8 +162,8 @@ function VehiclePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <div className="border-b border-border bg-card/50">
-        <div className="mx-auto max-w-7xl px-5 py-3 text-xs text-muted-foreground">
+      <div className="border-b border-white/[0.06] bg-[#080808]">
+        <div className="mx-auto max-w-[1400px] px-5 py-3 text-xs text-white/34 lg:px-10">
           <Link to="/" className="hover:text-foreground">
             Home
           </Link>
@@ -173,10 +176,10 @@ function VehiclePage() {
         </div>
       </div>
 
-      <section className="mx-auto max-w-7xl px-5 py-6 md:py-10">
+      <section className="mx-auto max-w-[1400px] px-5 py-8 md:py-12 lg:px-10">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr]">
           <div>
-            <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+            <div className="relative overflow-hidden border border-white/[0.07] bg-card shadow-card">
               <motion.img
                 key={activeImage}
                 initial={{ opacity: 0.6, scale: 1.02 }}
@@ -191,14 +194,14 @@ function VehiclePage() {
 
               {car.badge && (
                 <span
-                  className={`absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
+                  className={`absolute left-4 top-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
                 >
                   <BadgeIcon icon={badgeStyle.icon} />
                   {car.badge}
                 </span>
               )}
 
-              <span className="absolute right-4 top-4 rounded-full bg-background/80 px-3 py-1 text-xs font-bold text-foreground backdrop-blur">
+              <span className="absolute right-4 top-4 bg-background/80 px-3 py-1 text-xs font-bold text-foreground backdrop-blur">
                 {activeImage + 1} / {gallery.length}
               </span>
 
@@ -207,14 +210,14 @@ function VehiclePage() {
                   <button
                     aria-label="Foto anterior"
                     onClick={prev}
-                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
+                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
                     aria-label="Próxima foto"
                     onClick={next}
-                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
+                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center bg-background/70 text-foreground backdrop-blur transition hover:bg-primary hover:text-primary-foreground"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
@@ -227,7 +230,7 @@ function VehiclePage() {
                 <button
                   key={`${image.url}-${index}`}
                   onClick={() => setActiveImage(index)}
-                  className={`overflow-hidden rounded-lg border-2 transition ${
+                  className={`overflow-hidden border-2 transition ${
                     activeImage === index
                       ? "border-primary opacity-100"
                       : "border-transparent opacity-60 hover:opacity-100"
@@ -246,8 +249,8 @@ function VehiclePage() {
             </div>
 
             {car.description && (
-              <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
+              <div className="mt-8 border border-white/[0.07] bg-card p-6">
+                <h2 className="font-display text-2xl font-black uppercase text-foreground">
                   Sobre este veículo
                 </h2>
                 <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
@@ -257,8 +260,8 @@ function VehiclePage() {
             )}
 
             {car.features.length > 0 && (
-              <div className="mt-6 rounded-2xl border border-border bg-card p-6">
-                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
+              <div className="mt-6 border border-white/[0.07] bg-card p-6">
+                <h2 className="font-display text-2xl font-black uppercase text-foreground">
                   Itens e opcionais
                 </h2>
                 <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -274,18 +277,18 @@ function VehiclePage() {
           </div>
 
           <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+            <div className="border border-white/[0.07] bg-card p-6 shadow-card">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 {car.brand} - {car.year}
               </p>
-              <h1 className="mt-2 text-4xl font-black uppercase leading-[0.95] tracking-tight text-foreground sm:text-5xl md:text-6xl">
+              <h1 className="mt-2 font-display text-5xl font-black uppercase leading-[0.88] text-foreground sm:text-6xl md:text-7xl">
                 {car.name}
               </h1>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {car.badge && (
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${badgeStyle.bg}`}
                   >
                     <BadgeIcon icon={badgeStyle.icon} />
                     {car.badge}
@@ -294,7 +297,7 @@ function VehiclePage() {
                 {car.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-secondary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground"
+                    className="bg-secondary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground"
                   >
                     {tag}
                   </span>
@@ -305,12 +308,46 @@ function VehiclePage() {
                 <p className="text-xs font-semibold uppercase text-muted-foreground">
                   Preço à vista
                 </p>
-                <p className="text-4xl font-black text-primary md:text-5xl">
+                <p className="font-display text-5xl font-black text-primary md:text-6xl">
                   {formatPrice(car.price)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   ou em até 60x - financiamento facilitado
                 </p>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                <a
+                  href="#simulacao"
+                  className="flex items-center gap-3 rounded-md border border-primary/35 bg-primary/10 p-3 text-left transition hover:border-primary hover:bg-primary/15"
+                >
+                  <Calculator className="h-4 w-4 shrink-0 text-primary" />
+                  <span>
+                    <span className="block text-xs font-black uppercase tracking-[0.12em] text-foreground">
+                      Simular
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      Entrada e parcelas
+                    </span>
+                  </span>
+                </a>
+                <a
+                  href={whatsappLink(tradeMessage, getVehicleWhatsappNumber(car))}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleWhatsappClick}
+                  className="flex items-center gap-3 rounded-md border border-border bg-background p-3 text-left transition hover:border-primary"
+                >
+                  <Handshake className="h-4 w-4 shrink-0 text-primary" />
+                  <span>
+                    <span className="block text-xs font-black uppercase tracking-[0.12em] text-foreground">
+                      Troca
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                      Avaliar usado
+                    </span>
+                  </span>
+                </a>
               </div>
 
               <div className="mt-5 space-y-2.5">
@@ -319,14 +356,14 @@ function VehiclePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleWhatsappClick}
-                  className="animate-pulse-whatsapp flex w-full items-center justify-center gap-2 rounded-full bg-whatsapp py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card transition hover:brightness-110"
+                  className="animate-pulse-whatsapp flex w-full items-center justify-center gap-2 bg-whatsapp py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card transition hover:brightness-110"
                 >
                   <MessageCircle className="h-5 w-5 fill-current" strokeWidth={0} />
                   Chamar no WhatsApp
                 </a>
                 <a
                   href={`tel:+${getVehicleWhatsappNumber(car)}`}
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background py-3 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
+                  className="flex w-full items-center justify-center gap-2 border border-white/10 bg-background py-3 text-xs font-bold uppercase tracking-wider text-foreground transition hover:border-primary hover:text-primary"
                 >
                   <Phone className="h-4 w-4" /> Ligar agora
                 </a>
@@ -342,14 +379,14 @@ function VehiclePage() {
                         .catch(() => {});
                     }
                   }}
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground transition hover:border-primary hover:text-foreground"
+                  className="flex w-full items-center justify-center gap-2 border border-white/10 bg-background py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground transition hover:border-primary hover:text-foreground"
                 >
                   <Share2 className="h-4 w-4" /> Compartilhar
                 </button>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="border border-white/[0.07] bg-card p-6">
               <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">
                 Ficha técnica
               </h3>
@@ -366,7 +403,7 @@ function VehiclePage() {
               </dl>
             </div>
 
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="border border-white/[0.07] bg-card p-6">
               <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">
                 Garantias DM Motors
               </h3>
@@ -402,7 +439,7 @@ function VehiclePage() {
               key={relatedVehicle.id}
               to="/veiculo/$carId"
               params={{ carId: relatedVehicle.id }}
-              className="group overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/50 hover:shadow-red"
+              className="group overflow-hidden rounded-lg border border-border bg-card transition hover:border-primary/50"
             >
               <div className="aspect-[4/3] overflow-hidden bg-muted">
                 <img
@@ -442,16 +479,25 @@ function VehiclePage() {
           </p>
           <p className="text-base font-black text-primary">{formatPrice(car.price)}</p>
         </div>
-        <a
-          href={whatsappLink(whatsappMessage, getVehicleWhatsappNumber(car))}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={handleWhatsappClick}
-          className="animate-pulse-whatsapp flex w-full items-center justify-center gap-2 rounded-full bg-whatsapp py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card"
-        >
-          <MessageCircle className="h-5 w-5 fill-current" strokeWidth={0} />
-          Chamar no WhatsApp
-        </a>
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <a
+            href={whatsappLink(whatsappMessage, getVehicleWhatsappNumber(car))}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleWhatsappClick}
+            className="animate-pulse-whatsapp flex items-center justify-center gap-2 rounded-md bg-whatsapp px-4 py-4 text-sm font-black uppercase tracking-wider text-whatsapp-foreground shadow-card"
+          >
+            <MessageCircle className="h-5 w-5 fill-current" strokeWidth={0} />
+            WhatsApp
+          </a>
+          <a
+            href="#simulacao"
+            className="flex items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-4 text-sm font-black uppercase tracking-wider text-foreground"
+            aria-label="Simular financiamento"
+          >
+            <Calculator className="h-5 w-5 text-primary" />
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -538,10 +584,10 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-5 pb-16">
+    <section id="simulacao" className="mx-auto max-w-7xl scroll-mt-24 px-5 pb-16">
       <form
         onSubmit={handleSubmit}
-        className="rounded-3xl border border-border bg-card p-5 shadow-card md:p-8"
+        className="rounded-lg border border-border bg-card p-5 shadow-card md:p-8"
       >
         <div className="border-b border-white/10 pb-6">
           <div>
@@ -574,7 +620,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
               className="simulation-range"
               aria-label="Entrada"
             />
-            <div className="mt-4 flex items-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="mt-4 flex items-center rounded-md border border-white/10 bg-white/[0.04] px-4 py-3">
               <span className="mr-2 text-sm font-semibold text-muted-foreground">R$</span>
               <input
                 type="number"
@@ -596,7 +642,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
                   key={option}
                   type="button"
                   onClick={() => setTerm(option)}
-                  className={`rounded-2xl border px-4 py-3 text-sm font-black transition ${
+                  className={`rounded-md border px-4 py-3 text-sm font-black transition ${
                     term === option
                       ? "border-primary bg-primary text-primary-foreground shadow-red"
                       : "border-border bg-background/35 text-muted-foreground hover:border-primary/45 hover:text-foreground"
@@ -608,8 +654,16 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5">
             <dl className="space-y-3 text-sm">
+              <div className="border-b border-white/10 pb-4">
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                  Parcela estimada
+                </dt>
+                <dd className="mt-1 text-3xl font-black text-primary">
+                  {formatSimulationCurrency(monthlyPayment)}
+                </dd>
+              </div>
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-muted-foreground">Valor financiado</dt>
                 <dd className="font-black text-foreground">{formatSimulationCurrency(financedValue)}</dd>
@@ -673,7 +727,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
                   ].map((option) => (
                     <label
                       key={option.value}
-                      className={`flex cursor-pointer items-center justify-center rounded-2xl border px-4 py-3 text-sm font-black transition ${
+                      className={`flex cursor-pointer items-center justify-center rounded-md border px-4 py-3 text-sm font-black transition ${
                         form.hasDriverLicense === option.value
                           ? "border-primary bg-primary text-primary-foreground shadow-red"
                           : "border-border bg-background/35 text-muted-foreground hover:border-primary/45 hover:text-foreground"
@@ -707,13 +761,13 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
           </div>
 
           {successMessage && (
-            <div className="rounded-2xl border border-primary/35 bg-primary/10 px-4 py-3 text-sm font-bold text-primary">
+            <div className="rounded-md border border-primary/35 bg-primary/10 px-4 py-3 text-sm font-bold text-primary">
               {successMessage}
             </div>
           )}
 
           {errorMessage && (
-            <div className="rounded-2xl border border-red-500/35 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-300">
+            <div className="rounded-md border border-red-500/35 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-300">
               {errorMessage}
             </div>
           )}
@@ -721,7 +775,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
           <button
             type="submit"
             disabled={submitting}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-6 py-4 text-sm font-black uppercase tracking-[0.16em] text-primary-foreground shadow-red transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Send className="h-4 w-4" />
             {submitting ? "Enviando..." : "Solicitar simulação"}
@@ -731,7 +785,7 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
         <style>{`
           .simulation-input {
             width: 100%;
-            border-radius: 1rem;
+            border-radius: 0.5rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(255, 255, 255, 0.04);
             padding: 0.95rem 1rem;
@@ -766,7 +820,7 @@ function NotFound() {
         </p>
         <Link
           to="/estoque"
-          className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 text-sm font-bold uppercase text-primary-foreground"
+          className="mt-6 inline-flex rounded-md bg-primary px-6 py-3 text-sm font-bold uppercase text-primary-foreground"
         >
           Ver estoque
         </Link>
@@ -785,7 +839,7 @@ function ErrorView({ error }: { error: Error }) {
         <p className="mt-3 text-sm text-muted-foreground">{error.message}</p>
         <Link
           to="/estoque"
-          className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 text-sm font-bold uppercase text-primary-foreground"
+          className="mt-6 inline-flex rounded-md bg-primary px-6 py-3 text-sm font-bold uppercase text-primary-foreground"
         >
           Voltar ao estoque
         </Link>

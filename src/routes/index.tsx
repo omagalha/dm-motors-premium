@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
+import { HomeTicker } from "@/components/HomeTicker";
 import { CategoryBar } from "@/components/CategoryBar";
 import { FeaturedCars } from "@/components/FeaturedCars";
 import { Differentials } from "@/components/Differentials";
+import { HowItWorks } from "@/components/HowItWorks";
 import { FinalCTA } from "@/components/FinalCTA";
 import { Footer } from "@/components/Footer";
 import { FloatingWhatsApp } from "@/components/WhatsAppButton";
@@ -51,6 +53,7 @@ function Index() {
       <Header />
       <main>
         <Hero activeCarCount={activeCarCount} />
+        <HomeTicker />
         <div className="flex flex-col">
           <div className="lg:order-2">
             <CategoryBar />
@@ -60,6 +63,7 @@ function Index() {
             <Differentials />
           </div>
         </div>
+        <HowItWorks />
         <FinalCTA />
       </main>
       <Footer />

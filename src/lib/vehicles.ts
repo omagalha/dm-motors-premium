@@ -321,14 +321,14 @@ function normalizeFuel(value: unknown): Fuel {
   if (normalized.includes("diesel")) return "Diesel";
   if (normalized.includes("gasol")) return "Gasolina";
   if (normalized.includes("flex")) return "Flex";
-  return "Nao informado";
+  return "Não informado";
 }
 
 function normalizeTransmission(value: unknown): Transmission {
   const normalized = normalizeLooseString(value);
   if (normalized.includes("manual")) return "Manual";
   if (normalized.includes("auto")) return "Automático";
-  return "Nao informado";
+  return "Não informado";
 }
 
 function normalizeCategory(value: unknown): Category {
@@ -337,7 +337,7 @@ function normalizeCategory(value: unknown): Category {
   if (normalized.includes("suv")) return "SUV";
   if (normalized.includes("sedan")) return "Sedan";
   if (normalized.includes("hatch")) return "Hatch";
-  return "Nao informado";
+  return "Não informado";
 }
 
 function normalizeStatus(value: unknown): VehicleStatus {

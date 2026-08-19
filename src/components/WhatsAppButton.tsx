@@ -11,7 +11,7 @@ interface Props {
 
 export function WhatsAppButton({
   message,
-  label = "📲 CHAMAR NO WHATSAPP",
+  label = "Chamar no WhatsApp",
   className = "",
   size = "md",
 }: Props) {
@@ -28,7 +28,7 @@ export function WhatsAppButton({
       rel="noopener noreferrer"
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
-      className={`inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp font-bold uppercase tracking-wide text-whatsapp-foreground shadow-card transition ${sizeClasses} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-md bg-whatsapp font-black uppercase tracking-[0.12em] text-whatsapp-foreground shadow-card transition ${sizeClasses} ${className}`}
     >
       <MessageCircle className="h-4 w-4 fill-current" strokeWidth={0} />
       {label}
@@ -43,7 +43,7 @@ export function FloatingWhatsApp() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chamar no WhatsApp"
-      className="animate-pulse-whatsapp fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-card transition hover:scale-110"
+      className="animate-pulse-whatsapp fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-lg bg-whatsapp text-whatsapp-foreground shadow-card transition hover:scale-110"
     >
       <MessageCircle className="h-7 w-7 fill-current" strokeWidth={0} />
     </a>
