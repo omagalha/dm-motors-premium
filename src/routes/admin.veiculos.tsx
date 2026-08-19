@@ -103,6 +103,7 @@ const transmissions: Transmission[] = ["Automático", "Manual", "Não informado"
 const fuels: Fuel[] = ["Flex", "Gasolina", "Diesel", "Não informado"];
 const categories: Category[] = ["Hatch", "Sedan", "SUV", "Picape", "Não informado"];
 const statuses: VehicleStatus[] = ["disponivel", "reservado", "vendido"];
+const DEFAULT_VEHICLE_CITY = "Santo Antônio de Pádua - RJ";
 type SubmitStatus = "idle" | "uploading_images" | "saving_vehicle";
 type ActiveFilter = "all" | "active" | "inactive";
 type FeaturedFilter = "all" | "featured" | "regular";
@@ -281,7 +282,7 @@ const emptyForm: FormState = {
   fuel: "Flex",
   category: "Hatch",
   color: "",
-  city: "",
+  city: DEFAULT_VEHICLE_CITY,
   badge: "",
   status: "disponivel",
   whatsappNumber: WHATSAPP_NUMBER,
@@ -1673,7 +1674,7 @@ function AdminVeiculos() {
         images: finalImages,
         features,
         category: form.category,
-        city: form.city.trim(),
+        city: form.city.trim() || DEFAULT_VEHICLE_CITY,
         status: form.status,
         whatsappNumber: form.whatsappNumber.trim() || WHATSAPP_NUMBER,
         tags,
@@ -2385,7 +2386,7 @@ function AdminVeiculos() {
                       type="text"
                       value={form.city}
                       onChange={(event) => setForm({ ...form, city: event.target.value })}
-                      placeholder="Ex: Juiz de Fora - MG"
+                      placeholder="Ex: Santo Antônio de Pádua - RJ"
                       className="adm-input"
                     />
                   </Field>
