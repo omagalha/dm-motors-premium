@@ -15,6 +15,7 @@ import {
 import { whatsappLink } from "@/lib/whatsapp";
 import { trackVehicleView, trackVehicleWhatsappClick } from "@/services/analyticsService";
 import { createPublicLead } from "@/services/crmService";
+import { trackMetaEvent } from "@/services/metaPixel";
 import { getVehicleById, getVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "@/types/vehicle";
 import {
@@ -134,7 +135,14 @@ function VehiclePage() {
 
   useEffect(() => {
     void trackVehicleView(car.id, { source: "detail" });
-  }, [car.id]);
+    trackMetaEvent("ViewContent", {
+      content_ids: [car.id],
+      content_name: `${car.name} ${car.year}`,
+      content_type: "vehicle",
+      currency: "BRL",
+      value: car.price,
+    });
+  }, [car.id, car.name, car.price, car.year]);
 
   const badgeStyle = getVehicleBadgeStyle(car.badge);
   const whatsappMessage = `Olá! Vi o veículo ${car.name} ${car.year} no site e tenho interesse. Ele ainda está disponível?`;
@@ -568,6 +576,14 @@ function VehicleSimulationForm({ car }: { car: Vehicle }) {
         ]
           .filter(Boolean)
           .join("\n"),
+      });
+
+      trackMetaEvent("Lead", {
+        content_ids: [car.id],
+        content_name: `${car.name} ${car.year}`,
+        content_type: "vehicle",
+        currency: "BRL",
+        value: financedValue,
       });
 
       setSuccessMessage("Sua simulação será entregue em até 30 minutos.");
