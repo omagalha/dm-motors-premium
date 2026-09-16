@@ -307,11 +307,7 @@ function EstoquePage() {
             <span className="text-foreground">Estoque</span>
           </nav>
 
-          <div className="flex min-h-[180px] flex-wrap items-end gap-x-8 gap-y-4 md:min-h-[220px]">
-            <span className="text-[5.5rem] font-black leading-[0.85] text-primary drop-shadow-[0_0_30px_oklch(0.62_0.24_25/0.4)] tabular-nums md:text-[8rem]">
-              {filtered.length}
-            </span>
-
+          <div className="flex min-h-[180px] items-end md:min-h-[220px]">
             <div className="relative flex-1 pb-2">
               <AnimatePresence mode="wait">
                 <motion.div
