@@ -408,19 +408,13 @@ function EstoquePage() {
       </section>
 
       <section className="mx-auto max-w-[1400px] px-5 py-10 lg:px-10">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            <span className="text-2xl font-black tabular-nums text-primary">{filtered.length}</span>{" "}
-            {filtered.length === 1 ? "veículo encontrado" : "veículos encontrados"}
-          </p>
-          {activeFilterCount > 0 && (
-            <div className="text-xs text-muted-foreground">
-              {filters.maxKm === 40000 && <span className="mr-2">Baixa KM</span>}
-              {filters.minYear === recentMinYear && <span className="mr-2">0 km a 5 anos</span>}
-              {filters.maxPrice && <span className="mr-2">Até {formatPrice(filters.maxPrice)}</span>}
-            </div>
-          )}
-        </div>
+        {activeFilterCount > 0 && (
+          <div className="mb-4 text-right text-xs text-muted-foreground">
+            {filters.maxKm === 40000 && <span className="mr-2">Baixa KM</span>}
+            {filters.minYear === recentMinYear && <span className="mr-2">0 km a 5 anos</span>}
+            {filters.maxPrice && <span className="mr-2">Até {formatPrice(filters.maxPrice)}</span>}
+          </div>
+        )}
 
         {filtered.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
@@ -562,7 +556,7 @@ function EstoquePage() {
               onClick={() => setFiltersOpen(false)}
               className="mt-5 w-full rounded-md bg-primary py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground"
             >
-              Ver {filtered.length} resultados
+              Ver resultados
             </button>
           </div>
         </div>
